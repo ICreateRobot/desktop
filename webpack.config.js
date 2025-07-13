@@ -91,10 +91,23 @@ module.exports = [
             })
         ],
         resolve: {
+            // alias: {
+            //     'scratch-gui$': path.resolve(__dirname, 'node_modules/scratch-gui/src/index.js'),
+            //     'scratch-render-fonts$': path.resolve(__dirname, 'node_modules/scratch-gui/src/lib/tw-scratch-render-fonts'),
+            // }
+            symlinks: false,
             alias: {
                 'scratch-gui$': path.resolve(__dirname, 'node_modules/scratch-gui/src/index.js'),
                 'scratch-render-fonts$': path.resolve(__dirname, 'node_modules/scratch-gui/src/lib/tw-scratch-render-fonts'),
-            }
+                'react': path.resolve(__dirname, 'node_modules/scratch-gui/node_modules/react'),
+                'react-dom': path.resolve(__dirname, 'node_modules/scratch-gui/node_modules/react-dom'),
+                '^react(/.*)?$': path.resolve(__dirname, 'node_modules/scratch-gui/node_modules/react$1'),
+            },
+            modules: [
+                path.resolve(__dirname, 'node_modules/scratch-gui/node_modules'), // 最高优先级
+                path.resolve(__dirname, 'node_modules'), // 主项目的 node_modules
+                'node_modules' // 默认位置
+              ]
         }
     },
 

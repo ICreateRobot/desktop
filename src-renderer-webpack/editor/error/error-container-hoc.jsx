@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'scratch-gui/node_modules/react';
 
 const ErrorContainerHOC = function (WrappedComponent) {
   class ErrorContainerComponent extends React.Component {
