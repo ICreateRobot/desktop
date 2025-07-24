@@ -86,7 +86,14 @@ module.exports = [
                     {
                         context: 'src-renderer-webpack/editor/gui/',
                         from: '*.html'
-                    }
+                    },
+
+                    { from: path.resolve(__dirname, 'src-static-resourse/assets'), to: path.resolve(__dirname, 'dist-renderer-webpack/editor/assets') },
+                    { from: path.resolve(__dirname, 'src-static-resourse/img'), to: path.resolve(__dirname, 'dist-renderer-webpack/editor/img') },
+                    { from: path.resolve(__dirname, 'src-static-resourse/js'), to: path.resolve(__dirname, 'dist-renderer-webpack/editor/js') },
+                    { from: path.resolve(__dirname, 'src-static-resourse/static'), to: path.resolve(__dirname, 'dist-renderer-webpack/editor/static') },
+                    { from: path.resolve(__dirname, 'src-static-resourse/haarcascade_frontalface_default.js'), to: path.resolve(__dirname, 'dist-renderer-webpack/editor') },
+                    { from: path.resolve(__dirname, 'src-static-resourse/haarcascade_frontalface_default.js.map'), to: path.resolve(__dirname, 'dist-renderer-webpack/editor') }
                 ]
             })
         ],
@@ -102,6 +109,7 @@ module.exports = [
                 'react': path.resolve(__dirname, 'node_modules/scratch-gui/node_modules/react'),
                 'react-dom': path.resolve(__dirname, 'node_modules/scratch-gui/node_modules/react-dom'),
                 '^react(/.*)?$': path.resolve(__dirname, 'node_modules/scratch-gui/node_modules/react$1'),
+                '@desktop':path.resolve(__dirname),
             },
             modules: [
                 path.resolve(__dirname, 'node_modules/scratch-gui/node_modules'), // 最高优先级
