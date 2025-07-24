@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>模型训练界面</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="css/ai_learn.css"/>
+  <script src="js/tfjs.js"></script>
+  <script src="sound/speech-commands.js"></script>
+  <!--<script src="knn-classifier@latest.js"></script>-->
+
+</head>
+<body >
+    <div class="topBar_back" id="back"></div>
+    <div class="topBar_bg" >
+        <div class="topBar_tilt" id="tilt">声音训练</div>
+    </div>
+    <div class="topBar_tiltEdit" id="tiltEdit"></div>
+    <div class="topBar_back_less" id="back_less3"></div>
+<!--    <div class="topBar_exportProject" id="exportProject">导出项目</div>-->
+
+    <div class="main">
+        <!--左侧-->
+        <div class='class_add'>
+            <div class="cards" id="cards-container">
+                <!-- 卡片将添加在此处 -->
+                <div class="card" id="card-1">
+                    <div class="card_top" ></div>
+                    <input type="text"  value="背景噪音" />
+                    <!--<button class="delete" onclick="deleteCard(this)">×</button>-->
+                    <button class="records" onclick="openMicro(this)">记录20秒</button>
+                    <!--<button class="upload gray" onmousedown="handleButtonStart(event)" onmouseup="handleButtonEnd(event)" ontouchstart="handleButtonStart(event)" ontouchend="handleButtonEnd(event)"></button>-->
+                    <p class="card_numText"><span class='card_numText_n'>0</span>个音频样本|至少添加20个</p>
+                    <div class="photoLibrary"> </div>
+                </div>
+                <div class="card" id="card-2">
+                  <div class="card_top"></div>
+                  <input type="text"  value="类别 2" />
+                  <button class="delete" onclick="deleteCard(this)">×</button>
+                  <button class="camera" onclick="openCamera(this)"></button>
+                  <button class="upload gray" onmousedown="handleButtonStart(event)" onmouseup="handleButtonEnd(event)" ontouchstart="handleButtonStart(event)" ontouchend="handleButtonEnd(event)"></button>
+                  <p class="card_numText"><span class='card_numText_n'>0</span>个图像样本</p>
+                  <div class="photoLibrary"> </div>
+                </div>
+            </div>
+
+            <button class="add-btn" onclick="addCard()">+ 添加一个类别</button>
+        </div>
+        <!--中间-->
+        <div class='trainingModel_bg'>
+            <div class='trainBegin_button trainGray' id="trainingModel">开始训练</div>
+            <div class='trainBegin_button trainGray' id="trainingModel_progress">
+                <span id="progressText">0%</span>
+                <div id='progressTrain'><div id='barTrain'></div></div>
+            </div>
+        </div>
+        <div class='connLine'></div>
+        <!--右侧-->
+        <div class='modelEnd_bg'>
+            <div class='model_show'>
+                <div id='showLoad'></div>
+                <video class="cameraView" width="320" height="240" id="show_cameraView"  autoplay muted></video>
+                <canvas class="cameraView" width="320" height="240" id="show_canvas" ></canvas>
+                <div class='class_show' id="class_show">
+                    <!--<div class="class_show_card" id="class_show_card-1">
+                        <div class="class_show_name" >class1</div>
+                        <div class='class_show_progressTrain'><div class='class_show_barTrain'></div></div>
+                        <div class="class_show_num" >100%</div>
+                    </div>-->
+
+
+                </div>
+
+            </div>
+            <div class='modelEnd_button exportGray' id='exportModel'>测试模型</div>
+            <div class='modelEnd_button playGray' id='playModel'>使用模型</div>
+        </div>
+    </div>
+
+
+
+    <!--相机窗口-->
+    <div class="cameraWin" id="cameraWin">
+        <!--<video class="cameraView" width="320" height="240" id="cameraView"  autoplay muted></video>
+        <canvas class="cameraView" width="320" height="240" id="canvas" ></canvas>-->
+        <div id="spectrogram">
+            <canvas id="spectrumCanvas"></canvas>
+        </div>
+        <div id="Micro_record"></div>
+        <div id="Micro_withdraw">提取样本</div>
+
+        <button id="MicroWinButton_close" class="cameraWinButton_close">×</button>
+    </div>
+
+    <!--编辑窗口-->
+    <div class="editWin" id="editWin">
+      <div class="lab">
+        <div class="labTilt">名称:</div>
+        <input type="text" id="name" />
+      </div>
+      <div class="lab">
+        <div class="labTilt">说明:</div>
+        <input type="text" id="explain"/>
+      </div>
+     <!-- <div class="editWinButton" id='editWinTrue'>确 定</div>
+      <div class="editWinButton" id='editWincancel'>取 消</div>-->
+    </div>
+
+    <!--遮罩-->
+    <div class="maskLayer" id="maskLayer"></div>
+
+    <div id="waitLoad">
+      <div class="loader"></div>
+      <h2>正在加载模型...</h2>
+    </div>
+
+
+
+</body>
+<script src="../../js/jquery.min.js"></script>
+<script src="js/ai_learn.js"></script>
+<script src="sound/model_s.js"></script>
+
+</html>

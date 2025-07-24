@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>选择模型训练界面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Permissions-Policy" content="camera=(self); microphone=(self)">
+    <link rel="stylesheet" type="text/css" href="css/ai_choice.css"/>
+</head>
+
+<body >
+
+    <div class="topBar_back" id="back"></div>
+    <div class="topBar_tilt" id="topBar_tilt">训 练 模 型</div>
+    <div class="topBar_back_less" id="back_less">分 类</div>
+
+
+    <div class="mainBody_modelClass" id="modelSelection">
+        <div class="modelClass" onclick="showProjectManagement('image')">
+            <img src="../../img/AI/modelClass_image.svg" alt="图像识别">
+            <div class="modelClass_title" id='recognize1'>图 像 识 别</div>
+        </div>
+
+        <div class="modelClass" onclick="showProjectManagement('gesture')">
+            <img src="../../img/AI/modelClass_gesture.svg" alt="手势识别">
+            <div class="modelClass_title" id='recognize2'>手 势 识 别</div>
+        </div>
+        <div class="modelClass" onclick="showProjectManagement('posture')">
+            <img src="../../img/AI/modelClass_posture.svg" alt="姿态识别">
+            <div class="modelClass_title" id='recognize3'>姿 态 识 别</div>
+        </div>
+        <div class="modelClass" id="sound">
+          <div id="gray">
+            <img src="../../img/AI/modelClass_sound.svg" alt="语音识别">
+            <div class="modelClass_title" id='recognize4'>语 音 识 别</div>
+            <!-- <div class="coming-soon">敬请期待</div> -->
+          </div>
+          
+        </div>
+    </div>
+
+
+    <div class="projectManagement" id="projectManagement">
+       
+
+        <div class='project_add'>
+          <div id='newProject'>
+            <img id="createImg" src="../../img/AI/create.png" alt="新建项目">
+          </div>
+          <div id='uploadingProject'>
+            <img id="importImg" src="../../img/AI/importProject.png" alt="导入项目">
+            <h4>导入项目</h4>
+          </div>
+      </div>
+
+      <hr>
+        <div id="projectContainer">
+          
+            <!-- <div class="card">
+                <img src="../../img/AI/图像测试.png" alt="项目图标">
+                <div class="card_title">喜怒哀乐</div>
+                <div class="card_description">说明：训练了喜怒哀乐四个表情23121321321321321321321321</div>
+                <div class = 'card_bottom'><button class="edit_button">编 辑</button></div>
+                <div class='card_del'>×</div>
+            </div> -->
+         </div>
+    </div>
+
+
+    <!--加载动画-->
+    <!--<div class="loading">
+      <div class="loading-pair">
+        <div class="point2">
+          <div class="point2-item" style="background: #94f3df;"></div>
+          <div class="point2-item" style="background: #56f3df;"></div>
+          <div class="point2-item" style="background: #05f3df;"></div>
+        </div>
+      </div>
+    </div>-->
+
+
+</body>
+<script src="../../js/jquery.min.js"></script>
+<script>
+  $('#topBar_tilt').text(window.parent.block_msg_trainingM_title);
+  $('#recognize1').text(window.parent.block_msg_recognize1);
+  $('#recognize2').text(window.parent.block_msg_recognize2);
+  $('#recognize3').text(window.parent.block_msg_recognize3);
+  $('#recognize4').text(window.parent.block_msg_recognize4);
+  $('#newProject').text(window.parent.block_msg_newModel_project);
+  $('#uploadingProject').text(window.parent.block_msg_uploadModel_project);
+
+</script>
+<script src="./utils/util.js"></script>
+<script src="js/ai_choice.js"></script>
+
+</html>

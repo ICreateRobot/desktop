@@ -1,0 +1,951 @@
+body {
+    width:100vw;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    /* position:fixed; */
+    /* overflow:hidden; */
+    max-width: 100%;
+    overflow-x: hidden;
+    background-color: #f0f3f2;
+    min-height: 100vh;
+    position: relative;
+
+}
+*{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.class_show_name {
+    white-space: nowrap;       /* 不换行 */
+    overflow: hidden;          /* 超出隐藏 */
+    text-overflow: ellipsis;   /* 显示省略号 */
+    max-width: 180px;          /* 根据你的容器大小合理设置宽度 */
+}
+
+/*---------------------------------------------头---------------------------------------------------*/
+/*顶部背景*/
+.topBar_bg{
+    background-color: #1E90FF;
+    text-align: center;
+    padding: 15px 0;
+    height: 31px;
+}
+
+/*返回*/
+.topBar_back{
+    position: absolute;
+    top:13px;
+    width:40px;
+    height:40px;
+    margin-left: 15px;
+    background:url(../../../img/AI/back.svg)  no-repeat center center;
+}
+
+/*标题*/
+.topBar_tilt{
+    margin-left:40vw;
+    width:20vw;
+    font-size: 24px;
+    background:#87CEEB;
+    color:#809591;
+    border-radius: 8px;
+}
+
+.topBar_back_less{
+    background-color: #00BFFF;
+    padding: 15px 0;
+}
+
+
+
+/*编辑标题*/
+.topBar_tiltEdit{
+    position: absolute;
+    top:13px;
+    width:30px;
+    height:30px;
+    margin-left: 61vw;
+    background:url(../../../img/AI/tiltEdit.svg)  no-repeat center center;
+}
+
+/*导出模型*/
+.topBar_exportProject{
+    text-align: center;
+    margin-top: 10px;
+    margin-left:91vw;
+    width:7vw;
+    font-size: 1.5vw;
+    color:#809591;
+    border-radius: 5px;
+    border: 2px solid #bfbfbf;
+}
+/*--------------------------------------------------------------------------------------------------*/
+
+/*-----------------------------------------修改文本弹窗-----------------------------------------------*/
+/*窗口*/
+.editWin{
+    position: absolute;
+    background-color: #fff;
+    top:70px;
+    left:30vw;
+    width:40vw;
+    height:22vh;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index:21;
+    display:none;
+}
+/*单行*/
+.lab{
+    margin-top: 4vh;
+    height: 5vh;
+    font-size:2vh;
+}
+/*行标题*/
+.labTilt{
+    display: inline-block;
+    margin-left: 2vw;
+    text-align: center;
+    width:7vw;
+    color:#38ceb1;
+    font-weight:600;
+}
+/*输入*/
+.lab input{
+    display: inline-block;
+    width:25vw;
+    height: 4vh;
+    font-size:1.5vh;
+    /*letter-spacing: 1.5px;*/
+    border-radius: 5px;
+    border: 2px solid #38ceb1;
+    outline: none;
+}
+/*按钮*/
+.editWinButton{
+    display: inline-block;
+    text-align: center;
+    margin-top: 3vh;
+    margin-left: 6vw;
+    width:7vw;
+    border: 2px solid #38ceb1;
+    height: 3vh;
+    line-height:3vh;
+    border-radius: 5px;
+    font-size:2.5vh;
+    color:#38ceb1;
+    background-color: #fff;
+}
+#editWinTrue{
+    margin-left: 10vw;
+    color:#fff;
+    background-color: #38ceb1;
+}
+/*--------------------------------------------------------------------------------------------------*/
+
+/*-----------------------------------------照片拍摄弹窗-----------------------------------------------*/
+/*相机窗口*/
+.cameraWin{
+    position: relative;
+    top: 6px;
+    background-color: #fff;
+    /* top:25vh;
+    left:calc(50% - 17vh); */
+    width:170px;
+    /* height:200px; */
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* border: 2px solid #38ceb1; */
+    display:none;
+    z-index:20;
+}
+/*相机视图*/
+.cameraView{
+    position: absolute;
+    border-radius: 15px;
+    top:0;
+    transform: scaleX(-1);
+    width: 200px;
+    height: 150px;
+    display: none;
+    /* border: 2px solid #38ceb1; */
+}
+.netCamera{
+    position: absolute;
+    border-radius: 15px;
+    top:0;
+    transform: scaleX(-1);
+    width: 200px;
+    height: 150px;
+    display: none;
+}
+/* #canvas1{
+    height: 20px;
+    width: 20px;
+    background-color: #ddb28e;
+} */
+
+/*切换按钮*/
+/* #cameraWinButton_cut{
+    position: absolute;
+    text-align: center;
+    border: 2px solid #38ceb1;
+    top:260px;
+    left:50px;
+    width: 10vh;
+    height: 6vh;
+    border-radius: 10px;
+    background-color: #fff;
+    background:url(../../../img/AI/cameraCut.svg)  no-repeat center center;
+    background-size: calc(50%) ;
+} */
+/*拍摄按钮*/
+/* #cameraWinButton_shoot{
+    position: absolute;
+    text-align: center;
+    border: 2px solid #bffdf1;
+    top:260px;
+    right:50px;
+    width: 10vh;
+    height: 6vh;
+    border-radius: 10px;
+    background:url(../../../img/AI/upload.svg)  no-repeat center center;
+    background-color: #bffdf1;
+    background-size: calc(37%) ;
+} */
+/*关闭按钮*/
+.cameraWinButton_close{
+    position: absolute;
+    top: 0;
+    right: -20px;
+    color: #e62c0d;
+    border: none;
+    width: 3vh;
+    height: 3vh;
+    cursor: pointer;
+    
+    /* top: 1vh;
+    right: 1vh; */
+    font-size:4vh;
+    background-color: transparent;
+    /* z-index: 30; */
+}
+/*--------------------------------------------------------------------------------------------------*/
+
+/*----------------------------------------------主功能-----------------------------------------------*/
+.main{
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    margin-top: 0.5vh;
+
+}
+/*左侧*/
+.class_add{
+    width: 40vw;
+    height: 85vh;
+    padding-right:2vw;
+    margin-left:3vw;
+    margin-top: 8vh;
+    overflow-y:auto;
+}
+/* 自定义滚动条样式 */
+.container::-webkit-scrollbar {
+    width: 12px; /* 滚动条宽度 */
+}
+.container::-webkit-scrollbar-track {
+    background: #f1f1f1; /* 滚动条轨道颜色 */
+}
+.container::-webkit-scrollbar-thumb {
+    background: #888; /* 滚动条滑块颜色 */
+}
+.container::-webkit-scrollbar-thumb:hover {
+    background: #555; /* 滚动条滑块hover颜色 */
+}
+
+.cards {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    /* width: 100px; */
+}
+
+/*卡片*/
+.card {
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border-radius: 8px;
+    /* border: 2px solid #00BFFF; */
+    /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); */
+    box-shadow:0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+    align-items: flex-start;
+    position: relative;
+    height: 35vh;
+    /* width: 460px; */
+    width: 37vw;
+
+}
+.card_top {
+    position: absolute;
+    /* background-color: #3498db; */
+    height:6vh;
+    width:100%;
+    top:-1px;
+    border-top-left-radius: 5px;   /* 设置左上角圆角 */
+    border-top-right-radius: 5px;  /* 设置右上角圆角 */
+     /* border-right: 1px solid #3498db; */
+}
+.card input{
+    position: relative;
+    width:10vw;
+    height:3vh;
+    padding:0.4vh;
+    margin-top:1vh;
+    margin-left:1vh;
+    font-size: 2vh;
+
+    /* background:	#87CEFA	; */
+    color:black;
+    border-radius: 8px;
+    border: 0px;
+    text-align:center;
+    outline: none;
+
+}
+/*相机*/
+.card .camera{
+    margin-top:1vh;
+    background:url(../../../img/AI/camera.svg)  no-repeat center center;
+    background-size: calc(35%) ;
+    margin-left:1vh;
+    width:6vw;
+    height:9vh;
+    border: 3px solid white;
+    background-color: 	#87CEFA;/*bffdf1*/
+}
+
+/*相机*/
+.card .upFile{
+    margin-top:1vh;
+    background:url(../../../img/AI/upFile.svg)  no-repeat center center;
+    background-size: calc(35%) ;
+    margin-left:1vh;
+    width:6vw;
+    height:9vh;
+    border: 3px solid white;
+    background-color: 	#87CEFA;/*bffdf1*/
+}
+/*上传*/
+.card .upload{
+    position: relative;
+    top: 160px;
+    left: 15px;
+    /* margin-top:4vh; */
+    /* background:url(../../../img/AI/upload.svg)  no-repeat center center; */
+    background-size: calc(35%) ;
+    /* margin-left:1vh; */
+    width:12vw;
+    height:3.5vh;
+    border: 0px;
+    background-color: #68bef7;
+    display: none;
+    box-shadow:0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+    border-radius: 30px;
+}
+.gray{
+    filter: grayscale(100%); /* 将背景图标和颜色变灰 */
+     pointer-events: none; /* 禁用所有事件 */
+     opacity: 0.6;
+}
+/*模型数量统计*/
+.card_numText{
+    position: absolute;
+    width: 20.5vw;
+    height: 2.5vh;
+    left: 16vw;
+    top: 5.5vh;
+    font-size:1.5vh;
+    letter-spacing: 2px;
+    padding-left: 1vw;
+    font-weight: 600;
+    color: #797878;
+}
+/*照片区*/
+.photoLibrary{
+    position: absolute;
+    width: 19vw;
+    height: 18.5vh;
+    left: 17vw;
+    top: 10vh;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: flex-start;
+    overflow-y: scroll;
+    /* border: 3px solid rgb(219, 30, 30); */
+}
+.photoLibrary_b{
+    border: 2px solid #e3b214bd;
+    border-radius: 7px;
+}
+
+/*照片*/
+.photo{
+    width: 7.2vh;
+    height: 5.4vh;
+    /*background-color: #ff0000;*/
+    margin: 0.5vh 0.3vw;
+    transform: scaleX(-1);
+    transition: transform 0.2s;
+}
+/*删除照片*/
+.img_del{
+    color: #ff4d4d;
+    border: none;
+    width: 2vh;
+    height: 2vh;
+    cursor: pointer;
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    text-align: center;
+    line-height:2vh;
+}
+/*删除卡片*/
+.card .delete {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 3vh;
+    height: 3vh;
+    cursor: pointer;
+    position: absolute;
+    top: 1vh;
+    right: 1vh;
+}
+
+/*############################################中间*/
+.trainingModel_bg{
+    /* border: 2px solid #38ceb1; */
+    width: 16vw;
+    /* height: 30vh; */
+    margin-left:6vw;
+    text-align: center;
+
+
+    background-color: white;
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    font-family: sans-serif;
+    position: relative;
+    top: 150px;
+}
+#epo{
+    width: 30px;
+}
+#speed{
+    width: 30px;
+}
+/*开始训练*/
+.trainBegin_button{
+    display: inline-block;
+    text-align: center;
+    margin-top: 2vh;
+    margin-right: 1vh;
+    margin-bottom: 3vh;
+    width: 10vw;
+    height: 5vh;
+    line-height:4vh;
+    border-radius: 9px;
+    font-size:2vh;
+    color:#fff;
+    cursor: pointer;
+    background-color: #00BFFF;
+}
+#trainText{
+    margin-top: 0;
+    text-align: left;
+}
+/*灰色*/
+.trainGray {
+    background-color: gray;
+}
+/*训练进度*/
+#trainingModel_progress{
+    /* background-color: #a0e8da; */
+    color:#acabab;
+    font-size:1.5vh;
+    line-height:4vh;
+    /* display:none; */
+}
+/*进度条_框*/
+#progressTrain{
+    width:12vw;
+    height: 1.5vh;
+    margin-left:1.5vw;
+    /*margin-top:3vh;*/
+    background-color: #f4f0f000;
+    text-align: center;
+    border-radius: 15px;
+    border: 1px solid #acabab;
+}
+/*进度条_块*/
+#barTrain{
+    width: 0;
+    height: 100%;
+    background-color: #acabab;
+    border-radius: 15px;
+}
+/*连接线*/
+.connLine{
+    width: 8vw;
+    height: 40vh;
+    margin-top:30vh;
+    margin-left:1vw;
+    border-top: 2px solid #00BFFF;
+}
+
+
+.advanced-container {
+    margin-top: 15px;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    font-size: 14px;
+}
+
+.advanced-toggle {
+    padding: 12px;
+    background: #f3f8fc;
+    border: 1px solid #cce2f3;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+
+.advanced-settings {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding: 0 12px;
+}
+
+.advanced-settings.expanded {
+    max-height: 500px; /* 足够展示内容即可 */
+    padding: 10px 12px;
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.setting-row label {
+    flex: 0 0 80px;
+}
+
+.setting-row input,
+.setting-row select {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.help-icon {
+    margin-left: 8px;
+    color: #999;
+    cursor: help;
+    font-weight: bold;
+}
+
+.setting-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    gap: 10px;
+}
+
+.reset-button,
+.learn-more-button {
+    flex: 1;
+    padding: 8px 10px;
+    background-color: transparent;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    color: #666;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reset-button .icon,
+.learn-more-button .icon {
+    margin-left: 6px;
+}
+
+
+
+/*#############################################################右侧*/
+.modelEnd_bg{
+    width:  30vw;
+    height: 80vh;
+    margin-left: 0.5vw;
+}
+/*展示框*/
+.model_show{
+    width: 320px;
+    height: 520px;
+    background-color: white;
+    border-radius: 12px;
+    margin-top: 5vh;
+    border: 2px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 添加柔和阴影 */
+}
+#showLoad{
+    width: 320px;
+    height: 420px;
+    background-color: white;
+    border-radius: 12px;
+    position: absolute;
+    z-index: 10;
+}
+#show_cameraView{
+/*background:#ff0000;*/
+    position: absolute;
+    border-radius: 15px;
+    top:254px;
+    transform: scaleX(-1);
+    /* border: 2px solid #38ceb1; */
+    z-index: 50;
+    display: none;
+}
+#show_netCamera{
+    position: absolute;
+    border-radius: 15px;
+    top:254px;
+    transform: scaleX(-1);
+    /* border: 2px solid #38ceb1; */
+    z-index: 50;
+    display: none;
+}
+#show_canvas{
+    position: absolute;
+    border-radius: 15px;
+    top:254px;
+    transform: scaleX(-1);
+    /* border: 2px solid #38ceb1; */
+    z-index: 50;
+}
+/*类展示*/
+.class_show{
+    width: 310px;
+    height: 150px;
+    margin-top: 300px;
+    margin-left: 5px;
+    overflow-y: auto;
+}
+/*类卡*/
+.class_show_card{
+    width: 310px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 5px;
+    position: relative;
+
+}
+/*标题*/
+.class_show_name{
+    position: absolute;
+    width: 70px;
+    height: 40px;
+    text-align:center;
+    line-height:40px;
+}
+/*占比*/
+.class_show_progressTrain{
+    position: absolute;
+    width: 188px;
+    height: 15px;
+    left: 72px;
+    top: 12px;
+    border-radius: 20px;
+    background-color: #fff;
+    border: 1px solid #00BFFF;
+}
+.class_show_barTrain{
+    width:0%;
+    height: 15px;
+    border-radius: 20px;
+    background-color: #00BFFF;
+}
+.class_show_num{
+    position: absolute;
+    width: 55px;
+    height: 40px;
+    left: 262px;
+    text-align:center;
+    line-height:40px;
+}
+/*按钮*/
+.modelEnd_buttons {
+    display: flex;
+    justify-content: space-between; /* 两侧靠紧父级 */
+    align-items: center; /* 垂直居中对齐 */
+    width: 100%; /* 父级宽度 */
+    max-width: 320px;
+    height: 4vh;
+    padding: 0 10px; /* 添加左右内边距，避免贴边 */
+    box-sizing: border-box; /* 确保宽度包含内边距 */
+    margin-top: 5vh;
+}
+
+.save-project{
+    position: relative;
+    left: 200px;
+    text-align: center;
+    width: 12vh; /* 自动适应内容宽度 */
+    height: 4vh;
+    line-height: 4vh;
+    border: 2px solid #00BFFF;
+    border-radius: 4px;
+    font-size: 2vh;
+    color: #00BFFF;
+    background-color: #fff;
+    padding: 0 15px; /* 添加左右内边距，增加可点击区域 */
+    transition: background-color 0.3s ease, color 0.3s ease; /* 添加过渡效果 */  
+}
+.select-camera{
+    position: relative;
+    left: -100px;
+    text-align: center;
+    width: 12vh; /* 自动适应内容宽度 */
+    height: 4vh;
+    line-height: 4vh;
+    border: 2px solid #00BFFF;
+    border-radius: 4px;
+    font-size: 2vh;
+    color: #00BFFF;
+    background-color: #fff;
+    padding: 0 15px; /* 添加左右内边距，增加可点击区域 */
+    transition: background-color 0.3s ease, color 0.3s ease; /* 添加过渡效果 */  
+}
+
+.save-project, .select-camera {
+    display: inline-block;
+    vertical-align: middle; /* 可选，对齐更整齐 */
+}
+.modelEnd_button{
+    text-align: center;
+    width: auto; /* 自动适应内容宽度 */
+    height: 4vh;
+    line-height: 4vh;
+    border: 2px solid #00BFFF;
+    border-radius: 4px;
+    font-size: 2vh;
+    color: #00BFFF;
+    background-color: #fff;
+    padding: 0 15px; /* 添加左右内边距，增加可点击区域 */
+    transition: background-color 0.3s ease, color 0.3s ease; /* 添加过渡效果 */
+}
+#playModel{
+    color:#fff;
+    background-color: #00BFFF;
+}
+/*灰色*/
+.exportGray {
+    color: gray;
+    border: 2px solid gray;
+}
+.playGray {
+    background-color: gray !important;
+    border: 2px solid gray;
+}
+
+/*添加类*/
+.add-btn {
+    background-color: #00BFFF;
+    color:#fff;
+    padding: 1.5vh 0;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+    font-size: 2.5vh;
+    margin-top:3vh;
+}
+
+.preview_header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 8px 4px 0;
+  }
+  
+  .preview_title {
+    font-weight: bold;
+    font-size: 20px;
+    color: #acabab;
+  }
+  
+  .camera_select_group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .camera_select_group label {
+    font-weight: bold;
+    color: #acabab;
+  }
+  
+  .camera_select_group select {
+    padding: 4px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+
+/*----------------------------------------------遮罩层-----------------------------------------------*/
+/*遮罩*/
+.maskLayer{
+    position: absolute;
+    top:0;
+    background-color: #72727245;
+    width:100vw;
+    height:100vh;
+    z-index:10;
+    display:none;
+}
+/* 全屏遮罩样式 */
+#waitLoad {
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+}
+
+/* 隐藏加载遮罩 */
+#waitLoad.hidden {
+    display: none;
+}
+
+/* 加载动画样式 */
+.loader {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+/* 文本样式 */
+#waitLoad p {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #333;
+}
+
+/* 旋转动画 */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/*-------------------------------------------------------------------------声音界面特有------------------------------------------------------------*/
+.card .records{
+    margin-top:3.5vh;
+    background-size: calc(35%) ;
+    margin-left:1vh;
+    width:10vw;
+    height:20vh;
+    border: 0px;
+    font-size:2vh;
+    color:#808080;
+    background-color: #bffdf1;
+}
+/*频谱图背景*/
+#spectrogram{
+    width: 80%;
+    height: 30%;
+   /* background-color: #d2e3fc;*/
+    /*border: 1px solid #444;*/
+    margin-top: 20%;
+    margin-left: 10%;
+    /*overflow-x: scroll;*/
+    overflow: hidden;
+    display: flex;
+    flex-direction: row; /* 保持水平排列 */
+    white-space: nowrap; /* 防止子元素换行 */
+    scroll-behavior: smooth;
+}
+#spectrumCanvas{
+    width: 100%;
+    height: 100%;
+    padding-left:10%;
+}
+.segment {
+    border: 1px solid #fff;
+    width: calc(4.5vw - 2px);
+    height: 95%;
+    background-color: #000;
+}
+/*录制按钮*/
+#Micro_record{
+    position: absolute;
+    text-align: center;
+    top:260px;
+    left:50px;
+    width: 10vh;
+    height: 6vh;
+    border-radius: 10px;
+    background-color: #38ceb1;
+    font-size:1.2vh;
+    line-height:6vh;
+    color:#fff;
+}
+/*提取按钮*/
+#Micro_withdraw{
+    position: absolute;
+    text-align: center;
+    top:260px;
+    right:50px;
+    width: 10vh;
+    height: 6vh;
+    border-radius: 10px;
+    background-color: #808080;
+    font-size:1.2vh;
+    line-height:6vh;
+    color:#fff;
+}
+

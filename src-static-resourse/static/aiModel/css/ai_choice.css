@@ -1,0 +1,303 @@
+body {
+    width:100vw;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+   /* background-color: #f0f0f0;*/
+    margin: 0;
+    padding: 0;
+    position:fixed;
+    overflow:hidden;
+    max-width: 100%;
+    overflow-x: hidden;
+
+}
+*{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+/*---------------------------------------------头---------------------------------------------------*/
+/*返回*/
+.topBar_back{
+    position: absolute;
+    top:4px;
+    width:40px;
+    height:40px;
+    margin-left: 15px;
+    background:url(../../../img/AI/back.svg)  no-repeat center center;
+}
+
+/*标题*/
+.topBar_tilt{
+    background-color: #1E90FF;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 19px;
+}
+
+.topBar_back_less{
+    background-color: #00BFFF;
+    padding: 15px 0;
+    color: white;
+    font-size: 16px;
+    padding-left: 40px; /* 设置左侧距离，比如 20px */
+}
+/*--------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------类别选择主体----------------------------------------------------*/
+/*主体*/
+.mainBody_modelClass{
+    display: flex;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    margin-top: 70px;;
+}
+/*类别*/
+.modelClass{
+   /* width: 230px;
+    height: 235px;*/
+    flex: 1 1 calc(20% - 20px); /* 每个元素占20%，减去gap的影响 */
+    max-width: 230px; /* 防止过大 */
+    height: auto; /* 高度自适应 */
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 0 25px;
+    text-align: center;
+    /*padding: 20px;*/
+    transition: transform 0.2s;
+    
+}
+#gray {
+    width: 230px;
+    height: 200px;
+}
+#gray img {
+    opacity: 0.2; /* 让图片也变灰 */
+}
+
+.coming-soon {
+    position: relative;
+    bottom: 100px;
+    right: 10px;
+    font-size: 14px;
+    color: rgb(241, 14, 14); /* 字体颜色 */
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+.modelClass:hover {
+    transform: translateY(-10px);
+}
+.modelClass img {
+    /*width: 230px;
+    height: 179px;*/
+    width: 100%;
+        height: auto;
+   max-height: 179px; /* 限制图片最大高度，避免撑开 */
+}
+.modelClass_title {
+    margin-top: 10px;
+     margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+     word-break: break-word; /* 防止文字溢出 */
+}
+/*--------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------项目管理主体----------------------------------------------------*/
+.projectManagement{
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    margin-top: 2vh;
+    display:none;
+}
+.project_add{
+    width: 10vw;
+    height: 70vh;
+    padding-right:2vw;
+    margin-left:5vw;
+    margin-top:6vw;
+    display: flex; /* 添加这句，使子元素横向排列 */
+    gap: 20px; /* 可选：两个元素之间的间距 */
+    /* border-right: 1px solid #dfe4e4; */
+}
+.button {
+    width:9vw;
+    height:4vh;
+    font-size:3vh;
+    padding: 10px;
+    background-color: #fff;
+    color: #36C2B4;
+    border: 2px solid #36C2B4;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    margin-top: 6vh;
+    text-align: center;
+}
+
+#createImg{
+    width: 220px;
+    height: 240px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* 四边阴影 */
+    border-radius: 8px; /* 可选：加圆角 */
+    cursor: pointer;
+}
+#uploadingProject{
+    width: 220px;
+    height: 240px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* 四边阴影 */
+    border-radius: 8px; /* 可选：加圆角 */
+}
+#importImg{
+    cursor: pointer;
+    width: 220px;
+    height: 150px;
+   
+}
+#projectContainer{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: flex-start;
+    justify-content: flex-start;
+    width: 120vw;
+    height: 35vh;
+
+    margin-top: 45vh;
+    overflow-y:auto;
+    /* border: 2px solid #c23636; */
+    position: relative;
+    left: -13vw;
+}
+.card {
+    width: 27vh;
+    height: 30vh;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 2vh 1vw;
+    text-align: left;
+    transition: transform 0.2s;
+    position: relative;
+}
+.card img {
+    width: 27vh;
+    height: 10vh;
+    margin-top: 1vh;
+}
+.card_title {
+    font-size: 2vh;
+    color: #333;
+    margin: 1vh 10px;
+}
+.card_description {
+    font-size: 1vh;
+    width: 25vh;
+    height: 1.5vh;
+    color: #777;
+    margin-left:10px;
+    margin-bottom: 1vh;
+    overflow: hidden;               /* 隐藏超出内容 */
+    white-space: nowrap;           /* 不换行 */
+    text-overflow: ellipsis;       /* 超出部分用省略号表示 */
+}
+.card_bottom{
+    text-align: center;
+    margin-top:1vh;
+}
+.edit_button {
+    font-size: 1.8vh;
+    background-color: #65d0fc;
+    color: white;
+    padding: 0.5vh 1vh;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+}
+.card_del{
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 3vh;
+    height: 3vh;
+    cursor: pointer;
+    font-size:2.4vh;
+    line-height:3vh;
+    text-align:center;
+    position: absolute;
+    top: 0.5vh;
+    right: 0.5vh;
+}
+/*--------------------------------------------------------------------------------------------------*/
+.loading {
+  background-color: #ffffff;
+  position: absolute;
+  display: block;
+  top: 0%;
+  left: 0%;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: none;
+  z-index:1000;
+}
+
+
+
+.loading-pair {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+.point2 {
+    display: flex;
+    justify-content: space-around;
+    width: 50%;
+}
+
+.point2-item {
+    height: 50px;
+    width: 50px;
+    /*background: #f6b352;*/
+    border-radius: 100%;
+    animation: point2 1.2s infinite ease-in-out;
+
+}
+
+@keyframes point2 {
+    0% {
+        transform: scale(1.2);
+    }
+
+    50% {
+        transform: scale(0.1);
+    }
+
+    100% {
+        transform: scale(1.2);
+    }
+}
+
+.point2-item:nth-child(1) {
+    animation-delay: -1s;
+}
+
+.point2-item:nth-child(2) {
+    animation-delay: -0.8s;
+}
+
+.point2-item:nth-child(3) {
+    animation-delay: -0.6s;
+}
