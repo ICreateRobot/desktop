@@ -73,7 +73,10 @@ const FILE_SCHEMES = {
   'tw-file-access': {
     root: path.resolve(__dirname, '../src-renderer/file-access'),
     csp: "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'"
-  }
+  },
+  'master': {
+    root: path.resolve(__dirname, '../src-renderer/master')
+  },
 };
 
 const MIME_TYPES = new Map();
@@ -101,6 +104,12 @@ MIME_TYPES.set('.hex', 'application/octet-stream');
 MIME_TYPES.set('.zip', 'application/zip');
 MIME_TYPES.set('.xml', 'text/xml');
 MIME_TYPES.set('.md', 'text/markdown');
+MIME_TYPES.set('.wasm', 'application/wasm');
+MIME_TYPES.set('.bin', 'application/octet-stream');
+MIME_TYPES.set('.pb', 'application/octet-stream'); // 添加 .pd 文件支持
+MIME_TYPES.set('.css', 'text/css');
+MIME_TYPES.set('', 'application/octet-stream');
+MIME_TYPES.set('.tflite', 'application/octet-stream');
 
 protocol.registerSchemesAsPrivileged(Object.entries(FILE_SCHEMES).map(([scheme, metadata]) => ({
   scheme,
