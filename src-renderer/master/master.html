@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'"> -->
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: black;
+        background-color: white;
+        accent-color: #ff4c4c;
+      }
+      main {
+        padding: 20px;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 100vh;
+        border: 20px solid hsla(0, 100%, 65%, 1);
+      }
+      .title {
+        margin-top: 0;
+      }
+      label {
+        display: block;
+        margin: 0.5rem 0;
+      }
+      .label {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+      }
+      select {
+        width: 100%;
+        font: inherit;
+      }
+      button {
+        display: block;
+        cursor: pointer;
+        font: inherit;
+        margin: 0.5rem 0;
+      }
+      .warning {
+        background-color: yellow;
+        color: black;
+        border: 1px solid black;
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+
+      table {
+            border-collapse: collapse;
+            width: 100%;
+      }
+      td {
+          padding: 10px;
+          border: none;
+          width: 30%;
+          height: 200px;
+          position: relative; /* 设置父容器相对定位 */
+      }
+      .cell-content {
+          display: block;
+          border-radius: 10px;
+          border: 1px solid #ccc;
+          text-align: center;
+          cursor: pointer;
+          width: 100%;
+          height: 100%;
+          position: relative; /* 设置父容器相对定位 */
+      }
+      /* .cell-content img {
+          border-radius: 10px 10px 0 0;
+          height: 80%;
+          width: 80%;
+      } */
+
+      #img1{
+        /* border-radius: 10px 10px 0 0; */
+        height: 70%;
+        width: 70%;
+        padding-top: 20px;
+        /* position: absolute;
+        top: 100px; */
+      }
+      #img2{
+        border-radius: 10px 10px 0 0;
+        height: 70%;
+        width: 80%;
+        padding-top: 20px;
+      }
+      #img3{
+        border-radius: 10px 10px 0 0;
+        height: 60%;
+        width: 90%;
+        padding-top: 20px;
+      }
+      .cell-content p {
+          margin: 0;
+          padding: 10px;
+          border-radius: 10px;
+          background-color: #f0f0f0;  /* 淡灰色背景 */
+      }
+        /* 红色圆形叉号 */
+      .close-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%); /* 完全居中 */
+        background-color: white;
+        color: red;
+        font-size: 20px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: none; /* 默认隐藏 */
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        z-index: 10;
+        border: 2px solid red;
+        font-weight: bold;
+      }
+
+
+      /* 半透明遮罩层 */
+    .overlay {
+      position: absolute;
+      top: 38px;
+      left: 0;
+      width: 100%;
+      height: 85%;
+      background-color: rgba(0,0,0,0.4);  /* 半透明黑色 */
+      display: none;  /* 默认隐藏 */
+      z-index: 5;
+      border-radius: 10px;
+      
+    }
+      /* #master{
+        height: 65%;
+        width: 100%;
+        position: relative;
+        top: 50px;
+      } */
+      /* #p_master{
+        position: relative;
+        bottom: -10;
+      } */
+    </style>
+  </head>
+  <body>
+
+      <div id="bnContainer">
+
+        <table>
+            <tr>
+                <td>
+                    <div id="content1" onclick="select(1)" class="cell-content">
+                        <p>ICBricks</p>
+                        <div class="overlay" id="overlay1"></div>
+                        <div id="close1" class="close-btn" onclick="closeButton(1,event)">-</div>
+                        <img id="img1" src="./images/bricks.png" alt="图片1" width="100%">
+                        
+                    </div>
+                </td>
+                <td>
+                    <div id="content2" onclick="select(2)" class="cell-content">
+                        <p>ICRobot</p>
+                        <div class="overlay" id="overlay2"></div>
+                        <div id="close2" class="close-btn" onclick="closeButton(2,event)">-</div>
+                        <img id="img2" src="./images/robot.png" alt="图片2" width="100%">
+                        
+                    </div>
+                </td>
+                <td>
+                    <div id="content3" onclick="select(3)" class="cell-content">
+                        <p id="p_master">Microbit</p>
+                        <div class="overlay" id="overlay3"></div>
+                        <div id="close3" class="close-btn" onclick="closeButton(3,event)">-</div>
+                        <img id="img3" src="./images/microbit.png" alt="图片3" width="100%">
+                        
+                    </div>
+                </td>
+            </tr>
+        </table>
+        
+      </div>
+      <script>
+        
+        let closeBn=[false,false,false]
+
+        let getClose=master.getCloseBn()
+        console.log(getClose.close)
+        // let channel=new BroadcastChannel('isAddMaster')
+
+        for(let i=0;i<getClose.close.length;i++){
+          if(getClose.close[i]){
+            const closeBtn = document.getElementById("close" + Number(i+1));
+            closeBtn.style.display = "flex"; // 显示叉号按钮
+            document.getElementById("overlay" + Number(i+1)).style.display = "block";
+          }
+        }
+
+        function select(num){
+            console.log(num);
+            if(getClose.close[num-1]){
+              return
+            }
+            
+            // setExtension(num)
+
+            const closeBtn = document.getElementById("close" + num);
+            closeBtn.style.display = "flex"; // 显示叉号按钮
+            document.getElementById("overlay" + num).style.display = "block";
+
+            closeBn[num-1]=true
+            master.sendCloseBn(closeBn)
+            master.sendMaster(num)
+            
+
+            // channel.postMessage(closeBn)
+            
+        }
+
+        function closeButton(num,event) {
+          event.stopPropagation();
+          const closeBtn = document.getElementById("close" + num);
+          closeBtn.style.display = "none"; // 隐藏叉号按钮
+          document.getElementById("overlay" + num).style.display = "none";
+
+          closeBn[num-1]=false
+          master.sendCloseBn(closeBn)
+          // channel.postMessage(closeBn)
+          getClose=master.getCloseBn()
+        }
+       
+      </script>
+
+    <!-- </main> -->
+  </body>
+</html>

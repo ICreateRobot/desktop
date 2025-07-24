@@ -8,12 +8,14 @@ import CloudProviderHOC from './cloud-provider-hoc.jsx';
 import {showOpenFilePicker, showSaveFilePicker} from './filesystem-api.js';
 import './normalize.css';
 import './gui.css';
+import MasterHOC from './master-hoc.jsx';
 
 const WrappedGUI = compose(
   ErrorContainerHOC,
   AppStateHOC,
   DesktopHOC,
-  CloudProviderHOC
+  CloudProviderHOC,
+  MasterHOC
 )(GUI);
 
 const GUIWithProps = () => (

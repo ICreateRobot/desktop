@@ -19,6 +19,7 @@ const privilegedFetch = require('../fetch');
 const RichPresence = require('../rich-presence.js');
 const FileAccessWindow = require('./file-access-window.js');
 const ExtensionDocumentationWindow = require('./extension-documentation.js');
+const MasterWindow = require('./master.js')
 
 const TYPE_FILE = 'file';
 const TYPE_URL = 'url';
@@ -523,6 +524,10 @@ class EditorWindow extends ProjectRunningWindow {
       AboutWindow.show();
     });
 
+    this.ipc.handle('open-master-window', () => {
+      MasterWindow.show();
+      
+    });
     this.ipc.handle('get-advanced-customizations', async () => {
       const USERSCRIPT_PATH = path.join(app.getPath('userData'), 'userscript.js');
       const USERSTYLE_PATH = path.join(app.getPath('userData'), 'userstyle.css');
