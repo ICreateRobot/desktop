@@ -113,7 +113,7 @@ class ProjectRunningWindow extends AbtractWindow {
         return listLocalFilesCached().then((localLibraryFiles) => {
           if (localLibraryFiles.includes(md5ext)) {
             return callback({
-              redirectURL: `tw-library://./${md5ext}`
+              redirectURL: `tw-editor://./assets/${md5ext}`
             });
           }
           callback({});
