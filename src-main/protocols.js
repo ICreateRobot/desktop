@@ -77,6 +77,15 @@ const FILE_SCHEMES = {
   'master': {
     root: path.resolve(__dirname, '../src-renderer/master')
   },
+   'ble-connect': {
+    root: path.resolve(__dirname, '../src-renderer/ble-connect')
+  },
+  'download-code': {
+    root: path.resolve(__dirname, '../src-renderer/download-code')
+  },
+  'connect': {
+    root: path.resolve(__dirname, '../src-renderer/connect-device')
+  },
 };
 
 const MIME_TYPES = new Map();
