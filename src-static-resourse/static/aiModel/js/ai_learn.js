@@ -12,6 +12,14 @@ $('#n1').text(window.parent.block_msg_sample_num);
 $('#n2').text(window.parent.block_msg_sample_num);
 
 
+
+// const allLocalStorage = {};
+// for (let i = 0; i < localStorage.length; i++) {
+//   const key = localStorage.key(i);
+//   allLocalStorage[key] = localStorage.getItem(key);
+// }
+// console.log(allLocalStorage);
+
 let whatCamera='local'
 let ip=''
 
@@ -36,11 +44,11 @@ function createCameraSelectionModal() {
     `;
 
     modal.innerHTML = `
-        <h3 style="margin-bottom: 10px;">选择摄像头类型</h3>
+        <h3 id='selectTitle' style="margin-bottom: 10px;">选择摄像头类型</h3>
         <div style="margin-bottom: 10px;">
-            <label><input type="radio" name="cameraType" value="local" checked> 本地摄像头</label><br>
-            <label><input type="radio" name="cameraType" value="network"> 网络摄像头</label>
-            <label><input type="radio" name="cameraType" value="robot"> ICrobot摄像头</label>
+            <label><input type="radio" name="cameraType" value="local" checked> <span id='local'>本地摄像头</span></label><br>
+            <label><input type="radio" name="cameraType" value="network"><span id='network'>网络摄像头</span> </label>
+            <label><input type="radio" name="cameraType" value="robot"><span id='robot'>ICrobot摄像头</span></label>
         </div>
         <div id="networkCameraInput" style="margin-bottom: 10px; display: none;">
             <input type="text" id="cameraIp" placeholder="请输入网络摄像头IP地址" style="width: 100%; padding: 5px;">
@@ -52,6 +60,24 @@ function createCameraSelectionModal() {
     `;
 
     document.body.appendChild(modal);
+
+    if(localStorage.getItem('tw:language')=='en'){
+        document.getElementById('selectTitle').textContent = languageDate['en']['selectTitle'];
+        document.getElementById('local').textContent = languageDate['en']['local'];
+        document.getElementById('network').textContent = languageDate['en']['network'];
+        document.getElementById('robot').textContent = languageDate['en']['robot'];
+        document.getElementById('cameraIp').placeholder = languageDate['en']['cameraIp'];
+        document.getElementById('cameraSelectConfirm').textContent = languageDate['en']['cameraSelectConfirm'];
+        document.getElementById('cameraSelectCancel').textContent = languageDate['en']['cameraSelectCancel'];
+    }else{
+        document.getElementById('selectTitle').textContent = languageDate['zh-cn']['selectTitle'];
+        document.getElementById('local').textContent = languageDate['zh-cn']['local'];
+        document.getElementById('network').textContent = languageDate['zh-cn']['network'];
+        document.getElementById('robot').textContent = languageDate['zh-cn']['robot'];
+        document.getElementById('cameraIp').placeholder = languageDate['zh-cn']['cameraIp'];
+        document.getElementById('cameraSelectConfirm').textContent = languageDate['zh-cn']['cameraSelectConfirm'];
+        document.getElementById('cameraSelectCancel').textContent = languageDate['zh-cn']['cameraSelectCancel'];
+    }
 
     // 监听选择变化
     modal.querySelectorAll('input[name="cameraType"]').forEach(radio => {
@@ -77,7 +103,7 @@ function createCameraSelectionModal() {
         } else if(selectedType === 'network'){
             const inputIp = modal.querySelector('#cameraIp').value.trim();
             if (!inputIp) {
-                alert('请输入网络摄像头IP地址');
+                alert(languageDate[localStorage.getItem('tw:language')]['cameraIp']);
                 return;
             }
             if(whatCamera=='robot'){
@@ -151,6 +177,152 @@ const getUserMedia = window.getUserMedia;
 var openFileName = GetQueryString("name");//编程项目名称
 var opennum = GetQueryString("opennum");//打开项目的下标
 var MType = GetQueryString("MType");//当前项目类型
+// console.log(MType)
+
+
+
+const languageDate = {
+  "zh-cn": {
+    "tilt_G": "手势训练",
+    "tilt_I": "图像训练",
+    "tilt_P": "姿态训练",
+    getCategoryName: (index) => `类别 ${index}`,
+    getSampleText: (index) => `个图像样本`,
+    "addClass": "+ 添加一个类别",
+    "trainText": "训练",
+    "progressText": "0%",
+    "epo": "周期数：",
+    "batch": "批次大小：",
+    "speed": "学习速率：",
+    "saveProject": "导出项目",
+    "select-camera": "选择摄像头",
+    "preview_title": "预览",
+    "exportModel": "测试模型",
+    "playModel": "使用模型",
+    "nameTilt": "名称:",
+    "instructionsTilt": "说明:",
+    "keepPhoto":"长按此处持续拍照",
+    "highLevel":"高级",
+    "reset":"重置为默认设置",
+    "deepLearn":"深入了解",
+    "startTrain":"开始训练",
+     "selectTitle": "选择摄像头类型",
+    "local": "本地摄像头",
+    "network": "网络摄像头",
+    "robot": "ICrobot摄像头",
+    "cameraIp": "请输入网络摄像头IP地址",
+    "cameraSelectConfirm": "确定",
+    "cameraSelectCancel": "取消",
+  },
+  "en": {
+    "tilt_G": "Gesture Training",
+    "tilt_I": "Image Training",
+    "tilt_P": "Pose Training",
+    getCategoryName: (index) => `Category ${index}`,
+    getSampleText: (index) => `image samples`,
+    "addClass": "+ Add a category",
+    "trainText": "Training",
+    "progressText": "0%",
+    "epo": "Epochs:",
+    "batch": "Batch size:",
+    "speed": "Learning rate:",
+    "saveProject": "Export project",
+    "select-camera": "Select camera",
+    "preview_title": "Preview",
+    "exportModel": "Test model",
+    "playModel": "Use model",
+    "nameTilt": "Name:",
+    "instructionsTilt": "Description:",
+    "keepPhoto":"Press and hold to keep taking photos",
+    "highLevel":"Advanced",
+    "reset":"Reset to default",
+    "deepLearn":"Learn more",
+    "startTrain":"Start training",
+    "selectTitle": "Select Camera Type",
+    "local": "Local Camera",
+    "network": "Network Camera",
+    "robot": "ICrobot Camera",
+    "cameraIp": "Please enter network camera IP address",
+    "cameraSelectConfirm": "Confirm",
+    "cameraSelectCancel": "Cancel"
+  }
+};
+
+// Determine title key based on MType
+const titleKey = `tilt_${MType}`;
+
+function changeLanguage(){
+    if(localStorage.getItem('tw:language')=='en'){
+        document.getElementById('tilt').textContent = languageDate['en'][titleKey];
+        document.getElementById('c1').value = languageDate['en'].getCategoryName(1);
+        document.getElementById('n1').textContent = languageDate['en'].getSampleText(1);
+        document.getElementById('c2').value = languageDate['en'].getCategoryName(2);
+        document.getElementById('n2').textContent = languageDate['en'].getSampleText(2);
+        document.getElementById('addClass').textContent = languageDate['en']['addClass'];
+        document.getElementById('trainText').textContent = languageDate['en']['trainText'];
+        document.getElementById('progressText').textContent = languageDate['en']['progressText'];
+        document.getElementById('epo').previousElementSibling.textContent = languageDate['en']['epo'];
+        document.getElementById('batch').previousElementSibling.textContent = languageDate['en']['batch'];
+        document.getElementById('speed').previousElementSibling.textContent = languageDate['en']['speed'];
+        document.getElementById('saveProject').textContent = languageDate['en']['saveProject'];
+        document.getElementById('select-camera').textContent = languageDate['en']['select-camera'];
+        document.querySelector('.preview_title').textContent = languageDate['en']['preview_title'];
+        document.getElementById('exportModel').textContent = languageDate['en']['exportModel'];
+        document.getElementById('playModel').textContent = languageDate['en']['playModel'];
+        document.getElementById('nameTilt').textContent = languageDate['en']['nameTilt'];
+        document.getElementById('instructionsTilt').textContent = languageDate['en']['instructionsTilt'];
+
+        
+
+        const uploadButtons = document.querySelectorAll('.upload');
+        uploadButtons.forEach(button => {
+            button.textContent = languageDate['en']['keepPhoto'];
+        });
+        
+        // Update advanced options
+        document.querySelector('.advanced-toggle').textContent = languageDate['en']['highLevel'];
+        document.querySelector('.reset-button').textContent = languageDate['en']['reset'];
+        document.querySelector('.learn-more-button').textContent =languageDate['en']['deepLearn'];
+        
+        // Update training button
+        document.getElementById('trainingModel').textContent = languageDate['en']['startTrain'];
+    }else{
+        document.getElementById('tilt').textContent = languageDate['zh-cn'][titleKey];
+        document.getElementById('c1').value = languageDate['zh-cn'].getCategoryName(1);
+        document.getElementById('n1').textContent = languageDate['zh-cn'].getSampleText(1);
+        document.getElementById('c2').value = languageDate['zh-cn'].getCategoryName(2);
+        document.getElementById('n2').textContent = languageDate['zh-cn'].getSampleText(2);
+        document.getElementById('addClass').textContent = languageDate['zh-cn']['addClass'];
+        document.getElementById('trainText').textContent = languageDate['zh-cn']['trainText'];
+        document.getElementById('progressText').textContent = languageDate['zh-cn']['progressText'];
+        document.getElementById('epo').previousElementSibling.textContent = languageDate['zh-cn']['epo'];
+        document.getElementById('batch').previousElementSibling.textContent = languageDate['zh-cn']['batch'];
+        document.getElementById('speed').previousElementSibling.textContent = languageDate['zh-cn']['speed'];
+        document.getElementById('saveProject').textContent = languageDate['zh-cn']['saveProject'];
+        document.getElementById('select-camera').textContent = languageDate['zh-cn']['select-camera'];
+        document.querySelector('.preview_title').textContent = languageDate['zh-cn']['preview_title'];
+        document.getElementById('exportModel').textContent = languageDate['zh-cn']['exportModel'];
+        document.getElementById('playModel').textContent = languageDate['zh-cn']['playModel'];
+        document.getElementById('nameTilt').textContent = languageDate['zh-cn']['nameTilt'];
+        document.getElementById('instructionsTilt').textContent = languageDate['zh-cn']['instructionsTilt'];
+
+       
+
+        const uploadButtons = document.querySelectorAll('.upload');
+        uploadButtons.forEach(button => {
+            button.textContent = languageDate['zh-cn']['keepPhoto'];
+        });
+        
+        // Update advanced options
+        document.querySelector('.advanced-toggle').textContent = languageDate['zh-cn']['highLevel'];
+        document.querySelector('.reset-button').textContent = languageDate['zh-cn']['reset'];
+        document.querySelector('.learn-more-button').textContent =languageDate['zh-cn']['deepLearn'];
+        
+        // Update training button
+        document.getElementById('trainingModel').textContent = languageDate['zh-cn']['startTrain'];
+    }
+}
+changeLanguage()
 
 let isLoad = GetQueryString("isLoad");
 let projectJson=''
@@ -470,7 +642,7 @@ function addCard() {
     card.id = 'card-'+NUM_CLASS;
     card.innerHTML = `
          <div class="card_top" id="card-${NUM_CLASS}"></div>
-                  <input type="text"  value="类别 ${NUM_CLASS}" />
+                  <input type="text" id="c${NUM_CLASS}" value="类别 ${NUM_CLASS}" />
                   <button class="delete" onclick="deleteCard(this)">×</button>
                   <div style="height: 1px; width: 100%; border-bottom: 1px solid black;"></div>
                   <div class="cameraBn" style="display: flex;">
@@ -485,7 +657,7 @@ function addCard() {
                     <button class="cameraWinButton_close">×</button>
                   </div>
                   <button class="upload gray" onmousedown="handleButtonStart(event)" onmouseup="handleButtonEnd(event)" ontouchstart="handleButtonStart(event)" ontouchend="handleButtonEnd(event)">长按此处持续拍照</button>
-                  <p class="card_numText"><span class='card_numText_n'>0</span><span id='n1'>个图像样本</span></p>
+                  <p class="card_numText"><span class='card_numText_n'>0</span><span id="n${NUM_CLASS}">个图像样本</span></p>
                   <div class="photoLibrary"> </div>
 
     `;
@@ -502,6 +674,23 @@ function addCard() {
     $('.cameraWinButton_close').click(function() {
         closeCameraWin();
     });
+
+     
+    if(localStorage.getItem('tw:language')=='en'){
+        document.getElementById(`c${NUM_CLASS}`).value=languageDate['en'].getCategoryName(NUM_CLASS)
+        document.getElementById(`n${NUM_CLASS}`).textContent=languageDate['en'].getSampleText(NUM_CLASS)
+        const uploadButtons = document.querySelectorAll('.upload');
+        uploadButtons.forEach(button => {
+            button.textContent = languageDate['en']['keepPhoto'];
+        });
+    }else{
+        document.getElementById(`c${NUM_CLASS}`).value=languageDate['zh-cn'].getCategoryName(NUM_CLASS)
+        document.getElementById(`n${NUM_CLASS}`).textContent=languageDate['zh-cn'].getSampleText(NUM_CLASS)
+        const uploadButtons = document.querySelectorAll('.upload');
+        uploadButtons.forEach(button => {
+            button.textContent = languageDate['zh-cn']['keepPhoto'];
+        });
+    }
 }
 
 /*删除卡片*/

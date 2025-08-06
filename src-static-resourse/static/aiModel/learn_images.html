@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>模型训练界面</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Permissions-Policy" content="camera=(self); microphone=(self)">
+  <link rel="stylesheet" type="text/css" href="css/ai_learn.css"/>
+  <script src="js/tfjs.js"></script>
+  <script src="js/mobilenet.js"></script>
+<!--  <script src="image/mobilenet.js"></script>-->
+  <!--<script src="knn-classifier@latest.js"></script>-->
+
+</head>
+<body >
+    <div class="topBar_back" id="back"></div>
+    <div class="topBar_bg" >
+        <div class="topBar_tilt" id="tilt">图像训练</div>
+    </div>
+    <div class="topBar_tiltEdit" id="tiltEdit"></div>
+
+    <!-- <div class="topBar_back_less" id="back_less2"></div> -->
+<!--    <div class="topBar_exportProject" id="exportProject">导出项目</div>-->
+
+    <div class="main">
+        <!--左侧-->
+        <div class='class_add'>
+            <div class="cards" id="cards-container">
+                <!-- 卡片将添加在此处 -->
+                <div class="card" id="card-1">
+                    <div class="card_top" ></div>
+                    <input type="text" id='c1'  value="类别 1" />
+                    <button class="delete" onclick="deleteCard(this)">×</button>
+                    <div style="height: 1px; width: 100%; border-bottom: 1px solid black;"></div>
+                    <div class="cameraBn" style="display: flex;">
+                        <button class="camera" onclick="openCamera(this)"></button>
+                        <button class="upFile" onclick="openFile(this)"></button>
+                      </div>
+                      <div class="cameraWin" id="cameraWin1">
+                        <video class="cameraView" width="320" height="240" id="cameraView1"  autoplay muted></video>
+                        <img class="netCamera"  crossorigin="anonymous" id="netCamera1">
+                        <canvas class="cameraView" width="320" height="240" id="canvas1" ></canvas>
+                
+                        <button class="cameraWinButton_close">×</button>
+                      </div>
+                    <button class="upload gray" onmousedown="handleButtonStart(event)" onmouseup="handleButtonEnd(event)" ontouchstart="handleButtonStart(event)" ontouchend="handleButtonEnd(event)">点击此处可持续拍照</button>
+                    <!-- <button
+                      class="upload gray"
+                      onmousedown="handleButtonStart(event)"
+                      ontouchstart="handleButtonStart(event)">
+                      长按此处持续拍照
+                    </button> -->
+                    <p class="card_numText"><span class='card_numText_n'>0</span><span id='n1'>个图像样本</span></p>
+                    <div class="photoLibrary"> </div>
+                </div>
+                <div class="card" id="card-2">
+                  <div class="card_top"></div>
+                  <input type="text" id='c2'  value="类别 2" />
+                  <button class="delete" onclick="deleteCard(this)">×</button>
+                  <div style="height: 1px; width: 100%; border-bottom: 1px solid black;"></div>
+                  <div class="cameraBn" style="display: flex;">
+                    <button class="camera" onclick="openCamera(this)"></button>
+                    <button class="upFile" onclick="openFile(this)"></button>
+                  </div>
+                  <div class="cameraWin" id="cameraWin2">
+                    <video class="cameraView" width="320" height="240" id="cameraView2"  autoplay muted></video>
+                    <img class="netCamera"  crossorigin="anonymous" id="netCamera2">
+                    <canvas class="cameraView" width="320" height="240" id="canvas2" ></canvas>
+            
+                    <button class="cameraWinButton_close">×</button>
+                  </div>
+                  <button class="upload gray" onmousedown="handleButtonStart(event)" onmouseup="handleButtonEnd(event)" ontouchstart="handleButtonStart(event)" ontouchend="handleButtonEnd(event)">点击此处可持续拍照</button>
+                  <p class="card_numText"><span class='card_numText_n'>0</span><span id='n2'>个图像样本</span></p>
+                  <div class="photoLibrary"> </div>
+                </div>
+            </div>
+
+            <button class="add-btn" onclick="addCard()" id='addClass'>+ 添加一个类别</button>
+        </div>
+        <!--中间-->
+        <div class='trainingModel_bg'>
+            <p id="trainText">训练</p>
+            <div id="trainingModel_progress">
+              <span id="progressText">0%</span>
+              <div id='progressTrain'><div id='barTrain'></div></div>
+            </div>
+            <div class='trainBegin_button trainGray' id="trainingModel">开始训练</div>
+            
+            <hr>
+            <!-- 高级选项折叠区域 -->
+            <div class="advanced-container">
+              <div class="advanced-toggle" onclick="toggleAdvanced()">
+                  高级
+                  <span class="arrow" id="arrowIcon">▾</span>
+              </div>
+              <div class="advanced-settings" id="advancedSettings">
+                  <div class="setting-row">
+                      <label>周期数：</label>
+                      <input type="number" id="epo" value="50" />
+                      <span class="help-icon">?</span>
+                  </div>
+                  <div class="setting-row">
+                      <label>批次大小：</label>
+                      <select id="batch">
+                          <option>32</option>
+                          <option>16</option>
+                          <option>8</option>
+                      </select>
+                      <span class="help-icon">?</span>
+                  </div>
+                  <div class="setting-row">
+                      <label>学习速率：</label>
+                      <input type="number" value="0.001" step="0.0001" id="speed" />
+                      <span class="help-icon">?</span>
+                  </div>
+                  <div class="setting-actions">
+                      <button class="reset-button">
+                          重置为默认设置 <span class="icon">⟳</span>
+                      </button>
+                      <button class="learn-more-button">
+                          深入了解 <span class="icon">📘</span>
+                      </button>
+                  </div>
+              </div>
+          </div>
+        </div>
+        <div class='connLine'></div>
+        <!--右侧-->
+        <div class='modelEnd_bg'>
+            <div class='save-project' id='saveProject'>导出项目</div>
+            <div class='select-camera' id='select-camera'>选择摄像头</div>
+            
+          
+            <div class='model_show'>
+              <!-- <button>按钮</button> -->
+                <!-- <h4>预览</h4> -->
+
+                 <!-- 摄像头选择 -->
+                
+                <!-- <select id="cameraSelect" style="margin: 10px auto; display: block; width: 90%; padding: 5px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="">请选择摄像头</option>
+                </select> -->
+                  <!-- ✅ 添加：标题和摄像头选择 -->
+                <div class="preview_header">
+                  <div class="preview_title">预览</div>
+                  <hr style="border: none; border-top: 1px solid #ccc; margin: 4px 0;">
+                  <div class="camera_select_group">
+                    <label for="camera_select"></label>
+                    <!-- <select id="camera_select">
+                      <option>本机摄像头</option>
+                      <option>机器人摄像头</option>
+                      <option>外接摄像头</option>
+                      <option>关闭</option>
+                    </select> -->
+                  </div>
+                </div>
+                <div id='showLoad'></div>
+                <video width="320" height="240" id="show_cameraView"  autoplay muted></video>
+                <img width="320" height="240" crossorigin="anonymous" id="show_netCamera">
+                <canvas width="320" height="240" id="show_canvas" ></canvas>
+                <div class='class_show' id="class_show">
+                    <!--<div class="class_show_card" id="class_show_card-1">
+                        <div class="class_show_name" >class1</div>
+                        <div class='class_show_progressTrain'><div class='class_show_barTrain'></div></div>
+                        <div class="class_show_num" >100%</div>
+                    </div>-->
+
+
+                </div>
+
+            </div>
+            <div class="modelEnd_buttons">
+                <div class='modelEnd_button exportGray' id='exportModel'>测试模型</div>
+                
+                <div class='modelEnd_button playGray' id='playModel'>使用模型</div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!--相机窗口-->
+    <div class="cameraWin" id="cameraWin">
+        <video class="cameraView" width="320" height="240" id="cameraView"  autoplay muted></video>
+        <canvas class="cameraView" width="320" height="240" id="canvas" ></canvas>
+
+        <div id="cameraWinButton_cut"></div>
+        <div id="cameraWinButton_shoot"></div>
+        <button id="cameraWinButton_close"  class="cameraWinButton_close">×</button>
+    </div>
+
+    <!--编辑窗口-->
+    <div class="editWin" id="editWin">
+      <div class="lab">
+        <div class="labTilt" id='nameTilt'>名称:</div>
+        <input type="text" id="name" />
+      </div>
+      <div class="lab">
+        <div class="labTilt" id='instructionsTilt'>说明:</div>
+        <input type="text" id="explain"/>
+      </div>
+     <!-- <div class="editWinButton" id='editWinTrue'>确 定</div>
+      <div class="editWinButton" id='editWincancel'>取 消</div>-->
+    </div>
+
+    <!--遮罩-->
+    <div class="maskLayer" id="maskLayer"></div>
+
+    <div id="waitLoad">
+      <div class="loader"></div>
+      <h2 id='load'></h2>
+    </div>
+
+
+
+</body>
+<script src="../../js/jquery.min.js"></script>
+<script>
+  $('#tilt').text(window.parent.block_msg_image_tilt);
+
+</script>
+<script src="./js/get-user-media-promise.js"></script>
+<script src="./utils/util.js"></script>
+<script src="js/ai_learn.js"></script>
+<script src="image/model_images.js"></script>
+</html>

@@ -55,6 +55,64 @@ let typeP=[]
 //     console.error('获取项目失败:', error);
 //   });
 
+const language = {
+    "zh-cn": {
+      "back": "返回",
+      "topBar_tilt": "训练模型",
+      "back_less": "分类",
+      "recognize1": "图像识别",
+      "recognize2": "手势识别",
+      "recognize3": "姿态识别",
+      "recognize4": "语音识别",
+      "newProject": "新建项目",
+      "importProject": "导入项目",
+      'manageProject':"项目管理",
+
+      "title": "选择模型训练界面",
+      "image_alt": "图像识别",
+      "gesture_alt": "手势识别",
+      "posture_alt": "姿态识别",
+      "sound_alt": "语音识别",
+      "createImg_alt": "新建项目",
+      "importImg_alt": "导入项目"
+    },
+    "en": {
+      "back": "Back",
+      "topBar_tilt": "Training Model",
+      "back_less": "Classification",
+      "recognize1": "Image Recognition",
+      "recognize2": "Gesture Recognition",
+      "recognize3": "Pose Recognition",
+      "recognize4": "Speech Recognition",
+      "newProject": "New Project",
+      "importProject": "Import Project",
+      'manageProject':"project management",
+
+        "title": "Model Training Selection Interface",
+        "image_alt": "Image Recognition",
+        "gesture_alt": "Gesture Recognition",
+        "posture_alt": "Pose Recognition",
+        "sound_alt": "Speech Recognition",
+        "createImg_alt": "New Project",
+        "importImg_alt": "Import Project"
+    }
+}
+
+function changeLanguageChoice(){
+    const lang = localStorage.getItem('tw:language') === 'en' ? 'en' : 'zh-cn';
+    document.getElementById('topBar_tilt').textContent = language[lang]['topBar_tilt'];
+    document.getElementById('back_less').textContent = language[lang]['back_less'];
+    document.getElementById('recognize1').textContent = language[lang]['recognize1'];
+    document.getElementById('recognize2').textContent = language[lang]['recognize2'];
+    document.getElementById('recognize3').textContent = language[lang]['recognize3'];
+    document.getElementById('recognize4').textContent = language[lang]['recognize4'];
+    // document.getElementById('newProject').textContent = language[lang]['newProject'];
+    document.getElementById('importProject').textContent = language[lang]['importProject'];
+
+}
+
+changeLanguageChoice()
+
 
 
 
@@ -97,11 +155,12 @@ function showProjectManagement(type) {
     //     alert("敬请期待")
     //     return
     // }
+    const lang = localStorage.getItem('tw:language') === 'en' ? 'en' : 'zh-cn';
     setTimeout(() => {//增加一段延时，项目加载一会
         $('#modelSelection').css('display', 'none');
         $('#projectManagement').css('display', 'flex');
-        $('#topBar_tilt').text('项 目 管 理');//'项 目 管 理'
-        $('#back_less').text('导 入 项 目');
+        $('#topBar_tilt').text(language[lang]['manageProject']);//'项 目 管 理'
+        $('#back_less').text(language[lang]['importProject']);
 
         // 渲染当前类型项目
         // renderProjectCards();
@@ -133,11 +192,12 @@ function renderProjectCards() {
 
 // 显示模型选择界面
 function showmodelSelection() {
+    const lang = localStorage.getItem('tw:language') === 'en' ? 'en' : 'zh-cn';
     currentPage = "ai_choice";
     $('#modelSelection').css('display', 'flex');
     $('#projectManagement').css('display', 'none');
-    $('#topBar_tilt').text('训 练 模 型');//'训 练 模 型'
-    $('#back_less').text('分 类');
+    $('#topBar_tilt').text(language[lang]['topBar_tilt']);//'训 练 模 型'
+    $('#back_less').text(language[lang]['back_less']);
 }
 
 /*新建项目*/
