@@ -490,5 +490,132 @@
   "extension-documentation.title": {
     "string": "{APP_NAME} Extension Documentation",
     "developer_comment": "Title of in-app window for viewing extension documentation."
+  },
+  "connect-device.serial":{
+    "string": "serial",
+    "developer_comment": "serial."
+  
+  },
+  "connect-device.bluetooth":{
+    "string": "bluetooth",
+    "developer_comment": "bluetooth."
+  
+  },
+  "connect-device.qr":{
+    "string": "QR code",
+    "developer_comment": "QR code."
+  
+  },
+
+  "connect-device.disconnectAll": {
+    "string": "Disconnect All",
+    "developer_comment": "Disconnect All"
+  
+  },
+  "connect-device.account": {
+    "string": "Account",
+    "developer_comment": "Account"
+  
+  },
+  "connect-device.pwd": {
+    "string": "Password",
+    "developer_comment": "Password"
+  
+  },
+  "connect-device.qrTitle": {
+    "string": "Wi-Fi QR Code Generator",
+    "developer_comment": "Wi-Fi QR Code Generator"
+  
+  },
+  "connect-device.submit": {
+    "string": "Generate QR Code",
+    "developer_comment": "Generate QR Code"
+  
+  },
+  "connect-device.disconnect": {
+    "string": "Disconnect",
+    "developer_comment": "Disconnect"
+  
+  },
+  "connect-device.connectwifi": {
+    "string": "Connect",
+    "developer_comment": "Connect"
+  
+  },
+  "connect-device.connecting": {
+    "string": "connecting",
+    "developer_comment": "connecting"
+  
+  },
+  "connect-device.openBle": {
+    "string": "Open the Bluetooth connection interface",
+    "developer_comment": "Open the Bluetooth connection interface"
+  
+  },
+
+  "connect-device.title": {
+    "string": "connect",
+    "developer_comment": "connect"
+  
+  },
+  "ble-connect.bleTitle": {
+    "string": "Bluetooth Connected",
+    "developer_comment": "Bluetooth Connected"
+  },
+  "ble-connect.clickme": {
+    "string": "Start Scanning",
+    "developer_comment": "Start Scanning"
+  },
+  "ble-connect.closeBle": {
+    "string": "Disconnect Bluetooth",
+    "developer_comment": "Disconnect Bluetooth"
+  },
+  "ble-connect.connectBle": {
+    "string": "Connect",
+    "developer_comment": "Connect"
+  },
+
+  "ble-connect.title": {
+    "string": "ble-connect",
+    "developer_comment": "ble-connect"
+  },
+
+  "master.title":{
+    "string": "controller",
+    "developer_comment": "controller"
+  },
+
+  "connect-device.showToast.wifiinfo": {
+    "string": "Please complete the Wi-Fi information!",
+    "developer_comment": "connect-device.showToast.wifiinfo"
+  },
+  "connect-device.showToast.wifiNameLen": {
+    "string": "Hotspot name must be at least 8 characters!",
+    "developer_comment": "connect-device.showToast.wifiNameLen"
+  },
+  "connect-device.showToast.escFullScreen": {
+    "string": "Click the image or press ESC key to exit fullscreen",
+    "developer_comment": "connect-device.showToast.escFullScreen"
+  },
+  "connect-device.showToast.connectSuccess": {
+    "string": "Connected successfully",
+    "developer_comment": "connect-device.showToast.connectSuccess"
+  },
+  "connect-device.showToast.connectTimeout": {
+    "string": "Connection timed out, please try again",
+    "developer_comment": "connect-device.showToast.connectTimeout"
+  },
+  "connect-device.showToast.disConnect": {
+    "string": "Disconnected",
+    "developer_comment": "connect-device.showToast.disConnect"
+  },
+  "connect-device.showToast.disconnectFailed": {
+    "string": "Failed to disconnect",
+    "developer_comment": "connect-device.showToast.disconnectFailed"
+  },
+
+  "please-scan-qr": {
+    "string": "Please scan the QR code to connect to Wi-Fi (make sure the computer hotspot is turned on)",
+    "developer_comment": "please-scan-qr"
   }
 }

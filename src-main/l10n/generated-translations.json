@@ -1866,6 +1866,36 @@
         "update.permanently-ignore": "忽略此次更新",
         "update.security-description": "{appNameVersion}现在可用。此版本包含了安全补丁。强烈建议更新。",
         "update.security-title": "安全更新可用",
-        "update.window-title": "更新可用"
+        "update.window-title": "更新可用",
+        "connect-device.serial":"串口",
+        "connect-device.bluetooth":"蓝牙",
+        "connect-device.qr":"二维码",
+
+        "connect-device.disconnectAll":"断开当前连接",
+        "connect-device.account":"账号",
+        "connect-device.pwd":"密码",
+        "connect-device.qrTitle":"Wi-Fi 二维码生成",
+        "connect-device.submit":"生成二维码",
+        "connect-device.disconnect":"断开",
+        "connect-device.connectwifi":"连接",
+        "connect-device.connecting":"连接中",
+        "connect-device.openBle":"打开蓝牙连接界面",
+        "connect-device.title": "连接",
+        "ble-connect.bleTitle":"已连接蓝牙",
+        "ble-connect.clickme":"开始扫描",
+        "ble-connect.closeBle":"断开蓝牙",
+        "ble-connect.connectBle":"连接",
+        "ble-connect.title":"蓝牙连接",
+
+       "master.title":"主控器",
+
+       "connect-device.showToast.wifiinfo": "请填写完整 Wi-Fi 信息！",
+        "connect-device.showToast.wifiNameLen": "热点名称至少8位！",
+        "connect-device.showToast.escFullScreen": "点击图片或按ESC键退出全屏",
+        "connect-device.showToast.connectSuccess": "连接成功",
+        "connect-device.showToast.connectTimeout": "连接超时，请重试",
+        "connect-device.showToast.disConnect": "已断开",
+        "connect-device.showToast.disconnectFailed": "断开失败",
+        "please-scan-qr":"请扫描二维码连接 Wi-Fi(确保电脑热点开启)"
     }
 }
