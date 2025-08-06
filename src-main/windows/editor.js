@@ -20,6 +20,9 @@ const RichPresence = require('../rich-presence.js');
 const FileAccessWindow = require('./file-access-window.js');
 const ExtensionDocumentationWindow = require('./extension-documentation.js');
 const MasterWindow = require('./master.js')
+const ConnectWindow=require('./connect-device.js')
+const DownloadCodeWindow = require('./download-code');
+const BleConnectWindow = require('./ble-connect')
 
 const TYPE_FILE = 'file';
 const TYPE_URL = 'url';
@@ -526,6 +529,23 @@ class EditorWindow extends ProjectRunningWindow {
 
     this.ipc.handle('open-master-window', () => {
       MasterWindow.show();
+      
+    });
+    this.ipc.handle('open-connect-window', () => {
+      // console.log('#######################')
+      ConnectWindow.show();
+      
+    });
+    this.ipc.handle('open-download-settings', (event,code) => {
+      DownloadCodeWindow.show(code);
+    });
+    this.ipc.handle('open-ble-settings', () => {
+      if(getWin()){
+        getWin().show()
+      }else{
+        BleConnectWindow.show();
+      }
+      
       
     });
     this.ipc.handle('get-advanced-customizations', async () => {

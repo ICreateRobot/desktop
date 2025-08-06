@@ -9,13 +9,19 @@ import {showOpenFilePicker, showSaveFilePicker} from './filesystem-api.js';
 import './normalize.css';
 import './gui.css';
 import MasterHOC from './master-hoc.jsx';
+import ConnectHOC from './connect-hoc.jsx'
+import FirmwareHOC from './firmware-hoc.jsx'
+import BleHoc from './ble-hoc.jsx'
 
 const WrappedGUI = compose(
   ErrorContainerHOC,
   AppStateHOC,
   DesktopHOC,
   CloudProviderHOC,
-  MasterHOC
+  MasterHOC,
+  ConnectHOC,
+  FirmwareHOC,
+  BleHoc
 )(GUI);
 
 const GUIWithProps = () => (
