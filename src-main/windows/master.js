@@ -16,7 +16,7 @@ const { BrowserWindow } = require('electron');
 const {getCloseBn,setCloseBn} = require('../../utils/closeBn')
 const {getSocket} = require('../../utils/socket')
 const extensions = require('../../utils/extensionWho')
-// const ConnectWindow = require('./connect-device')
+const ConnectWindow = require('./connect-device')
 
 const {getWin,setWin} = require('../../utils/win')
 
@@ -89,7 +89,7 @@ class MasterWindow extends AbstractWindow {
 
       this.window.close();
       await new Promise(resolve => setTimeout(resolve, 200));  
-      // ConnectWindow.show()
+      ConnectWindow.show()
     })
     
     this.loadURL('master://./master.html');
