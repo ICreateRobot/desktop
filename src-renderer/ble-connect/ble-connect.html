@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'"> -->
+    <style>
+      :root {
+        --primary-color: hsl(120, 60%, 40%);
+        --primary-light: hsl(120, 60%, 60%);
+        --text-color: #fff;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: black;
+        background-color: white;
+        accent-color: #ff4c4c;
+      }
+       h1 {
+        color: var(--primary-color);
+        font-size: 1.8rem;
+        justify-content: center;
+        text-align: center;
+      }
+      main {
+        padding: 20px;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 100vh;
+        border: 20px solid hsla(0, 100%, 65%, 1);
+      }
+      .title {
+        margin-top: 0;
+      }
+      label {
+        display: block;
+        margin: 0.5rem 0;
+      }
+      .label {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+      }
+      select {
+        width: 100%;
+        font: inherit;
+      }
+       .button-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 20px 0;
+        justify-content: center;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-family: inherit;
+        border: none;
+        border-radius: 6px;
+        background-color: var(--primary-color);
+        color: var(--text-color);
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: var(--primary-light);
+      }
+
+      .warning {
+        background-color: yellow;
+        color: black;
+        border: 1px solid black;
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+      }
+      /* .button-container {
+        display: flex;
+        margin: 300px;
+      } */
+
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <main> -->
+      <div>
+        <h1><span id="bleTitle">已连接蓝牙：</span><strong id="device-name""></strong></h1>
+
+        <div class="button-container">
+          <button id="clickme">开始扫描</button>
+          <button id="closeBle">断开蓝牙</button>
+        </div>
+        <!-- <div id="device">
+
+
+        </div> -->
+
+        <ul id="device" style="list-style: none; padding: 0; margin-top: 10px;"></ul>
+
+        <!-- <button id="cancel">Cancel Bluetooth Request</button> -->
+        <!-- <button id="get">获取代码</button>
+        <button id="downLoad">下载代码</button>
+        <button id="status">获取状态</button> -->
+
+        <!-- <p>Currently selected bluetooth device: <strong id="device-name""></strong></p> -->
+
+      </div>
+      <script>
+        let device
+        let service
+        let serviceDown
+        let server
+        let characteristicWrite
+        let characteristicRead
+        let characteristicWriteDown
+        let characteristicReadDown
+        let Lua=[0x4c,0x75,0x61,0x3a]
+        let Lua1=[0x4c,0x75,0x61,0x31]
+        let endLua=[0x65,0x6e,0x64,0x4c,0x75,0x61]
+        let CODE;
+
+        
+        let lanyaMsg=[]
+        let lanyaStrMsg=''
+        let DeviceList=[]
+
+
+        const {locale, strings} = window.bleAPI.getTranslate()
+        document.documentElement.lang = locale;
+        document.getElementById('bleTitle').textContent=strings['ble-connect.bleTitle'];
+        document.getElementById('clickme').textContent=strings['ble-connect.clickme'];
+        document.getElementById('closeBle').textContent=strings['ble-connect.closeBle'];
+        // 监听键盘按下事件
+        // document.addEventListener('keydown', (event) => {
+        //       switch (event.key) {
+        //           case 'w':
+        //           case 'W':
+        //               console.log('w被按下')
+        //               Wifi('w',90)
+        //               break;
+        //           case 'a':
+        //           case 'A':
+        //               console.log('A按下')
+        //               break;
+        //           case 's':
+        //           case 'S':
+        //               console.log('S按下')
+        //               break;
+        //           case 'd':
+        //           case 'D':
+        //               console.log('D按下')
+        //               break;
+        //           case 'r':
+        //           case 'R':
+        //               console.log('R按下')
+        //               Wifi('r',0)
+        //               break;
+        //       }
+        //     });
+
+        // function Wifi(dir,speed){
+        //   fetch(`http://192.168.4.1:8080/move?move=${dir}&speed=${speed}`, {
+        //       method: 'POST',
+        //       headers: {
+        //         'Content-Type': 'application/json;'
+        //       },
+        //     })
+        //     .then(response => response.text())
+        //     .then(data => {
+        //       console.log('服务器响应:', data);
+        //     })
+        //     .catch(error => {
+        //       console.error('错误:', error);
+        //     });
+          
+        // }
+        function createPromise() {
+          return new Promise(resolve => {
+            const eventListener = async (event) => {
+              let value = await event.target.value;
+              // state = value.getUint8(0);
+              //   console.log(value.byteLength)
+              lanyaMsg=[]
+              for (let i=0;i<value.byteLength-1;i++){
+                  lanyaMsg.push(value.getUint8(i))
+              }
+              console.log(lanyaMsg)
+              // for (let i=0;i<lanyaMsg.length;i++){
+              //     let char = String.fromCharCode(lanyaMsg[i]);
+              //     lanyaStrMsg = lanyaStrMsg + char.toString()
+              // }
+              // isExit = true;
+              // console.log(state);
+              resolve(); // Signal event handling is done
+              characteristicReadDown.removeEventListener('characteristicvaluechanged', eventListener); // 移除事件监听器
+            };
+            characteristicReadDown.addEventListener('characteristicvaluechanged', eventListener);
+          });
+        }
+
+        window.bleAPI.codeDownLoad((codeDown) => {
+          console.log(codeDown);
+          if(codeDown.down==1){
+            CODE=codeDown.code
+            downLoad()
+
+          }else if(codeDown.down==2){
+            cancelDown()
+          }
+          
+        });
+
+        function stringToBinary(str) {
+          const encoder = new TextEncoder();
+          const uint8Array = encoder.encode(str);
+          return uint8Array;
+        }
+        console.log(window);
+        async function getCode(){
+          await fetch(`http://localhost:3000/get`,{
+                    method: 'GET'
+            })
+            .then(response => {
+                if (response.ok) {
+                return response.text();
+                } else {
+                throw new Error('请求失败，状态码：' + response.status);
+                }
+            })
+            .then(code => {
+                console.log('返回的变量值：', code);
+                CODE=code
+                downLoad()
+            })
+            .catch(error => {
+                console.error('发生错误：', error);
+            });
+        }
+        // document.getElementById('get').addEventListener('click',()=>{
+          
+        // })
+        
+        async function downOneCode(code,isFirst,isLast){
+          const encoder = new TextEncoder();
+          if(isFirst){
+            const data1 = encoder.encode('Lua:').buffer;
+            await characteristicWriteDown.writeValue(data1)
+          }
+
+          // const code=stringToBinary(CODE)
+            
+          const data2 = encoder.encode(code).buffer;
+          console.log(data2)
+          await characteristicWriteDown.writeValue(data2)
+          
+          if(isLast){
+              
+              const data3 = encoder.encode('endLua1').buffer;
+              await characteristicWriteDown.writeValue(data3)
+              await createPromise()
+              if((lanyaMsg[0]==7 && lanyaMsg[1]==4) || (lanyaMsg[0]==8 && lanyaMsg[1]==1)){
+                window.bleAPI.setIsDownLoad(true)
+                alert('下载结束')
+              }
+            
+          }
+          
+          // const data4=encoder.encode('Lua1').buffer;
+          // await characteristicWriteDown.writeValue(data4)
+          console.log('执行了')
+        }
+
+        async function downLoad(){
+          console.log(CODE);
+          
+          if(CODE.length<=500){
+            downOneCode(CODE,true,true)
+          }else{
+            let start=0
+            let end=500
+            let flag=true
+            let isLast=false
+            let isFirst=true
+            while(flag){
+              if(end>=CODE.length){
+                flag=false
+                end=CODE.length
+                isLast=true
+              }
+              let tempC=CODE.substring(start, end)
+              console.log(tempC)
+              await downOneCode(tempC,isFirst,isLast)
+              isFirst=false
+              start=end
+              end=end+500
+            }
+            
+          }
+          
+
+        }
+        async function cancelDown(){
+          const encoder = new TextEncoder();
+          const data3 = encoder.encode('endLua2').buffer;
+          await characteristicWriteDown.writeValue(data3)
+          
+        }
+        // document.getElementById('downLoad').addEventListener('click',async()=>{
+         
+        // })
+        let distance=[]
+
+        const channel = new BroadcastChannel('test_channel');
+
+        // 监听消息
+        channel.onmessage = (event) => {
+          console.log('收到消息:', event.data);
+        };
+
+
+        function updateSensorState(index, distance) {
+            const existingIndex = sensorState[index].findIndex(item => item[0] === distance[0]);
+            if (existingIndex !== -1) {
+                sensorState[index][existingIndex] = distance; // 替换已有
+            } else {
+                sensorState[index].push(distance); // 新增
+            }
+        }
+        let sensorState=[[],[],[],[],[],[],[],[],[]]//最后一位是其他类型数据
+        function getStatus(){
+          characteristicRead.addEventListener('characteristicvaluechanged', (event)=>{
+            // console.log(event.target.value.getUint8(0));
+            // console.log(event.target.value.getUint8(1));
+            // console.log(event.target.value.getUint8(2));
+            // console.log(event.target.value.getUint8(3));
+            console.log('-------------------------')
+            console.log(event.target.value);
+            distance=[]
+            if(event.target.value.getUint8(1)==41){
+              distance.push(event.target.value.getUint8(0))
+              distance.push(event.target.value.getUint8(1))
+              distance.push(event.target.value.getUint8(2))
+              distance.push(event.target.value.getUint8(3))
+              // sensorState[0].push(distance)
+              updateSensorState(0, distance)
+            }else if(event.target.value.getUint8(1)==104){
+              distance.push(event.target.value.getUint8(0))
+              distance.push(event.target.value.getUint8(1))
+              distance.push(event.target.value.getUint8(2))
+              distance.push(event.target.value.getUint8(3))
+              distance.push(event.target.value.getUint8(5))
+              // sensorState[1].push(distance)
+              updateSensorState(1, distance)
+            }else if(event.target.value.getUint8(0)==127){
+              console.log(event.target.value.getUint8(2))
+              distance.push(event.target.value.getUint8(0))
+              distance.push(event.target.value.getUint8(1))
+              distance.push(event.target.value.getUint8(2))
+              // sensorState[2].push(distance)
+              updateSensorState(2, distance)
+            }else if(event.target.value.getUint8(1)==72){
+              distance.push(event.target.value.getUint8(0))
+              distance.push(event.target.value.getUint8(1))
+              distance.push(event.target.value.getUint8(2))
+              // sensorState[3].push(distance)
+              updateSensorState(3, distance)
+            }else if(event.target.value.getUint8(1)==57){
+              distance.push(event.target.value.getUint8(0))
+              distance.push(event.target.value.getUint8(1))
+              distance.push(event.target.value.getUint8(2))
+              // sensorState[4].push(distance)
+              updateSensorState(4, distance)
+            }else if(event.target.value.getUint8(1)==54){
+              distance.push(event.target.value.getUint8(0))
+              distance.push(event.target.value.getUint8(1))
+              distance.push(event.target.value.getUint8(2))
+              distance.push(event.target.value.getUint8(3))
+              distance.push(event.target.value.getUint8(4))
+              distance.push(event.target.value.getUint8(5))
+              // sensorState[5].push(distance)
+              updateSensorState(5, distance)
+            }else if(event.target.value.getUint8(1)==103){
+              console.log(event.target.value)
+              const result = (event.target.value.getUint8(3) << 8) | event.target.value.getUint8(4);
+              distance.push(event.target.value.getUint8(0))
+              distance.push(event.target.value.getUint8(1))
+              distance.push(result)
+              distance.push(event.target.value.getUint8(5))
+              // sensorState[6].push(distance)
+              updateSensorState(6, distance)
+              
+            }else if(event.target.value.getUint8(1)==64){
+              distance.push(event.target.value.getUint8(0))
+              distance.push(event.target.value.getUint8(1))
+              distance.push(event.target.value.getUint8(2))
+              distance.push(event.target.value.getUint8(3))
+              distance.push(event.target.value.getUint8(4))
+              // sensorState[7].push(distance)
+              updateSensorState(7, distance)
+            }else{
+              distance.push(event.target.value.getUint8(0))
+              distance.push(event.target.value.getUint8(1))
+              distance.push(event.target.value.getUint8(2))
+              distance.push(event.target.value.getUint8(3))
+              distance.push(event.target.value.getUint8(4))
+              distance.push(event.target.value.getUint8(5))
+              for(let i=0;i<sensorState.length;i++){
+                for(let j=sensorState[i].length-1;j>=0;j--){
+                  if(sensorState[i][j][0]==event.target.value.getUint8(0)){
+                    sensorState[i].splice(j,1)
+                  }
+                }
+                // if(sensorState[i][0]==event.target.value.getUint8(0)){
+                //   sensorState[i]=[]
+                // }
+              }
+            }
+            
+            // console.log(distance);
+            console.log(sensorState)
+
+            window.bleAPI.sendDistance(sensorState)
+            
+
+			      // channel.postMessage('你好，广播频道1！');
+
+            
+          });
+        }
+       
+        
+
+        // document.getElementById('status').addEventListener('click',async()=>{
+        //   // setInterval(async()=>{
+        //   //   await createPromise()
+        //   // },1000)
+          
+        // })
+
+        window.bleAPI.sendMotor(async (motor)=>{
+          
+            console.log(motor)
+            const uint8Array = new Uint8Array(motor);
+            console.log(uint8Array.buffer)
+            if(motor.length==1 && motor[0]==5){
+              await characteristicWriteDown.writeValue(uint8Array.buffer)
+            }else{
+               await characteristicWrite.writeValue(uint8Array.buffer)
+            }
+           
+         
+        })
+
+        //------------------------新加的蓝牙列表刷新逻辑----------------------
+
+        // 在父元素上绑定事件委托（一次性绑定）
+        document.getElementById('device').addEventListener('click', (event) => {
+          if (event.target.classList.contains('connect-btn')) {
+            const li = event.target.closest('li');
+            if (li) {
+              const deviceName = li.id;
+              send(deviceName);
+            }
+          }
+        });
+
+      function updateDeviceList(devicelist) {
+          const container = document.getElementById('device');
+          const existingDevices = new Set(
+            Array.from(container.children).map(li => li.id)
+          );
+
+          // 增量更新：仅添加新设备
+          devicelist.forEach(element => {
+            if (!existingDevices.has(element.deviceName)) {
+              container.appendChild(createDeviceElement(element));
+            }
+          });
+
+          // 移除已消失设备
+          Array.from(container.children).forEach(li => {
+            if (!devicelist.some(d => d.deviceName === li.id)) {
+              li.remove();
+            }
+          });
+      }
+
+      function createDeviceElement(element) {
+        const li = document.createElement('li');
+        li.style.background = 'transparent';
+        li.style.padding = '6px';
+        li.style.margin = '8px auto';
+        li.style.borderRadius = '5px';
+        li.style.width = '80%';
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+        li.style.alignItems = 'center';
+        li.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+        li.style.border = '1px solid lch(51.35% 35.67 178.75)';
+        li.style.transition = 'background 0.3s';
+
+        li.onmouseover = () => {
+          li.style.background = '#9cf3e6';
+        };
+        li.onmouseout = () => {
+          li.style.background = 'transparent';
+        };
+        li.id=element.deviceName
+
+        const nameSpan = document.createElement('span');
+        nameSpan.innerText = element.deviceName;
+        nameSpan.style.flex = '1';
+        nameSpan.style.fontSize = '16px';
+        nameSpan.style.color = '#333';
+
+        const btn = document.createElement('button');
+        // btn.innerText = '连接';
+        btn.innerText = strings['ble-connect.connectBle']
+        btn.className = 'connect-btn';
+        btn.onclick = function () {
+          send(element.deviceName);
+        };
+
+        li.appendChild(nameSpan);
+        li.appendChild(btn);
+        // document.getElementById('device').appendChild(li);
+        return li;
+      }
+
+
+      let lastUpdate = 0;
+      const updateThrottle = 5000; // 5秒间隔
+
+      window.bleAPI.sendDeviceList((devicelist) => {
+        const now = Date.now();
+        if (now - lastUpdate > updateThrottle) {
+          updateDeviceList(devicelist);
+          lastUpdate = now;
+        }
+      });
+      //----------------------------------------------------------------------
+        //接收来自主进程的蓝牙设备列表
+        // window.bleAPI.sendDeviceList((devicelist) => {
+        //   // console.log(devicelist);
+        //   // document.getElementById('device').innerHTML=''
+        //   // let container = document.getElementById('device')
+        //   // devicelist.forEach(element => {
+        //   //   let button=document.createElement('button')
+        //   //   button.onclick=function(){
+        //   //     send(element.deviceName)
+        //   //   }
+        //   //   button.id=element.deviceName
+        //   //   button.innerText=element.deviceName
+        //   //   button.style.display = 'block';
+        //   //   button.style.marginBottom = '10px';
+        //   //   container.appendChild(button)
+        //   // });
+
+        //   console.log(devicelist);
+        //   const container = document.getElementById('device');
+        //   container.innerHTML = '';
+
+        //   devicelist.forEach(element => {
+        //     const li = document.createElement('li');
+        //     li.style.background = 'transparent';
+        //     li.style.padding = '6px';
+        //     li.style.margin = '8px auto';
+        //     li.style.borderRadius = '5px';
+        //     li.style.width = '80%';
+        //     li.style.display = 'flex';
+        //     li.style.justifyContent = 'space-between';
+        //     li.style.alignItems = 'center';
+        //     li.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+        //     li.style.border = '1px solid lch(51.35% 35.67 178.75)';
+        //     li.style.transition = 'background 0.3s';
+
+        //     li.onmouseover = () => {
+        //       li.style.background = '#9cf3e6';
+        //     };
+        //     li.onmouseout = () => {
+        //       li.style.background = 'transparent';
+        //     };
+        //     li.id=element.deviceName
+
+        //     const nameSpan = document.createElement('span');
+        //     nameSpan.innerText = element.deviceName;
+        //     nameSpan.style.flex = '1';
+        //     nameSpan.style.fontSize = '16px';
+        //     nameSpan.style.color = '#333';
+
+        //     const btn = document.createElement('button');
+        //     // btn.innerText = '连接';
+        //     btn.innerText = strings['ble-connect.connectBle']
+        //     btn.className = 'connect-btn';
+        //     btn.onclick = function () {
+        //       send(element.deviceName);
+        //     };
+
+        //     li.appendChild(nameSpan);
+        //     li.appendChild(btn);
+        //     container.appendChild(li);
+        //   });
+          
+        // })
+
+        function send(dv){
+          console.log(dv);
+          
+          window.bleAPI.sendDevice(dv)
+        }
+        // document.getElementById('device').addEventListener('click',()=>{
+        //   send()
+        // })
+
+        function onDisconnected(event){
+          const Device = event.target;
+          document.getElementById('device-name').innerHTML = ''
+          alert(`设备${Device.name}断开连接`)
+          document.getElementById('device').innerHTML=''
+          fetch('http://localhost:3000/set-ble', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'text/plain'
+            },
+            body: '1'
+          })
+          .then(response => response.text())
+          .then(data => {
+            console.log('服务器响应:', data);
+          })
+          .catch(error => {
+            console.error('错误:', error);
+          });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+          // 再去调用 testIt
+          document.getElementById('clickme').addEventListener('click', testIt)
+        });
+        async function testIt () {
+          if(!device || !device.gatt.connected){
+            console.log(navigator);
+          
+            device = await navigator.bluetooth.requestDevice({
+              filters: [{ services: ['108f94d5-570b-4a6c-9a47-12f428f362e6'] }],
+              optionalServices: ['108f94d5-570b-4a6c-9a47-12f428f362e6', '4e8d78da-f40e-4983-9cc6-9b888aab1800']
+            }).catch(e=>{
+              console.log(e);
+              
+            })
+
+            console.log('开始');
+            
+            server = await device.gatt.connect();
+            console.log('结束');
+            document.getElementById(device.name).remove()
+            if(server){
+              fetch('http://localhost:3000/set-ble', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'text/plain'
+                },
+                body: '0'
+              })
+              .then(response => response.text())
+              .then(data => {
+                console.log('服务器响应:', data);
+              })
+              .catch(error => {
+                console.error('错误:', error);
+              });
+            }
+            //1551BBE8-2765-11EE-BE56-0242AC120002
+            //1551bbe8-2765-11ee-be56-0242ac120002
+            try{
+              service = await server.getPrimaryService('108f94d5-570b-4a6c-9a47-12f428f362e6');
+              serviceDown = await server.getPrimaryService('4e8d78da-f40e-4983-9cc6-9b888aab1800');
+              characteristicWrite = await service.getCharacteristic('20bc2441-0aed-48d0-81bd-68f28d02c2a6');
+              characteristicRead = await service.getCharacteristic('407ccc3a-7ed4-42fc-b66f-899d82e1a695');
+              characteristicWriteDown = await serviceDown.getCharacteristic('1551bbe8-2765-11ee-be56-0242ac120002');
+              characteristicReadDown = await serviceDown.getCharacteristic('1551bbe8-2765-11ee-be56-0242ac120002');
+              device.addEventListener('gattserverdisconnected', onDisconnected);
+              await characteristicRead.startNotifications()
+              await characteristicReadDown.startNotifications()
+              // console.log(characteristicWrite.properties.writeValue);
+              getStatus()
+              characteristicReadDown.addEventListener('characteristicvaluechanged', (event)=>{
+                // console.log('有返回');
+                
+                console.log(event.target.value);
+
+                if(event.target.value.getUint8(0)==8 && event.target.value.getUint8(1)==254){
+                  bleAPI.sendCodeProsser(false)
+                }else if(event.target.value.getUint8(0)==7 && event.target.value.getUint8(1)==4){
+                  bleAPI.sendCodeProsser(true)
+                }
+                
+              })
+              
+
+
+            
+              const uint8Array = new Uint8Array([5]);
+              await characteristicWriteDown.writeValue(uint8Array.buffer)
+              // electronAPI.sendCharacteristic(characteristicRead,characteristicWrite)
+              // window.electronAPI.sendCharacteristic(JSON.stringify(service),JSON.stringify(characteristicWrite))
+
+            }catch(err){
+              alert(err)
+            }
+            document.getElementById('device-name').innerHTML = device.name || `ID: ${device.id}`
+          }else{
+            alert('请先断开当前蓝牙')
+          }
+          
+        }
+
+      
+
+      function cancelRequest () {
+        window.bleAPI.cancelBluetoothRequest()
+      }
+
+      document.getElementById('closeBle').addEventListener('click',()=>{
+        if(device){
+          window.bleAPI.sendIsConnect(true)
+          device.gatt.disconnect()
+          document.getElementById('device-name').innerText=''
+          testIt()
+
+        }
+        
+      })
+
+      // document.getElementById('cancel').addEventListener('click', cancelRequest)
+
+      window.bleAPI.bluetoothPairingRequest((event, details) => {
+        console.log('执行了');
+        
+        const response = {}
+
+        switch (details.pairingKind) {
+          case 'confirm': {
+            response.confirmed = window.confirm(`Do you want to connect to device ${details.deviceId}?`)
+            break
+          }
+          case 'confirmPin': {
+            response.confirmed = window.confirm(`Does the pin ${details.pin} match the pin displayed on device ${details.deviceId}?`)
+            break
+          }
+          case 'providePin': {
+            const pin = window.prompt(`Please provide a pin for ${details.deviceId}.`)
+            if (pin) {
+              response.pin = pin
+              response.confirmed = true
+            } else {
+              response.confirmed = false
+            }
+          }
+        }
+
+        window.bleAPI.bluetoothPairingResponse(response)
+      })
+      </script>
+    
+
+    <!-- </main> -->
+  </body>
+</html>
