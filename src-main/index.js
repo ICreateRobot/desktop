@@ -1,5 +1,8 @@
-const {app} = require('electron');
-
+const {app,session,powerSaveBlocker,powerMonitor, webContents} = require('electron');
+const { autoUpdater } = require('electron-updater');
+const { dialog } = require('electron');
+const axios = require("axios");
+const {SerialPort} = require('serialport')
 // requestSingleInstanceLock() crashes the app in signed MAS builds
 // https://github.com/electron/electron/issues/15958
 if (!process.mas && !app.requestSingleInstanceLock()) {
@@ -13,11 +16,39 @@ const {checkForUpdates} = require('./update-checker');
 const {tranlateOrNull} = require('./l10n');
 const migrate = require('./migrate');
 const settings = require('./settings');
+const {getWin,setWin} = require('../utils/win')
+// const {getWss,setWss} = require('../utils/wsSever')
+const {startServer,stopServer} = require('../utils/startServer')
+const {translate, getStrings, getLocale} = require('./l10n');
+// const {setMode,getMode} = require('../utils/mode')
 require('./protocols');
 require('./context-menu');
 require('./menu-bar');
 require('./crash-messages');
+const {initializeAppServices} = require('../utils/whenReady')
+const blockerId = powerSaveBlocker.start('prevent-app-suspension');
+console.log('powerSaveBlocker started, ID:', blockerId);
 
+
+
+// 系统从休眠状态恢复
+powerMonitor.on('resume', () => {
+    // 弹出警告提示
+  dialog.showMessageBox({
+    type: 'warning',
+    buttons: [`${translate('index.confirm')}`],
+    defaultId: 0,
+    title: `${translate('index.sysTitle')}`,
+    message: `${translate('index.sysMessage')}`,
+    detail: `${translate('index.sysDetail')}`,
+  });
+
+  // 延时 60 秒后执行重启
+  setTimeout(() => {
+    app.relaunch(); // 重启应用
+    app.exit();     // 退出当前实例
+  }, 60 * 1000); // 60秒 = 60000 毫秒
+});
 app.enableSandbox();
 
 // Allows certain versions of Scratch Link to work without an internet connection
@@ -155,6 +186,16 @@ app.on('web-contents-created', (event, webContents) => {
 
 app.on('window-all-closed', () => {
   if (!isMigrating) {
+    stopServer()
+    console.log('执行了')
+    if(getWin()){
+      try{
+        getWin().close()
+      }catch(e){
+        console.log(e)
+      }
+      
+    }
     app.quit();
   }
 });
@@ -211,13 +252,25 @@ let isMigrating = true;
 let migratePromise = null;
 
 app.on('second-instance', (event, argv, workingDirectory) => {
-  migratePromise.then(() => {
-    const commandLineOptions = parseCommandLine(argv);
-    EditorWindow.openFiles(commandLineOptions.files, commandLineOptions.fullscreen, workingDirectory);
-  });
-});
+  // migratePromise.then(() => {
+  //   const commandLineOptions = parseCommandLine(argv);
+  //   EditorWindow.openFiles(commandLineOptions.files, commandLineOptions.fullscreen, workingDirectory);
+  // });
 
-app.whenReady().then(() => {
+  // 找到已有的窗口并激活它
+  const existingWindow = AbstractWindow.getWindowsByClass(EditorWindow)[0];
+  if (existingWindow) {
+    if (existingWindow.window.isMinimized()) existingWindow.window.restore();
+    existingWindow.window.focus();
+  }
+});
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('enable-webgl'); // 保证 WebGL 不被停
+app.commandLine.appendSwitch('enable-media-stream'); // 确保音视频流保持工作
+app.whenReady().then(async () => {
+  await initializeAppServices();
   AbstractWindow.settingsChanged();
 
   migratePromise = migrate().then((shouldContinue) => {
@@ -238,6 +291,9 @@ app.whenReady().then(() => {
 
     if (AbstractWindow.getAllWindows().length === 0) {
       // No windows were successfully opened. Let's just quit.
+      if(getWin()){
+        getWin().close()
+      }
       app.quit();
     }
 
@@ -250,3 +306,4 @@ app.whenReady().then(() => {
       });
   });
 });
+require('../utils/microbitConnect')
