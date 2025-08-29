@@ -309,7 +309,7 @@ async function trainModel() {
        batchSize: Number(batch),
        callbacks: {
           onEpochEnd: (epoch, logs) =>{
-              progressText.text (`已完成 ${Math.ceil(((epoch+1)/epo)*100)} %`);
+              progressText.text (`${languageDate[localStorage.getItem('tw:language') || 'zh-cn']['completed']} ${Math.ceil(((epoch+1)/epo)*100)} %`);
               barTrain.css('width', `${Math.ceil(((epoch+1)/epo)*100)}%`);
           }
        }//训练进度
@@ -361,7 +361,7 @@ function className(){
 /*在展示区进行识别*/
 async function startShow(){
     playModelType = true;
-    $('#exportModel').text('停止测试');//停止测试
+    $('#exportModel').text(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['stopTest']);//停止测试
 
     /*打开相机*/
     // videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -412,7 +412,7 @@ async function show_value(num){
 /*结束展示*/
 function endShow(){console.log("结束识别");
     playModelType = false;
-    $('#exportModel').text('测试模型');//测试模型
+    $('#exportModel').text(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['exportModel']);//测试模型
     /*打开相机*/
     // 停止所有视频流
     channelVideo.postMessage('close')
@@ -436,6 +436,182 @@ async function predict() {
         return result;
     });
 }
+
+// function openFile(button) {
+//     classChecked_div = button.parentNode.parentNode;
+//     var parentId = $(classChecked_div).attr('id'); // 获取card的id
+//     parentId = parentId.split('-');
+//     var label = parentId[1] - 1;
+
+//     const input = document.createElement('input');
+//     input.type = 'file';
+//     input.accept = 'image/*';
+//     input.click();
+
+//     input.onchange = async (e) => {
+//         const file = e.target.files[0];
+//         if (!file) return;
+
+//         const reader = new FileReader();
+//         reader.onloadend = async function(evt) {
+//             const imgElement = new Image();
+//             imgElement.src = evt.target.result;
+//             await imgElement.decode();
+
+//             const canvas = document.createElement('canvas');
+//             const ctx = canvas.getContext('2d');
+
+//             // 设置 canvas 尺寸和图片一致
+//             canvas.width = imgElement.width;
+//             canvas.height = imgElement.height;
+
+//             // 镜像翻转
+//             ctx.save();
+//             ctx.scale(-1, 1);
+//             ctx.drawImage(imgElement, -canvas.width, 0, canvas.width, canvas.height);
+//             ctx.restore();
+
+//             // ---- 创建展示 DOM（和摄像头采集完全一致）----
+//             const imgDiv = document.createElement('div');
+//             imgDiv.style.backgroundImage = `url(${canvas.toDataURL('image/png')})`;
+//             imgDiv.style.backgroundSize = 'cover';
+//             imgDiv.style.backgroundPosition = 'center';
+//             imgDiv.classList.add('photo');
+//             imgDiv.id = 'img' + NUM_IMG;
+
+//             const imgDel = document.createElement('div');
+//             imgDel.classList.add('img_del');
+//             imgDel.innerHTML = '×';
+//             imgDel.setAttribute('onclick', 'deletePhoto(this)');
+
+//             imgDiv.appendChild(imgDel);
+
+//             // 添加到父元素 photoLibrary
+//             const parentDiv = $(classChecked_div).find('.photoLibrary')[0];
+//             parentDiv.appendChild(imgDiv);
+//             parentDiv.scrollTop = parentDiv.scrollHeight;
+
+//             // 样本数量更新（和摄像头逻辑一致）
+//             $(classChecked_div).find('.card_numText_n').text(
+//                 parseInt($(classChecked_div).find('.card_numText_n').text()) + 1
+//             );
+//             sampleSize++;
+//             NUM_IMG++;
+
+//             // ---- TensorFlow.js 数据处理（防止内存泄漏）----
+//             const frameArray = tf.tidy(() => {
+//                 const frame = tf.browser.fromPixels(imgElement)
+//                     .resizeNearestNeighbor([224, 224])
+//                     .expandDims()
+//                     .toFloat()
+//                     .div(tf.scalar(255));
+//                 const processedFrame = poseNetmode.predict(frame);
+//                 return processedFrame.arraySync(); // 转换为普通数组保存
+//             });
+
+//             // relation 和 data 里不存张量，存数组
+//             relation.push({ frame: frameArray, label: label, img: imgDiv.id });
+//             data.push({ frame: frameArray, label: label });
+
+//             imageDATA.push({
+//                 label: label,
+//                 url: canvas.toDataURL('image/png'),
+//                 data: { frame: frameArray, label: label }
+//             });
+
+//             // 清理 Image 对象，释放内存
+//             imgElement.src = "";
+//         };
+
+//         reader.readAsDataURL(file);
+//     };
+// }
+
+
+function openFile(button) {
+    classChecked_div = button.parentNode.parentNode;
+    var parentId = $(classChecked_div).attr('id'); // 获取 card 的 id
+    parentId = parentId.split('-');
+    var label = parentId[1] - 1;
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.click();
+
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onloadend = async function(evt) {
+            const imgElement = new Image();
+            imgElement.src = evt.target.result;
+            await imgElement.decode();
+
+            // ✅ 创建 canvas，强制缩放到 224×224
+            const targetSize = 224;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = targetSize;
+            canvas.height = targetSize;
+
+            // ✅ 镜像翻转并缩放绘制
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(imgElement, -targetSize, 0, targetSize, targetSize);
+            ctx.restore();
+
+            // ✅ 创建展示 div（和摄像头采集完全一致）
+            const imgDiv = document.createElement('div');
+            imgDiv.style.backgroundImage = `url(${canvas.toDataURL('image/png')})`;
+            imgDiv.style.backgroundSize = 'cover';
+            imgDiv.style.backgroundPosition = 'center';
+            imgDiv.classList.add('photo');
+            imgDiv.id = 'img' + NUM_IMG;
+
+            const imgDel = document.createElement('div');
+            imgDel.classList.add('img_del');
+            imgDel.innerHTML = '×';
+            imgDel.setAttribute('onclick', 'deletePhoto(this)');
+            imgDiv.appendChild(imgDel);
+
+            // ✅ 添加到父元素 photoLibrary
+            const parentDiv = $(classChecked_div).find('.photoLibrary')[0];
+            parentDiv.appendChild(imgDiv);
+            parentDiv.scrollTop = parentDiv.scrollHeight;
+
+            // ✅ 更新数量
+            $(classChecked_div).find('.card_numText_n').text(
+                parseInt($(classChecked_div).find('.card_numText_n').text()) + 1
+            );
+            sampleSize++;
+            NUM_IMG++;
+
+            // ✅ TensorFlow.js 处理
+            const frame = tf.browser.fromPixels(canvas) // 注意这里用缩放后的 canvas
+                .resizeNearestNeighbor([224, 224])      // 保证和模型输入一致
+                .expandDims()
+                .toFloat()
+                .div(tf.scalar(255));
+
+            const processedFrame = poseNetmode.predict(frame);
+
+            relation.push({ frame: processedFrame, label: label, img: imgDiv.id });
+            data.push({ frame: processedFrame, label: label });
+
+            const frameArray = processedFrame.arraySync();
+            imageDATA.push({
+                label: label,
+                url: canvas.toDataURL('image/png'),
+                data: { frame: processedFrame, label: label }
+            });
+        };
+
+        reader.readAsDataURL(file);
+    };
+}
+
 
 
 /*打开项目界面初始化*/
@@ -567,16 +743,10 @@ function saveProject(down){
     var saveMname=$('#tilt').text();
     var saveExplain=$('#explain').val();
     if(saveMname==""){
-        alert(window.parent.error_projectNull)//"项目名称不能为空"
+        showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['nameNotNull'])//"项目名称不能为空"
         return
     }else if(saveMname.includes('-')){
-        alert(window.parent.file_saveFailure2)//"存在非法字符 - "
-        return
-    }else if(saveExplain.includes('-')){
-        alert(window.parent.file_saveFailure2)//"存在非法字符 - "
-        return
-    }else if(saveMname.includes(' ')){
-        alert(window.parent.error_projectSpan)//"不能使用空格"
+        showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['illeglStr'])//"存在非法字符 - "
         return
     }
     /*重新获取类名集合*/
@@ -690,13 +860,10 @@ async function saveModel(){
     removeKeysWithPrefix('class')
     var saveMname=$('#tilt').text();
     if(saveMname==""){
-       alert("项目名称不能为空")//"项目名称不能为空"
+       showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['nameNotNull'])//"项目名称不能为空"
        return
     }else if(saveMname.includes('-')){
-        alert("存在非法字符 - ")//"存在非法字符 - "
-        return
-    }else if(saveMname.includes(' ')){
-        alert("不能使用空格")//"不能使用空格"
+        showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['illeglStr'])//"存在非法字符 - "
         return
     }
 

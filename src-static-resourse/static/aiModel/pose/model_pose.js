@@ -326,7 +326,7 @@ async function trainModel() {
         batchSize: Number(batch),//每次梯度更新使用 32 个样本
         callbacks: {
             onEpochEnd: (epoch, logs) =>{//在每个训练周期结束时触发
-                progressText.text (`已完成 ${Math.ceil(((epoch+1)/epo)*100)} %`);
+                progressText.text (`${languageDate[localStorage.getItem('tw:language') || 'zh-cn']['completed']} ${Math.ceil(((epoch+1)/epo)*100)} %`);
                 barTrain.css('width', `${Math.ceil(((epoch+1)/epo)*100)}%`);
             }
         }
@@ -371,7 +371,7 @@ function className(){
 /*在展示区进行识别*/
 async function startShow(){console.log("识别");
     playModelType = true;
-    $('#exportModel').text('停止测试');//停止测试
+    $('#exportModel').text(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['stopTest']);//停止测试
 
     /*打开相机*/
     // videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -421,7 +421,7 @@ function show_value(num){
 /*结束展示*/
 function endShow(){console.log("结束识别");
     playModelType = false;
-    $('#exportModel').text('测试模型');//测试模型
+    $('#exportModel').text(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['exportModel']);//测试模型
     /*打开相机*/
     // 停止所有视频流
     channelVideo.postMessage('close')
@@ -568,16 +568,10 @@ function saveProject(down){
     var saveMname=$('#tilt').text();
     var saveExplain=$('#explain').val();
     if(saveMname==""){
-        alert(window.parent.error_projectNull)//"项目名称不能为空"
+        showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['nameNotNull'])//"项目名称不能为空"
         return
     }else if(saveMname.includes('-')){
-        alert(window.parent.file_saveFailure2)//"存在非法字符 - "
-        return
-    }else if(saveExplain.includes('-')){
-        alert(window.parent.file_saveFailure2)//"存在非法字符 - "
-        return
-    }else if(saveMname.includes(' ')){
-        alert(window.parent.error_projectSpan)//"不能使用空格"
+        showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['illeglStr'])//"存在非法字符 - "
         return
     }
     /*重新获取类名集合*/
@@ -686,13 +680,10 @@ async function saveModel(){
     removeKeysWithPrefix('class')
     var saveMname=$('#tilt').text();
     if(saveMname==""){
-       alert(window.parent.error_projectNull)//"项目名称不能为空"
+       showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['nameNotNull'])//"项目名称不能为空"
        return
     }else if(saveMname.includes('-')){
-        alert(window.parent.file_saveFailure2)//"存在非法字符 - "
-        return
-    }else if(saveMname.includes(' ')){
-        alert(window.parent.error_projectSpan)//"不能使用空格"
+        showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['illeglStr'])//"存在非法字符 - "
         return
     }
 

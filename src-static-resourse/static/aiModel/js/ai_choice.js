@@ -225,13 +225,13 @@ $('#uploadingProject').click(function() {
 function goLearn(num,isLoad){
     if(currentPage=='posture'){//姿态
         p.page="learn_posture";
-        location.replace("learn.html?name="+openFileName+"&opennum="+num+"&MType=P"+"&isLoad="+isLoad);
+        location.replace("learn_pose.html?name="+openFileName+"&opennum="+num+"&MType=P"+"&isLoad="+isLoad);
     }else if(currentPage=='gesture'){//手势
         p.page="learn_gesture";
-        location.replace("learn_g.html?name="+openFileName+"&opennum="+num+"&MType=G"+"&isLoad="+isLoad);
+        location.replace("learn_gesture.html?name="+openFileName+"&opennum="+num+"&MType=G"+"&isLoad="+isLoad);
     }else if(currentPage=='image'){//图像
         p.page="learn_image";
-        location.replace("learn_i.html?name="+openFileName+"&opennum="+num+"&MType=I"+"&isLoad="+isLoad);
+        location.replace("learn_images.html?name="+openFileName+"&opennum="+num+"&MType=I"+"&isLoad="+isLoad);
     }else if(currentPage=='sound'){//声音
         p.page="learn_sound";
         location.replace("learn_s.html?name="+openFileName+"&opennum="+num+"&MType=S"+"&isLoad="+isLoad);

@@ -353,7 +353,7 @@ body {
     background-size: calc(35%) ;
     /* margin-left:1vh; */
     width:12vw;
-    height:3.5vh;
+    height:4vh;
     border: 0px;
     background-color: #68bef7;
     display: none;
@@ -720,37 +720,26 @@ body {
     margin-top: 5vh;
 }
 
-.save-project{
-    position: relative;
-    left: 200px;
-    text-align: center;
-    width: 12vh; /* 自动适应内容宽度 */
-    height: 4vh;
-    line-height: 4vh;
-    border: 2px solid #00BFFF;
-    border-radius: 4px;
-    font-size: 2vh;
-    color: #00BFFF;
-    background-color: #fff;
-    padding: 0 15px; /* 添加左右内边距，增加可点击区域 */
-    transition: background-color 0.3s ease, color 0.3s ease; /* 添加过渡效果 */  
-}
-.select-camera{
-    position: relative;
-    left: -100px;
-    text-align: center;
-    width: 12vh; /* 自动适应内容宽度 */
-    height: 4vh;
-    line-height: 4vh;
-    border: 2px solid #00BFFF;
-    border-radius: 4px;
-    font-size: 2vh;
-    color: #00BFFF;
-    background-color: #fff;
-    padding: 0 15px; /* 添加左右内边距，增加可点击区域 */
-    transition: background-color 0.3s ease, color 0.3s ease; /* 添加过渡效果 */  
+.button-container {
+  display: flex;
+  gap: 20px; /* 固定按钮间距 */
+  justify-content: center; /* 居中显示 */
 }
 
+.save-project,
+.select-camera {
+  text-align: center;
+  width: 15vh;
+  height: 4vh;
+  line-height: 4vh;
+  border: 2px solid #00BFFF;
+  border-radius: 4px;
+  font-size: 2vh;
+  color: #00BFFF;
+  background-color: #fff;
+  padding: 0 15px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
 .save-project, .select-camera {
     display: inline-block;
     vertical-align: middle; /* 可选，对齐更整齐 */

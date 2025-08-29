@@ -103,7 +103,7 @@ function createCameraSelectionModal() {
         } else if(selectedType === 'network'){
             const inputIp = modal.querySelector('#cameraIp').value.trim();
             if (!inputIp) {
-                alert(languageDate[localStorage.getItem('tw:language')]['cameraIp']);
+                alert(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['cameraIp']);
                 return;
             }
             if(whatCamera=='robot'){
@@ -213,13 +213,18 @@ const languageDate = {
     "cameraIp": "请输入网络摄像头IP地址",
     "cameraSelectConfirm": "确定",
     "cameraSelectCancel": "取消",
+    'retrain':'再次训练',
+    'completed':'已完成',
+    'nameNotNull':'项目名称不能为空',
+    'illeglStr':'存在非法字符 -',
+    'stopTest':'停止测试'
   },
   "en": {
     "tilt_G": "Gesture Training",
     "tilt_I": "Image Training",
     "tilt_P": "Pose Training",
     getCategoryName: (index) => `Category ${index}`,
-    getSampleText: (index) => `image samples`,
+    getSampleText: (index) => ` image samples`,
     "addClass": "+ Add a category",
     "trainText": "Training",
     "progressText": "0%",
@@ -244,7 +249,12 @@ const languageDate = {
     "robot": "ICrobot Camera",
     "cameraIp": "Please enter network camera IP address",
     "cameraSelectConfirm": "Confirm",
-    "cameraSelectCancel": "Cancel"
+    "cameraSelectCancel": "Cancel",
+    'retrain':'Retrain',
+    'completed':'Completed',
+    'nameNotNull':'The project name cannot be empty',
+    'illeglStr':'Presence of illegal characters -',
+    'stopTest':'Stop testing'
   }
 };
 
@@ -989,7 +999,7 @@ function trainModel_end(){
     $('#playModel').removeClass('playGray');
 
     //恢复中间训练按钮
-    trainingModel.text('再次训练');//"再次训练"
+    trainingModel.text(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['retrain']);//"再次训练"
     // trainingModel.css('display', 'block');
     // trainingModel_progress.css('display', 'none');
     // progressText.text ('0%');
