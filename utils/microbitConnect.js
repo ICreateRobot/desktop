@@ -493,9 +493,9 @@ ipcMain.handle('usb-exit-repl', async () => {
 //进入repl模式
 ipcMain.handle('usb-enter-repl', async () => {
   try {
-    if (!getDeviceState().serialPort || getDeviceState().replActive) {
-      return { success: false, error: "串口未连接或已处于REPL模式"};
-    }
+    // if (!getDeviceState().serialPort || getDeviceState().replActive) {
+    //   return { success: false, error: "串口未连接或已处于REPL模式"};
+    // }
 
     // 中断当前程序
     await sendSerialCommand('\x03'); 
