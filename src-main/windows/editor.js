@@ -23,6 +23,11 @@ const MasterWindow = require('./master.js')
 const ConnectWindow=require('./connect-device.js')
 const DownloadCodeWindow = require('./download-code');
 const BleConnectWindow = require('./ble-connect')
+const {getWin,setWin} = require('../../utils/win.js')
+const {getCode,setCode,getDown,setDown,setPlace,getPlace} = require('../../utils/tempCode.js')
+const {getPort} =require('../../utils/port')
+const extensions = require('../../utils/extensionWho.js')
+const socket =require('../../utils/socket')
 
 const TYPE_FILE = 'file';
 const TYPE_URL = 'url';
@@ -230,6 +235,25 @@ class EditorWindow extends ProjectRunningWindow {
      * opened IDs and overwrite them.
      * @type {Map<string, OpenedFile>}
      */
+    EditorWindow.instance = this; // 保存最新的实例
+    this.robotData=[
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+      [1],
+    ]
+     //禁止节流
+    this.window.webContents.setBackgroundThrottling(false);
     this.openedFiles = new Map();
     this.activeFileId = null;
 
@@ -548,6 +572,304 @@ class EditorWindow extends ProjectRunningWindow {
       
       
     });
+    this.ipc.on('get-robot-data', (event) => {
+      // console.log(this.robotData)
+      event.returnValue = this.robotData
+    });
+    this.ipc.handle('download', (event,code,args) => {
+      console.log('--------------')
+      console.log(code)
+      setCode(code)
+      setDown(1)
+      setPlace(args)
+    });
+    let PORT=getPort()
+     // 发送数据并等待接收特定数据后再继续
+     async function sendDataAndWait(dataToSend) {
+      return new Promise(async (resolve, reject) => {
+        // 发送数据
+        await PORT.write(dataToSend, (err) => {
+          if (err) {
+            return reject('Error on write: ' + err.message);
+          }
+
+          console.log(`Data sent: ${dataToSend}`);
+        });
+
+        // 等待接收到的数据
+        // await PORT.on('data', (data) => {
+        //   console.log('Data received:', data.toString());
+        //   console.log(typeof(data.toString()))
+
+        //   // 检查是否是我们想要的响应（例如，'0'）
+        //   if (data.toString().includes('71')) {
+        //     console.log('Received 71, continuing...');
+        //     PORT.removeListener('data');
+        //     resolve(); // 继续执行
+        //   }
+        // });
+        const onDataReceived = (data) => {
+          console.log('Data received:', data.toString());
+          console.log(typeof (data.toString()));
+        
+          // 检查是否是我们想要的响应（例如，'0'）
+          if(data.toString().includes('74')){
+            console.log('Received 74, completed');
+            PORT.removeListener('data', onDataReceived); // 使用 removeListener 停止监听
+            resolve(); // 继续执行
+          }else if (data.toString().includes('71')) {
+            console.log('Received 71, continuing...');
+            PORT.removeListener('data', onDataReceived); // 使用 removeListener 停止监听
+            resolve(); // 继续执行
+          }
+        };
+        
+        PORT.on('data', onDataReceived); // 添加 data 事件的监听器
+
+        // 可选：添加一个超时机制，防止长时间等待
+        setTimeout(() => {
+          reject('Timeout: No response received in time.');
+        }, 5000); // 5秒超时
+      });
+    }
+    function toTwoDigitHexadecimalPair(decimal) {
+          if (decimal < 0) {
+              throw new Error("Input must be a non-negative integer");
+          }
+
+          const rightHex = decimal % 256; // 右边的两位十六进制数表示255以内的数
+          const leftHex = Math.floor(decimal / 256); // 左边的两位十六进制数表示右边数满255时往左边进位的次数
+
+          return [
+              // leftHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+              // rightHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+              leftHex,
+              rightHex
+          ];
+    }
+
+    function crc16(arr) {
+        // let crc = 0xFFFF; // 初始值
+        // for (let i = 0; i < arr.length; i++) {
+        //   crc ^= (arr[i] << 8);
+        //   for (let j = 0; j < 8; j++) {
+        //     if (crc & 0x8000) {
+        //       crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+        //     } else {
+        //       crc = (crc << 1) & 0xFFFF;
+        //     }
+        //   }
+        // }
+        // return crc;
+        let crc = 0xFFFF;
+        for (let i = 0; i < arr.length; i++) {
+          crc ^= arr[i];
+          for (let j = 0; j < 8; j++) {
+            if (crc & 0x0001) {
+              crc = (crc >> 1) ^ 0xA001;
+            } else {
+              crc >>= 1;
+            }
+            crc &= 0xFFFF; // 保持 16 位
+          }
+        }
+        return crc;
+      }
+      function splitUint8Array(uint8Array, chunkSize = 500) {
+        const chunks = [];
+        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+          let slice = uint8Array.slice(i, i + chunkSize);
+
+          // 新包长度 = 头(2) + 数据(N) + CRC16(2)
+          let packet = new Uint8Array(slice.length + 4);
+
+          // 设置包头
+          packet[0] = 0xaa;
+          packet[1] = 0x02;
+
+          // 复制数据
+          packet.set(slice, 2);
+
+          // 计算 CRC16（头 + 数据）
+          let crc = crc16(packet.slice(0, packet.length - 2));
+
+          // 填充 CRC16 高低字节
+          packet[packet.length - 2] = (crc >> 8) & 0xFF;
+          packet[packet.length - 1] = crc & 0xFF;
+
+          chunks.push(packet);
+        }
+        return chunks;
+      }
+
+      function stringToBinary(str) {
+        const encoder = new TextEncoder();
+        const uint8Array = encoder.encode(str);
+        return uint8Array;
+      }
+      let bufferData = '';
+      function createPromiseForSerial(port) {
+        return new Promise((resolve, reject) => {
+          const onData = (data) => {
+            // const value = data[0]; // 假设返回单字节
+            // console.log("收到串口数据:", value);
+
+            let value
+            bufferData += data.toString();
+            if (bufferData.endsWith('\r\n')) {
+              const message = bufferData.trim();
+              bufferData = '';
+
+              try {
+                // const parsed = JSON.parse(message);
+                // console.log(parsed)
+
+                  let parsed;
+
+                // 判断是否是 ESP32 特殊格式 {[…]}
+                if (/^\{\[.*\]\}$/.test(message)) {
+                  const match = message.match(/\[(.*?)\]/);
+                  if (match) {
+                    parsed = match[1].split(',').map(n => Number(n.trim()));
+                  }
+                } else {
+                  // 如果是 JSON 就解析，否则丢异常走 catch
+                  parsed = JSON.parse(message);
+                }
+                value=parsed
+              } catch {
+                value=message
+              }
+            }
+
+            if ((Array.isArray(value) && value.length==1 && value[0] === 0) || (typeof value === "string" && value.includes("[0]"))) {
+              port.off('data', onData); // 收到 0 就解绑
+              resolve(0);
+            }
+            // 如果不是 0，继续等，不 resolve
+          };
+
+          port.on('data', onData);
+        });
+      }
+
+
+      
+      function appendCrcAndNewline(raw) {
+        let crc = crc16(raw);
+        let msg = new Uint8Array(raw.length + 3); // 原始长度 + CRC2字节 + 1个\n
+        msg.set(raw, 0);
+        msg[raw.length] = (crc >> 8) & 0xFF;
+        msg[raw.length + 1] = crc & 0xFF;
+        msg[raw.length + 2] = 0x0A; // '\n'
+        return msg;
+      }
+    this.ipc.handle('serial-download', async(event,code) => {
+      console.log(extensions.getExtension())
+      PORT=getPort()
+      console.log(PORT)
+      if(extensions.getExtension()==1){
+        console.log('#########################################')
+        sendDataAndWait('Lua:').then(() => {
+          sendDataAndWait(code.code).then(() => {
+            sendDataAndWait('endLua')
+          })
+        })
+
+      }else if(extensions.getExtension()==2){
+        let p1 = createPromiseForSerial(PORT);
+        let downloadCode=code.code
+        if (!downloadCode.includes('while')) {
+            // 2. 如果没有 'while' 循环，拼接一个
+            downloadCode += '\nwhile True:\n    pass';
+        }
+        downloadCode+='\n'
+
+        let jsonData={
+          "command": "upload_script",
+          "params": 
+              {
+                  "name": `${code.place}.py`,            // 字符串：1-5.py
+                  "script":downloadCode,            //字符串：程序内容 
+              }
+        }
+        let str=JSON.stringify(jsonData)
+        str+='\n'
+        console.log(str)
+
+        await PORT.write(str, async(err) => {
+          if (err) {
+            return reject('Error on write: ' + err.message);
+          }
+
+          await p1;
+          console.log(`Data sent: ${str}`);
+          console.log("所有数据包发送完毕 ✅");
+          if (socket.getSocket()) {
+            socket.getSocket().send(JSON.stringify({
+              type: 'serialSuccess',
+              data: { message: true }
+            }));
+          }
+        });
+
+        // let startRaw = new Uint8Array([
+        //   0xbb, 
+        //   0x01, 
+        //   code.place, 
+        //   toTwoDigitHexadecimalPair(downloadCode.length)[0],
+        //   toTwoDigitHexadecimalPair(downloadCode.length)[1]
+        // ]);
+        // let startMsg = appendCrcAndNewline(startRaw);
+
+        // // endMsg
+        // let endRaw = new Uint8Array([0xbb, 0x02]);
+        // let endMsg = appendCrcAndNewline(endRaw);
+
+        // // codeMsg (每个分包都要加 CRC + \n)
+        // let codeBin = stringToBinary(downloadCode);
+        // let codeChunks = splitUint8Array(codeBin);
+        // let codeMsg = codeChunks.map(chunk => appendCrcAndNewline(chunk));
+
+        // console.log("startMsg:", startMsg);
+        // console.log("endMsg:", endMsg);
+        // console.log("codeMsg:", codeMsg);
+
+        // // === 发送逻辑 ===
+
+        // // 发 start
+        // let p1 = createPromiseForSerial(PORT);
+        // await PORT.write(startMsg);
+        // await p1;
+
+        // // 发 code 数据包
+        // for (let i = 0; i < codeMsg.length; i++) {
+        //   let p2 = createPromiseForSerial(PORT);
+        //   await PORT.write(codeMsg[i]);
+        //   await p2;
+        // }
+
+        // // 发 end
+        // let p3 = createPromiseForSerial(PORT);
+        // await PORT.write(endMsg);
+        // await p3;
+
+        // console.log("所有数据包发送完毕 ✅");
+        // if (socket.getSocket()) {
+        //   socket.getSocket().send(JSON.stringify({
+        //     type: 'serialSuccess',
+        //     data: { message: true }
+        //   }));
+        // }
+
+      }
+      
+      
+    });
+    this.ipc.handle('cancelload', () => {
+      setDown(2)
+
+    });
     this.ipc.handle('get-advanced-customizations', async () => {
       const USERSCRIPT_PATH = path.join(app.getPath('userData'), 'userscript.js');
       const USERSTYLE_PATH = path.join(app.getPath('userData'), 'userstyle.css');
@@ -677,6 +999,23 @@ class EditorWindow extends ProjectRunningWindow {
    */
   static newWindow (fullscreen) {
     new EditorWindow(null, fullscreen);
+  }
+
+  static dataSend(data){
+    console.log(data)
+    if (EditorWindow.instance) {
+      EditorWindow.instance.window.webContents.send('send-state', data);
+    }
+  }
+
+  static setRobotData(data){
+    // console.log('33333333',data)
+     if (EditorWindow.instance) {
+      // console.log('111111',data)
+      // console.log('2222222',EditorWindow.instance.robotData)
+      EditorWindow.instance.robotData=data
+      EditorWindow.instance.window.webContents.send('send-senor', data);
+    }
   }
 }
 
