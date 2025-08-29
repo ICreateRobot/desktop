@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>固件烧录</title>
+    <!-- <title>固件烧录</title> -->
     <style>
         * {
             box-sizing: border-box;
@@ -79,7 +79,7 @@
     <div class="container">
 
         <select id="portSelector">
-            <option disabled selected>请选择串口</option>
+            <option id="defaultSerial" disabled selected>请选择串口</option>
         </select>
         <button id="common">ICRobot普通固件</button>
         <button id="xiaoZhi">小智AI固件</button>
@@ -109,6 +109,14 @@
         //         selector.appendChild(option);
         //     });
         // });
+        const {locale, strings} = electronAPI.getTranslate();
+        document.documentElement.lang = locale;
+
+        document.getElementById('common').textContent=strings['download-code.common'];
+        document.getElementById('xiaoZhi').textContent=strings['download-code.xiaoZhi'];
+        document.getElementById('microbit').textContent=strings['download-code.microbit'];
+        document.getElementById('title').textContent=strings['download-code.title2'];
+        document.getElementById('defaultSerial').textContent=strings['download-code.defaultSerial'];
 
         function updatePorts() {
             const selector = document.getElementById('portSelector');
@@ -117,7 +125,7 @@
             // 获取串口列表
             let ports=electronAPI.getPorts()
              // 清空现有选项
-            selector.innerHTML = '<option disabled>请选择串口</option>';
+            selector.innerHTML = `<option disabled>${strings['download-code.defaultSerial']}</option>`;
 
             let found = false;
             ports.forEach(port => {
@@ -222,24 +230,24 @@
         }
 
         document.getElementById('microbit').addEventListener('click',async()=>{
-            showToast('开始烧录固件...')
+            showToast(strings['download-code.startFlash'])
         
             // 调用烧录方法
             console.log(window)
             const result = await window.electronAPI.flashFirmware()
             
             if (result.success) {
-                showToast('固件烧录成功！', 'success')
+                showToast(strings['download-code.flashSuccess'], 'success')
             } else {
-                showToast(`烧录失败: ${result.error}`, 'error')
+                showToast(`${strings['download-code.flashFailed']}: ${result.error}`, 'error')
             }
         })
 
         // 烧录按钮事件
         document.getElementById('common').addEventListener('click', () => {
             const port = document.getElementById('portSelector').value;
-            if (!port || port === "请选择串口") {
-                alert('请选择一个串口！');
+            if (!port || port === strings['download-code.defaultSerial']) {
+                alert(strings['download-code.defaultSerial']);
                 return;
             }
             electronAPI.sendWho({ who: 'common', port });
@@ -247,8 +255,8 @@
 
         document.getElementById('xiaoZhi').addEventListener('click', () => {
             const port = document.getElementById('portSelector').value;
-            if (!port || port === "请选择串口") {
-                alert('请选择一个串口！');
+            if (!port || port === strings['download-code.defaultSerial']) {
+                alert(strings['download-code.defaultSerial']);
                 return;
             }
             electronAPI.sendWho({ who: 'xiaoZhi', port });

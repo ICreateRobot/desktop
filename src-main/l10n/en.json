@@ -617,5 +617,76 @@
   "please-scan-qr": {
     "string": "Please scan the QR code to connect to Wi-Fi (make sure the computer hotspot is turned on)",
     "developer_comment": "please-scan-qr"
+  },
+    "download-code.title":{
+    "string":"Firmware Flashing",
+    "developer_comment":"download-code.title"
+  },
+  "download-code.reconnect":{
+    "string":"Reconnected the device",
+    "developer_comment":"download-code.reconnect"
+  },
+  "download-code.prompt":{
+    "string":"Device Operation Prompt",
+    "developer_comment":"download-code.prompt"
+  },
+  "download-code.message":{
+    "string":"Please reconnect the device",
+    "developer_comment":"download-code.message"
+  },
+  "download-code.detail":{
+    "string":"1. Please unplug both ends of the Type-C cable.\n2. Reconnect it properly.\n3. Click confirm to continue flashing.",
+    "developer_comment":"download-code.detail"
+  },
+
+  "download-code.common":{
+    "string":"ICRobot Standard Firmware",
+    "developer_comment":"download-code.common"
+  },
+  "download-code.xiaoZhi":{
+    "string":"XiaoZhi AI Firmware",
+    "developer_comment":"download-code.xiaoZhi"
+  },
+  "download-code.microbit":{
+    "string":"Flash Microbit Basic Firmware",
+    "developer_comment":"download-code.microbit"
+  },
+  "download-code.title2":{
+    "string":"Please select a device first",
+    "developer_comment":"download-code.title2"
+  },
+  "download-code.defaultSerial":{
+    "string":"Please select the serial port",
+    "developer_comment":"download-code.defaultSerial"
+  },
+  "download-code.startFlash":{
+    "string":"Starting firmware flashing...",
+    "developer_comment":"download-code.startFlash"
+  },
+  "download-code.flashSuccess":{
+    "string":"Firmware flashed successfully!",
+    "developer_comment":"download-code.flashSuccess"
+  },
+  "download-code.flashFailed":{
+    "string":"Flashing failed",
+    "developer_comment":"download-code.flashFailed"
+  },
+
+
+  "index.confirm":{
+    "string":"Confirm",
+    "developer_comment":"index.confirm"
+  },
+  "index.sysTitle":{
+    "string":"System Recovery Notification",
+    "developer_comment":"index.sysTitle"
+  },
+  "index.sysMessage":{
+    "string":"The system has resumed from sleep/hibernation",
+    "developer_comment":"index.sysMessage"
+  },
+  "index.sysDetail":{
+    "string":"You have one minute to save your work before the application automatically restarts to ensure proper functionality",
+    "developer_comment":"index.sysDetail"
   }
 }

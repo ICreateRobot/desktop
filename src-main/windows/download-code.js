@@ -580,7 +580,7 @@ class DownloadCodeWindow extends AbstractWindow {
   constructor () {
     super();
 
-    this.window.setTitle(`烧录固件 - ${APP_NAME}`);
+    this.window.setTitle(`${translate('download-code.title')} - ${APP_NAME}`);
     this.window.setMinimizable(false);
     this.window.setMaximizable(false);
 
@@ -595,6 +595,12 @@ class DownloadCodeWindow extends AbstractWindow {
     });
 
     const ipc = this.window.webContents.ipc;
+    ipc.on('get-translate', (event) => {
+      event.returnValue = {
+        locale: getLocale(),
+        strings: getStrings()
+      }
+    });
     ipc.on('get-std', (event) => {
       event.returnValue = {
         stdout:false
@@ -603,7 +609,8 @@ class DownloadCodeWindow extends AbstractWindow {
     ipc.on('get-ports', async (event) => {
       try {
         const ports = await SerialPort.list();
-        const portPaths = ports.map(p => p.path);
+        const filteredPorts = ports.filter(p => p.vendorId && p.vendorId.toUpperCase() === '1A86');
+        const portPaths = filteredPorts.map(p => p.path);
         event.returnValue = portPaths;
       } catch (err) {
         console.error('Error listing ports:', err);
@@ -726,20 +733,19 @@ class DownloadCodeWindow extends AbstractWindow {
             }
             this.canClose = true; 
           }else{
-
-            await new Promise((resolve)=>{
-              dialog.showMessageBox({
-                type:'info',
-                buttons:['已重新插好设备'],
-                title:'设备操作提示',
-                message:'请重新拔插设备',
-                detail:'1.请拔下type-c线的两端。\n2.重新连接好\n3.点击确认继续烧录'
-              }).then(()=>{
-                resolve()
-              }).catch(err=>{
-                resolve()
-              })
-            })
+            // await new Promise((resolve)=>{
+            //   dialog.showMessageBox({
+            //     type:'info',
+            //     buttons:[`${translate('download-code.reconnect')}`],
+            //     title:`${translate('download-code.prompt')}`,
+            //     message:`${translate('download-code.message')}`,
+            //     detail:`${translate('download-code.detail')}`
+            //   }).then(()=>{
+            //     resolve()
+            //   }).catch(err=>{
+            //     resolve()
+            //   })
+            // })
             const uploadProcess = spawn(upload, [port, mainPy, icrobotPy]);
 
             uploadProcess.stdout.on('data', (data) => {

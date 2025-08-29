@@ -18,4 +18,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getExtension: () => ipcRenderer.sendSync('get-extension'),
 
   flashFirmware: () =>ipcRenderer.invoke('flash-firmware'),
+   getTranslate: () => ipcRenderer.sendSync('get-translate'),
 });

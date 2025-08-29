@@ -1896,6 +1896,24 @@
         "connect-device.showToast.connectTimeout": "连接超时，请重试",
         "connect-device.showToast.disConnect": "已断开",
         "connect-device.showToast.disconnectFailed": "断开失败",
-        "please-scan-qr":"请扫描二维码连接 Wi-Fi(确保电脑热点开启)"
+        "please-scan-qr":"请扫描二维码连接 Wi-Fi(确保电脑热点开启)",
+        "download-code.title":"固件烧录",
+        "download-code.reconnect":"已重新插好设备",
+        "download-code.prompt":"设备操作提示",
+        "download-code.message":"请重新拔插设备",
+        "download-code.detail":"1.请拔下type-c线的两端。\n2.重新连接好\n3.点击确认继续烧录",
+
+        "download-code.common":"ICRobot普通固件",
+        "download-code.xiaoZhi":"小智AI固件",
+        "download-code.microbit":"烧录Microbit基础固件",
+        "download-code.title2":"请先选择设备",
+        "download-code.defaultSerial":"请选择串口",
+        "download-code.startFlash":"开始烧录固件...",
+        "download-code.flashSuccess":"固件烧录成功！",
+        "download-code.flashFailed":"烧录失败",
+        "index.confirm":"确定",
+        "index.sysTitle":"系统恢复通知",
+        "index.sysMessage":"系统已从睡眠/休眠恢复",
+        "index.sysDetail":"您有一分钟的时间保存项目，随后将自动重启应用以确保功能正常"
     }
 }
