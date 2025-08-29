@@ -16,6 +16,7 @@ const { BrowserWindow } = require('electron');
 const {getCloseBn,setCloseBn} = require('../../utils/closeBn')
 // const {getSocket} = require('../../utils/socket')
 const extensions = require('../../utils/extensionWho')
+const {setMode,getMode} = require('../../utils/mode')
 
 
 const DAPjs = require('dapjs');
@@ -32,7 +33,7 @@ const IntelHex = require('intel-hex');
 const fs = require('fs');
 // const parser = require('@serialport/parser-readline');
 const {setPort,getPort,getDeviceState,setDeviceState,setPortCom,getPortCom} = require('../../utils/port')
-// const axios = require('axios');
+const axios = require('axios');
 
 
 const WebSocket = require('ws');
@@ -226,6 +227,7 @@ detectPreferredInterface()
 
           // 在每次 checkIp 调用前判断是否已中止
           checkIp(ip).then((result) => {
+              // console.log(ip)
               if (result && !scanAbort) {
                   scanAbort = true; // 停止其他任务的继续执行
                   console.log(`ESP32 IP 地址: ${result}`);
@@ -601,7 +603,6 @@ class ConnectWindow extends AbstractWindow {
   
   
         try {
-          
           // 生成 Wi-Fi 配置字符串
           const wifiConfig = `WIFI:T:WPA;S:${info.name};P:${info.password};;`;
   
@@ -788,6 +789,47 @@ class ConnectWindow extends AbstractWindow {
             port: getPortCom()
           }
         });
+
+         function crc16(arr) {
+        // let crc = 0xFFFF; // 初始值
+        // for (let i = 0; i < arr.length; i++) {
+        //   crc ^= (arr[i] << 8);
+        //   for (let j = 0; j < 8; j++) {
+        //     if (crc & 0x8000) {
+        //       crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+        //     } else {
+        //       crc = (crc << 1) & 0xFFFF;
+        //     }
+        //   }
+        // }
+        // return crc;
+        let crc = 0xFFFF;
+        for (let i = 0; i < arr.length; i++) {
+          crc ^= arr[i];
+          for (let j = 0; j < 8; j++) {
+            if (crc & 0x0001) {
+              crc = (crc >> 1) ^ 0xA001;
+            } else {
+              crc >>= 1;
+            }
+            crc &= 0xFFFF; // 保持 16 位
+          }
+        }
+        return crc;
+      }
+
+      function parseEsp32Message(message) {
+        // 判断是否是 {[…]} 格式
+        if (/^\{\[.*\]\}$/.test(message.trim())) {
+          // 用正则提取中括号内的内容
+          const match = message.match(/\[(.*?)\]/);
+          if (match) {
+            return match[1].split(',').map(n => Number(n));
+          }
+        }
+        // 如果不是这种格式，返回 null
+        return null;
+      }
       ipc.handle('send-connect-port', async (event, port) =>{
         // console.log(port)
   
@@ -1015,6 +1057,7 @@ class ConnectWindow extends AbstractWindow {
             console.log('串口打开成功');
             setPort(PORT);
             setPortCom(port)
+            
 
             socket.getSocket()?.send(JSON.stringify({
               type: 'isOpenPort',
@@ -1024,17 +1067,80 @@ class ConnectWindow extends AbstractWindow {
             ipc.on('is-connected', (event) => {
               event.returnValue = { flag: true };
             });
+            // let raw;
+            // if(!getMode()){
+            //   raw = new Uint8Array([0xcc,0x01]);
+            // }else{
+            //   raw = new Uint8Array([0xcc,0x02]);
+            // }
+
+            // // 计算 CRC16
+            // let crc = crc16(raw);
+
+            // // 新建数组
+            // let packet = new Uint8Array(raw.length + 3);
+
+            // // 拷贝原始数据
+            // packet.set(raw, 0);
+
+            // packet[raw.length] = (crc >> 8) & 0xFF;   // 高字节
+            // packet[raw.length + 1] = crc & 0xFF;      // 低字节
+
+            // // 在最后添加换行符 \n
+            // packet[raw.length + 2] = 10;
+            // console.log(packet)
+
+            let jsonData
+
+            if(!getMode()){
+              jsonData={
+                "command": "select_mode",
+                "params": 
+                    {
+                        "mode": `scratch`,
+                    }
+              }
+            }else{
+              jsonData={
+                "command": "select_mode",
+                "params": 
+                    {
+                        "mode": `file`,
+                    }
+              }
+            }
+            let str=JSON.stringify(jsonData)
+            str+='\n'
+            console.log(str)
+            PORT.write(str)
           });
 
           let bufferData = '';
           PORT.on('data', (data) => {
+            // console.log('11111111111111',data)
+            // console.log('11111111111',data.toString('utf8'))
             bufferData += data.toString();
             if (bufferData.endsWith('\r\n')) {
               const message = bufferData.trim();
               bufferData = '';
+              console.log('222222222222222222222222',message)
 
               try {
-                const parsed = JSON.parse(message);
+                // const parsed = JSON.parse(message);
+                // console.log(parsed)
+
+                 let parsed;
+
+                // 判断是否是特殊格式 {[…]}
+                if (/^\{\[.*\]\}$/.test(message)) {
+                  const match = message.match(/\[(.*?)\]/);
+                  if (match) {
+                    parsed = match[1].split(',').map(n => Number(n.trim()));
+                  }
+                } else {
+                  // 如果是 JSON 就解析，否则丢异常走 catch
+                  parsed = JSON.parse(message);
+                }
                 socket.getSocket()?.send(JSON.stringify({
                   type: 'serialData',
                   data: { message: parsed }
@@ -1213,9 +1319,9 @@ class ConnectWindow extends AbstractWindow {
           }
 
           // 非 Micro:bit 串口处理（原逻辑）
-          if (PORT && PORT.isOpen) {
+          if (getPort() && getPort().isOpen) {
             await new Promise((resolve, reject) => {
-              PORT.close((err) => {
+              getPort().close((err) => {
                 if (err) {
                   console.error('serial close failed:', err.message);
                   reject(err);
@@ -1233,7 +1339,7 @@ class ConnectWindow extends AbstractWindow {
                     }));
                   }
 
-                  PORT.removeAllListeners();
+                  // getPort().removeAllListeners();
                   resolve();
                 }
               });
