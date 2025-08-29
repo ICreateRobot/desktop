@@ -21,7 +21,7 @@ import {
 } from 'scratch-gui/src/reducers/tw';
 import {WrappedFileHandle} from './filesystem-api.js';
 import {setStrings} from '../prompt/prompt.js';
-
+import codeModule from '../../../utils/global.js'
 let mountedOnce = false;
 
 /**
@@ -65,6 +65,76 @@ const handleClickSourceCode = () => {
 const handleClickDonate = () => {
   window.open('https://github.com/sponsors/GarboMuffin');
 };
+const handleDownload = (args) =>{
+  // console.log('############')
+  // console.log('abcdefg--------------',args)
+  
+  codeModule.getCode()
+  EditorPreload.download(codeModule.getCode(),args);
+}
+
+const handleSerialDownload = (place) =>{
+  console.log(place)
+  let data={
+    place:place,
+    code:codeModule.getCode()
+  }
+  EditorPreload.SerialDownload(data)
+}
+const handleSaveCode = (args) =>{
+  console.log(args)
+  // alert('保存代码')
+  let blob = new Blob([codeModule.getCode()], { type: 'text/plain' }); // 创建一个Blob对象，指定内容类型为纯文本
+  let fileDownloadUrl = URL.createObjectURL(blob); // 为Blob对象创建一个临时URL
+
+  const name = 'project';
+  // 创建一个临时的<a>标签用于下载
+  let downloadLink = document.createElement('a');
+  downloadLink.href = fileDownloadUrl;
+  args.forEach((element,index) => {
+    if(element && index==0){
+      downloadLink.download = name+'.lua'; // 指定下载文件的名称
+    }else if(element && index==1){
+      downloadLink.download = name+'.py'; // 指定下载文件的名称
+    }
+  });
+  
+
+  document.body.appendChild(downloadLink); // 将<a>标签加入到文档中
+  downloadLink.click(); // 模拟点击<a>标签以触发下载
+
+  document.body.removeChild(downloadLink); // 移除<a>标签
+  URL.revokeObjectURL(fileDownloadUrl); // 释放创建的临时URL资源
+}
+
+const handleLoadCode = () =>{
+  // alert('导入代码')
+  const input =document.createElement('input')
+  input.type='file'
+  input.id='fileInput'
+  input.style='display:none'
+
+  input.click()
+  input.addEventListener('change',(event)=>{
+    const file = event.target.files[0];  // 获取选中的文件
+    if (!file) return;
+
+    const reader = new FileReader();  // 创建 FileReader 实例
+
+    // 读取完成后，将内容显示到文本框
+    reader.onload = (e) => {
+        // console.log(e.target.result);
+        codeModule.setCode(e.target.result)
+        input.remove()
+    };
+
+    // 读取文件内容（纯文本）
+    reader.readAsText(file);
+  })
+}
+const handleCancelload = () =>{
+  EditorPreload.cancelload()
+}
 
 const securityManager = {
   // Everything not specified here falls back to the scratch-gui security manager
@@ -239,6 +309,11 @@ const DesktopHOC = function (WrappedComponent) {
           ]}
           onClickDesktopSettings={handleClickDesktopSettings}
           securityManager={securityManager}
+          download={handleDownload}
+          SerialDownload={handleSerialDownload}
+          saveCode={handleSaveCode}
+          loadCode={handleLoadCode}
+          cancelload={handleCancelload}
           {...props}
         />
       );
