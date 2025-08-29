@@ -111,6 +111,7 @@
 
       </div>
       <script>
+        let currentExtension
         let device
         let service
         let serviceDown
@@ -123,6 +124,15 @@
         let Lua1=[0x4c,0x75,0x61,0x31]
         let endLua=[0x65,0x6e,0x64,0x4c,0x75,0x61]
         let CODE;
+        let place;
+
+        //robot对应变量
+        let deviceRobot
+        let serverRobot
+        let serviceRobot
+        let characteristicWriteRobot
+        let characteristicReadRobot
+        let characteristicReadSensorRobot
 
         
         let lanyaMsg=[]
@@ -203,17 +213,167 @@
           });
         }
 
+        // ===== 封装 Promise =====
+        function createPromiseForRobot(timeoutMs = 6000) {
+          return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+              // 超时处理
+              responseQueue = responseQueue.filter(item => item.resolve !== resolve);
+              reject(new Error(`等待超时（>${timeoutMs}ms 未收到数据）`));
+            }, timeoutMs);
+
+            // 推入队列，由全局监听处理
+            responseQueue.push({ resolve, reject, timer });
+          });
+        }
         window.bleAPI.codeDownLoad((codeDown) => {
           console.log(codeDown);
-          if(codeDown.down==1){
-            CODE=codeDown.code
-            downLoad()
+          if(currentExtension==1){
+             if(codeDown.down==1){
+              CODE=codeDown.code
+              downLoad()
 
-          }else if(codeDown.down==2){
-            cancelDown()
+            }else if(codeDown.down==2){
+              cancelDown()
+            }
+          }else if(currentExtension==2){
+            if(codeDown.down==1){
+              CODE=codeDown.code
+              place=codeDown.place
+              downLoadForRobot()
+
+            }
           }
+         
           
         });
+
+        function toTwoDigitHexadecimalPair(decimal) {
+          if (decimal < 0) {
+              throw new Error("Input must be a non-negative integer");
+          }
+
+          const rightHex = decimal % 256; // 右边的两位十六进制数表示255以内的数
+          const leftHex = Math.floor(decimal / 256); // 左边的两位十六进制数表示右边数满255时往左边进位的次数
+
+          return [
+              // leftHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+              // rightHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+              leftHex,
+              rightHex
+          ];
+      }
+        async function downLoadForRobot(){
+          try{
+            // startMsg
+            console.log(CODE.length)
+            let startRaw = new Uint8Array([0xbb, 0x01, place, toTwoDigitHexadecimalPair(CODE.length)[0],toTwoDigitHexadecimalPair(CODE.length)[1]]);
+            let crcStart = crc16(startRaw);
+            let startMsg = new Uint8Array(startRaw.length + 2);
+            startMsg.set(startRaw, 0);
+            startMsg[startRaw.length] = (crcStart >> 8) & 0xFF; // 高字节
+            startMsg[startRaw.length + 1] = crcStart & 0xFF;    // 低字节
+
+            // endMsg
+            let endRaw = new Uint8Array([0xbb, 0x02]);
+            let crcEnd = crc16(endRaw);
+            let endMsg = new Uint8Array(endRaw.length + 2);
+            endMsg.set(endRaw, 0);
+            endMsg[endRaw.length] = (crcEnd >> 8) & 0xFF;
+            endMsg[endRaw.length + 1] = crcEnd & 0xFF;
+
+            let codeBin=stringToBinary(CODE)
+            // let crcCode = crc16(codeBin)
+            // let codeCrcMsg = new Uint8Array(codeBin.length+2)
+            // codeCrcMsg.set(codeBin,0)
+            // codeCrcMsg[codeBin.length] = (crcCode >> 8) & 0xFF
+            // codeCrcMsg[codeBin.length+1] = crcCode & 0xFF
+
+            let codeMsg=splitUint8Array(codeBin)
+            console.log(startMsg)
+            console.log(endMsg)
+            console.log(codeMsg)
+            const promise1 = createPromiseForRobot(); // 先创建 Promise 并加入队列
+            await characteristicWriteRobot.writeValue(startMsg)
+            await promise1
+            for(let i=0;i<codeMsg.length;i++){
+              const promise2 = createPromiseForRobot(); // 先创建 Promise 并加入队列
+              await characteristicWriteRobot.writeValue(codeMsg[i])
+              await promise2
+            }
+            const promise3 = createPromiseForRobot(); // 先创建 Promise 并加入队列
+            await characteristicWriteRobot.writeValue(endMsg)
+            await promise3
+            window.bleAPI.setIsDownLoad(true)
+          }catch(e){
+            console.log(e)
+          }
+          
+
+        }
+
+
+        // function splitUint8Array(uint8Array, chunkSize = 20) {
+        //   const chunks = [];
+        //   for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        //     chunks.push(uint8Array.slice(i, i + chunkSize));
+        //   }
+        //   return chunks;
+        // }
+
+        function crc16(arr) {
+          // let crc = 0xFFFF; // 初始值
+          // for (let i = 0; i < arr.length; i++) {
+          //   crc ^= (arr[i] << 8);
+          //   for (let j = 0; j < 8; j++) {
+          //     if (crc & 0x8000) {
+          //       crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+          //     } else {
+          //       crc = (crc << 1) & 0xFFFF;
+          //     }
+          //   }
+          // }
+          // return crc;
+          let crc = 0xFFFF;
+          for (let i = 0; i < arr.length; i++) {
+            crc ^= arr[i];
+            for (let j = 0; j < 8; j++) {
+              if (crc & 0x0001) {
+                crc = (crc >> 1) ^ 0xA001;
+              } else {
+                crc >>= 1;
+              }
+              crc &= 0xFFFF; // 保持 16 位
+            }
+          }
+          return crc;
+        }
+       function splitUint8Array(uint8Array, chunkSize = 500) {
+          const chunks = [];
+          for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            let slice = uint8Array.slice(i, i + chunkSize);
+
+            // 新包长度 = 头(2) + 数据(N) + CRC16(2)
+            let packet = new Uint8Array(slice.length + 4);
+
+            // 设置包头
+            packet[0] = 0xaa;
+            packet[1] = 0x02;
+
+            // 复制数据
+            packet.set(slice, 2);
+
+            // 计算 CRC16（头 + 数据）
+            let crc = crc16(packet.slice(0, packet.length - 2));
+
+            // 填充 CRC16 高低字节
+            packet[packet.length - 2] = (crc >> 8) & 0xFF;
+            packet[packet.length - 1] = crc & 0xFF;
+
+            chunks.push(packet);
+          }
+          return chunks;
+        }
 
         function stringToBinary(str) {
           const encoder = new TextEncoder();
@@ -442,18 +602,78 @@
           
         // })
 
+        function appendSum(arr) {
+          const sum = arr.reduce((acc, num) => acc + num, 0);
+          arr.push(sum);
+          return arr;
+        }
+        let writeQueue = Promise.resolve();
+
+        function safeWrite(characteristic, buffer) {
+          // 把任务排进队列
+          writeQueue = writeQueue.then(() => {
+            return characteristic.writeValue(buffer);
+          }).catch(err => {
+            console.error("写入失败:", err);
+          });
+
+          return writeQueue;
+        }
         window.bleAPI.sendMotor(async (motor)=>{
           
             console.log(motor)
-            const uint8Array = new Uint8Array(motor);
-            console.log(uint8Array.buffer)
-            if(motor.length==1 && motor[0]==5){
-              await characteristicWriteDown.writeValue(uint8Array.buffer)
-            }else{
-               await characteristicWrite.writeValue(uint8Array.buffer)
+            if(currentExtension==1){
+              const uint8Array = new Uint8Array(motor);
+              console.log(uint8Array.buffer)
+              if(motor.length==1 && motor[0]==5){
+                await characteristicWriteDown.writeValue(uint8Array.buffer)
+              }else{
+                await characteristicWrite.writeValue(uint8Array.buffer)
+              }
+            }else if(currentExtension==2){
+
+              let data = motor; // 假设 data 是普通数组，例如 [0x11,0x22,0x33]
+
+              // 转成 Uint8Array
+              const raw = new Uint8Array(data);
+
+              // 计算 CRC16
+              let crc = crc16(raw);
+
+              // 新建数组，长度 = 原始数据 + 2
+              let packet = new Uint8Array(raw.length + 2);
+              packet.set(raw, 0);
+              packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
+              packet[raw.length + 1] = crc & 0xFF;     // 低字节
+              console.log(packet)
+
+              // const promise1 = createPromiseForRobot();
+              // await characteristicWriteRobot.writeValue(packet.buffer)
+              await safeWrite(characteristicWriteRobot, packet.buffer);
+              // await promise1
             }
+            
            
          
+        })
+
+        window.bleAPI.whatExtension(async (extension)=>{
+          // console.log(extension)
+          if(extension!=currentExtension){
+            if(device){
+              window.bleAPI.sendIsConnect(true)
+              device.gatt.disconnect()
+              document.getElementById('device-name').innerText=''
+              testIt()
+
+            }else if(deviceRobot){
+              window.bleAPI.sendIsConnect(true)
+              deviceRobot.gatt.disconnect()
+              document.getElementById('device-name').innerText=''
+              testIt()
+            }
+          }
+          currentExtension=extension
         })
 
         //------------------------新加的蓝牙列表刷新逻辑----------------------
@@ -644,83 +864,235 @@
         });
         async function testIt () {
           if(!device || !device.gatt.connected){
-            console.log(navigator);
+            if(currentExtension==1){
+              console.log(navigator);
           
-            device = await navigator.bluetooth.requestDevice({
-              filters: [{ services: ['108f94d5-570b-4a6c-9a47-12f428f362e6'] }],
-              optionalServices: ['108f94d5-570b-4a6c-9a47-12f428f362e6', '4e8d78da-f40e-4983-9cc6-9b888aab1800']
-            }).catch(e=>{
-              console.log(e);
-              
-            })
-
-            console.log('开始');
-            
-            server = await device.gatt.connect();
-            console.log('结束');
-            document.getElementById(device.name).remove()
-            if(server){
-              fetch('http://localhost:3000/set-ble', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'text/plain'
-                },
-                body: '0'
-              })
-              .then(response => response.text())
-              .then(data => {
-                console.log('服务器响应:', data);
-              })
-              .catch(error => {
-                console.error('错误:', error);
-              });
-            }
-            //1551BBE8-2765-11EE-BE56-0242AC120002
-            //1551bbe8-2765-11ee-be56-0242ac120002
-            try{
-              service = await server.getPrimaryService('108f94d5-570b-4a6c-9a47-12f428f362e6');
-              serviceDown = await server.getPrimaryService('4e8d78da-f40e-4983-9cc6-9b888aab1800');
-              characteristicWrite = await service.getCharacteristic('20bc2441-0aed-48d0-81bd-68f28d02c2a6');
-              characteristicRead = await service.getCharacteristic('407ccc3a-7ed4-42fc-b66f-899d82e1a695');
-              characteristicWriteDown = await serviceDown.getCharacteristic('1551bbe8-2765-11ee-be56-0242ac120002');
-              characteristicReadDown = await serviceDown.getCharacteristic('1551bbe8-2765-11ee-be56-0242ac120002');
-              device.addEventListener('gattserverdisconnected', onDisconnected);
-              await characteristicRead.startNotifications()
-              await characteristicReadDown.startNotifications()
-              // console.log(characteristicWrite.properties.writeValue);
-              getStatus()
-              characteristicReadDown.addEventListener('characteristicvaluechanged', (event)=>{
-                // console.log('有返回');
-                
-                console.log(event.target.value);
-
-                if(event.target.value.getUint8(0)==8 && event.target.value.getUint8(1)==254){
-                  bleAPI.sendCodeProsser(false)
-                }else if(event.target.value.getUint8(0)==7 && event.target.value.getUint8(1)==4){
-                  bleAPI.sendCodeProsser(true)
-                }
+              device = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['108f94d5-570b-4a6c-9a47-12f428f362e6'] }],
+                optionalServices: ['108f94d5-570b-4a6c-9a47-12f428f362e6', '4e8d78da-f40e-4983-9cc6-9b888aab1800']
+              }).catch(e=>{
+                console.log(e);
                 
               })
+
+              console.log('开始');
+              
+              server = await device.gatt.connect();
+              console.log('结束');
+              
+              if(server){
+                fetch('http://localhost:3000/set-ble', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'text/plain'
+                  },
+                  body: '0'
+                })
+                .then(response => response.text())
+                .then(data => {
+                  console.log('服务器响应:', data);
+                })
+                .catch(error => {
+                  console.error('错误:', error);
+                });
+              }
+              //1551BBE8-2765-11EE-BE56-0242AC120002
+              //1551bbe8-2765-11ee-be56-0242ac120002
+              try{
+                service = await server.getPrimaryService('108f94d5-570b-4a6c-9a47-12f428f362e6');
+                serviceDown = await server.getPrimaryService('4e8d78da-f40e-4983-9cc6-9b888aab1800');
+                characteristicWrite = await service.getCharacteristic('20bc2441-0aed-48d0-81bd-68f28d02c2a6');
+                characteristicRead = await service.getCharacteristic('407ccc3a-7ed4-42fc-b66f-899d82e1a695');
+                characteristicWriteDown = await serviceDown.getCharacteristic('1551bbe8-2765-11ee-be56-0242ac120002');
+                characteristicReadDown = await serviceDown.getCharacteristic('1551bbe8-2765-11ee-be56-0242ac120002');
+                device.addEventListener('gattserverdisconnected', onDisconnected);
+                await characteristicRead.startNotifications()
+                await characteristicReadDown.startNotifications()
+                // console.log(characteristicWrite.properties.writeValue);
+                getStatus()
+                characteristicReadDown.addEventListener('characteristicvaluechanged', (event)=>{
+                  // console.log('有返回');
+                  
+                  console.log(event.target.value);
+
+                  if(event.target.value.getUint8(0)==8 && event.target.value.getUint8(1)==254){
+                    bleAPI.sendCodeProsser(false)
+                  }else if(event.target.value.getUint8(0)==7 && event.target.value.getUint8(1)==4){
+                    bleAPI.sendCodeProsser(true)
+                  }
+                  
+                })
+                
+
+
+              
+                const uint8Array = new Uint8Array([5]);
+                await characteristicWriteDown.writeValue(uint8Array.buffer)
+                // electronAPI.sendCharacteristic(characteristicRead,characteristicWrite)
+                // window.electronAPI.sendCharacteristic(JSON.stringify(service),JSON.stringify(characteristicWrite))
+
+                document.getElementById(device.name).remove()
+                document.getElementById('device-name').innerHTML = device.name || `ID: ${device.id}`
+              }catch(err){
+                alert(err)
+              }
+              
+            }else if(currentExtension==2){
+              deviceRobot = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['0000fff0-0000-1000-8000-00805f9b34fb'] }],
+                optionalServices: ['00001800-0000-1000-8000-00805f9b34fb', '0000fff0-0000-1000-8000-00805f9b34fb']
+              }).catch(e=>{
+                console.log(e);
+                
+              })
+
+              console.log('开始');
+              
+              // serverRobot = await deviceRobot.gatt.connect();
+              if (!deviceRobot.gatt.connected) {
+                serverRobot = await deviceRobot.gatt.connect();
+              }
+              console.log('结束');
               
 
+              if(serverRobot){
+                fetch('http://localhost:3000/set-ble', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'text/plain'
+                  },
+                  body: '0'
+                })
+                .then(response => response.text())
+                .then(data => {
+                  console.log('服务器响应:', data);
+                })
+                .catch(error => {
+                  console.error('错误:', error);
+                });
+              }
+              //1551BBE8-2765-11EE-BE56-0242AC120002
+              //1551bbe8-2765-11ee-be56-0242ac120002
+              try{
+                serviceRobot = await serverRobot.getPrimaryService('0000fff0-0000-1000-8000-00805f9b34fb');
+                characteristicWriteRobot = await serviceRobot.getCharacteristic('0000fff1-0000-1000-8000-00805f9b34fb');
+                characteristicReadRobot = await serviceRobot.getCharacteristic('0000fff2-0000-1000-8000-00805f9b34fb');
+                characteristicReadSensorRobot=await serviceRobot.getCharacteristic('0000fff3-0000-1000-8000-00805f9b34fb');
+                deviceRobot.addEventListener('gattserverdisconnected', onDisconnected);
+                await characteristicReadRobot.startNotifications()
+                await characteristicReadSensorRobot.startNotifications()
 
-            
-              const uint8Array = new Uint8Array([5]);
-              await characteristicWriteDown.writeValue(uint8Array.buffer)
-              // electronAPI.sendCharacteristic(characteristicRead,characteristicWrite)
-              // window.electronAPI.sendCharacteristic(JSON.stringify(service),JSON.stringify(characteristicWrite))
+                characteristicReadRobot.addEventListener('characteristicvaluechanged',globalEventListener)
+                
+                
+                // characteristicReadRobot.addEventListener('characteristicvaluechanged',(event)=>{
+                //   const value = event.target.value;
+                //   const state = value.getUint8(0);
+                //   console.log(state)
+                //   console.log(value)
+                //   console.log(event)
+                //   // window.bleAPI.sendRobotSenor({
+                //   //   type:'senor',
+                //   //   data:event.target.value
+                //   // })
+                // })
+                characteristicReadSensorRobot.addEventListener('characteristicvaluechanged',(event)=>{
+                  // console.log(event.target.value)
+                  // let value = event.target.value
+                  // let sensor=new Uint8Array(value.buffer);
+                  // let sensorArray = Array.from(sensor);
+                  // console.log(event.target.value);
+                  let value = event.target.value;
+                  let sensor = new Uint8Array(value.buffer);
 
-            }catch(err){
-              alert(err)
+                  // 把字节数组转成字符串
+                  let jsonStr = new TextDecoder("utf-8").decode(sensor);
+                  // console.log("📩 收到 JSON 字符串:", jsonStr);
+
+                  let sensorArray = [];
+                  try {
+                    // 解析 JSON
+                    sensorArray = JSON.parse(jsonStr);
+                    // console.log("✅ 解析后的数组:", sensorArray);
+                  } catch (e) {
+                    console.error("❌ JSON 解析失败:", e);
+                  }
+                  // console.log(sensorArray)
+                  window.bleAPI.sendRobotSenor({
+                    type:'senor',
+                    data:sensorArray
+                  })
+                })
+
+                // console.log(window.bleAPI.getCurrentMode())
+                // 转成 Uint8Array
+                let raw;
+              if(!window.bleAPI.getCurrentMode()){
+                raw = new Uint8Array([0xcc,0x01]);
+              }else{
+                raw = new Uint8Array([0xcc,0x02]);
+              }
+
+              // 计算 CRC16
+              let crc = crc16(raw);
+
+              // 新建数组，长度 = 原始数据 + 2
+              let packet = new Uint8Array(raw.length + 2);
+              packet.set(raw, 0);
+              packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
+              packet[raw.length + 1] = crc & 0xFF;     // 低字节
+              console.log(packet)
+
+              await characteristicWriteRobot.writeValue(packet.buffer)
+
+              document.getElementById(deviceRobot.name).remove()
+              document.getElementById('device-name').innerHTML = deviceRobot.name || `ID: ${deviceRobot.id}`
+
+              }catch(err){
+                alert('蓝牙连接异常断开，请重新连接')
+              }
+              
             }
-            document.getElementById('device-name').innerHTML = device.name || `ID: ${device.id}`
+            
           }else{
             alert('请先断开当前蓝牙')
           }
           
         }
 
-      
+        let responseQueue = []; // 等待响应的队列
+        // 全局监听器
+        function globalEventListener(event) {
+          const value = event.target.value;
+          const arr = new Uint8Array(value.buffer);
+          console.log("📩 收到数据:", arr);
+
+          const state1 = arr[0]; // 第一个字节（硬件返回）
+
+          // ✅ 新增：无论是否队列匹配，都把 state 发出去
+          if (window.bleAPI && typeof window.bleAPI.sendRobotSenor === "function") {
+            console.log('发送了')
+            window.bleAPI.sendRobotSenor({
+              type: "state",
+              data: state1
+            });
+          }
+
+          // 如果队列里有等待的 promise，取出处理
+          if (responseQueue.length > 0) {
+            const { resolve, reject } = responseQueue.shift();
+            const state = arr[0]; // 第一个字节
+            console.log(state)
+
+            if (state === 0x00) {  // 48 十进制
+              resolve(true);
+            } else {
+              reject(new Error(`收到错误状态码: ${state}`));
+            }
+          } else {
+            console.warn("⚠️ 收到未匹配的响应:", arr);
+          }
+        }
 
       function cancelRequest () {
         window.bleAPI.cancelBluetoothRequest()
@@ -733,6 +1105,11 @@
           document.getElementById('device-name').innerText=''
           testIt()
 
+        }else if(deviceRobot){
+          window.bleAPI.sendIsConnect(true)
+          deviceRobot.gatt.disconnect()
+          document.getElementById('device-name').innerText=''
+          testIt()
         }
         
       })

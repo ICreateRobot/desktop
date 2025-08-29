@@ -14,13 +14,15 @@ const path = require('path');
 const { BrowserWindow } = require('electron');
 
 const {getWin,setWin} = require('../../utils/win')
-const {getCode,setCode,getDown,setDown} = require('../../utils/tempCode')
+const {getCode,setCode,getDown,setDown,setPlace,getPlace} = require('../../utils/tempCode')
 
 const {getDistance,setDistance} = require('../../utils/distance')
 // const {getDistance,setDistance} = require('../../node_modules/scratch-vm/src/util/action')
 const fs = require('fs');
 const {setSocket,getSocket,getBricksSocket,getBricksMotor} = require('../../utils/socket')
 
+const extensions = require('../../utils/extensionWho')
+const {getMode,setMode} = require('../../utils/mode')
 
 let bluetoothPinCallback
 let selectBluetoothCallback
@@ -124,6 +126,10 @@ class BleConnectWindow extends BrowserWindow {
       }
     });
 
+     ipcMain.on('get-current-mode', (event) => {
+      event.returnValue = getMode()
+    });
+
     let Device=0;
     // function waitForGlobalVariable() {
     //   return new Promise((resolve) => {
@@ -153,7 +159,8 @@ class BleConnectWindow extends BrowserWindow {
     setInterval(()=>{
       let codeDown={
         down:getDown(),
-        code:getCode()
+        code:getCode(),
+        place:getPlace()
       }
       try{
         console.log(this.webContents.isDestroyed())
@@ -253,6 +260,40 @@ class BleConnectWindow extends BrowserWindow {
 
       
     })
+
+    ipcMain.on('send-robot', (event, senor) => {
+      const EditorWindow = require('./editor')
+      
+      if(senor.type=='senor'){
+        // console.log(senor.data)
+        EditorWindow.setRobotData(senor.data)
+      }else if(senor.type=='state'){
+        EditorWindow.dataSend(senor.data)
+      }
+
+      
+    })
+
+
+    this.webContents.send('what-extension', extensions.getExtension())
+    setInterval(()=>{
+      
+      
+      this.webContents.send('what-extension', extensions.getExtension())
+
+    },3000)
+    // setInterval(()=>{
+    //   const EditorWindow = require('./editor')
+    //   EditorWindow.dataSend('bbbbbbbbbbbb')
+    //   EditorWindow.robotData([
+    //     Math.random()*10,
+    //     Math.random()*10,
+    //     Math.random()*10,
+    //     Math.random()*10,
+    //     Math.random()*10,
+    //     Math.random()*10
+    //   ])
+    // },100)
 
     // let timer = setInterval(()=>{
     //   if(getBricksMotor()){
@@ -355,7 +396,7 @@ class BleConnectWindow extends BrowserWindow {
     this.on('closed', () => {
       setWin(null)
     });
-    // this.webContents.openDevTools()
+    this.webContents.openDevTools()
     
 
   }

@@ -18,5 +18,9 @@ contextBridge.exposeInMainWorld('bleAPI', {
     getTranslate: () => ipcRenderer.sendSync('get-translate'),
 
     setIsDownLoad:(down) => ipcRenderer.send('is-download',down),
+    sendRobotSenor:(senor) => ipcRenderer.send('send-robot',senor),
+
+    getCurrentMode:() => ipcRenderer.sendSync('get-current-mode'),
+    whatExtension: (callback) => ipcRenderer.on('what-extension', (event, extension) => callback(extension)),
 });
 
