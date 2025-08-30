@@ -16,7 +16,25 @@
     "electron:package:dir": "electron-builder --dir"
   },
   "dependencies": {
-    "semver": "^7.7.2"
+    "@microbit/microbit-fs": "^0.10.0",
+    "@microbit/microbit-universal-hex": "^0.2.2",
+    "axios": "^1.11.0",
+    "bottleneck": "^2.19.5",
+    "connect-timeout": "^1.9.1",
+    "cors": "^2.8.5",
+    "dapjs": "^2.3.0",
+    "electron-updater": "^6.6.2",
+    "iconv-lite": "^0.6.3",
+    "intel-hex": "^0.2.0",
+    "net": "^1.0.2",
+    "node-wifi": "^2.0.16",
+    "qrcode": "^1.5.4",
+    "semver": "^7.7.2",
+    "serialport": "^13.0.0",
+    "sudo-prompt": "^9.2.1",
+    "systeminformation": "^5.27.7",
+    "usb": "^2.16.0",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
