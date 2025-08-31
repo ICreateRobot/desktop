@@ -1,5 +1,5 @@
-const PLATFORM_NAME = 'TurboWarp';
-const APP_NAME = 'TurboWarp Desktop';
+const PLATFORM_NAME = 'ICreateCode Beta 0.2.8';
+const APP_NAME = 'ICreateCode Beta 0.2.8';
 const PACKAGER_NAME = 'TurboWarp Packager';
 
 module.exports = {

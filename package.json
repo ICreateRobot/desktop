@@ -1,7 +1,7 @@
 {
   "name": "turbowarp-desktop",
-  "description": "Scratch mod with a compiler, dark mode, a bunch of addons, and more.",
-  "version": "1.14.4",
+  "description": "AI Coding Companion for kids.",
+  "version": "0.2.8",
   "license": "GPL-3.0",
   "author": {
     "email": "contact@turbowarp.org",
@@ -34,7 +34,8 @@
     "sudo-prompt": "^9.2.1",
     "systeminformation": "^5.27.7",
     "usb": "^2.16.0",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "express":"4.21.2"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
@@ -78,7 +79,8 @@
   "main": "./src-main/entrypoint.js",
   "build": {
     "appId": "org.turbowarp.desktop",
-    "productName": "TurboWarp",
+    "productName": "ICreateCode Beta",
+    "icon": "build/robotIcon.png",
     "files": [
       "node_modules/**/*",
       "src-main/**/*",
@@ -86,7 +88,8 @@
       "src-renderer/**/*",
       "dist-renderer-webpack/**/*",
       "dist-library-files/**/*",
-      "dist-extensions/**/*"
+      "dist-extensions/**/*",
+      "utils/**/*"
     ],
     "extraResources": [
       {
@@ -96,11 +99,22 @@
       {
         "from": "art/icon.svg",
         "to": "icon.svg"
+      },
+      {
+        "from": "utils/",
+        "to": "utils/"
+      },
+      {
+        "from": "build/robotIcon.png",
+        "to": "build/robotIcon.png"
       }
+    ],
+    "asarUnpack": [
+      "utils/*"
     ],
     "win": {
       "artifactName": "${productName} Portable ${version} ${arch}.${ext}",
-      "icon": "build/icon.ico",
+      "icon": "build/favicon.ico",
       "target": [
         {
           "target": "nsis",
@@ -114,8 +128,8 @@
     },
     "appx": {
       "artifactName": "${productName}-MS-Store-${version}-${arch}.${ext}",
-      "applicationId": "TurboWarp",
-      "displayName": "TurboWarp",
+      "applicationId": "ICreateCode Beta",
+      "displayName": "ICreateCode Beta",
       "identityName": "45747ThomasWeber.TurboWarpDesktop",
       "publisher": "CN=18FA7D4F-01BF-49F2-BF56-782DCEA49C69",
       "publisherDisplayName": "Thomas Weber",
