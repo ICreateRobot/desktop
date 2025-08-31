@@ -1886,6 +1886,9 @@
         "ble-connect.closeBle":"断开蓝牙",
         "ble-connect.connectBle":"连接",
         "ble-connect.title":"蓝牙连接",
+        "ble-connect.disconnect": "设备 {deviceName} 断开连接",
+        "ble-connect.disConnectFirst": "请先断开当前蓝牙",
+        "ble-connect.catchDisConnect": "蓝牙连接异常断开，请重新连接",
 
        "master.title":"主控器",
 

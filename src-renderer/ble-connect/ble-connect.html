@@ -425,7 +425,7 @@
               await createPromise()
               if((lanyaMsg[0]==7 && lanyaMsg[1]==4) || (lanyaMsg[0]==8 && lanyaMsg[1]==1)){
                 window.bleAPI.setIsDownLoad(true)
-                alert('下载结束')
+                // alert('下载结束')
               }
             
           }
@@ -840,7 +840,9 @@
         function onDisconnected(event){
           const Device = event.target;
           document.getElementById('device-name').innerHTML = ''
-          alert(`设备${Device.name}断开连接`)
+          window.bleAPI.sendIsConnect(true)
+          // alert(`设备${Device.name}断开连接`)
+          alert(strings['ble-connect.disconnect'].replace('{deviceName}',Device.name))
           document.getElementById('device').innerHTML=''
           fetch('http://localhost:3000/set-ble', {
             method: 'POST',
@@ -934,7 +936,12 @@
                 document.getElementById(device.name).remove()
                 document.getElementById('device-name').innerHTML = device.name || `ID: ${device.id}`
               }catch(err){
-                alert(err)
+                // alert(err)
+                // alert('蓝牙连接异常断开，请重新连接')
+                alert(strings['ble-connect.catchDisConnect'])
+                window.bleAPI.sendIsConnect(true)
+                device.gatt.disconnect()
+                device=''
               }
               
             }else if(currentExtension==2){
@@ -973,6 +980,8 @@
               }
               //1551BBE8-2765-11EE-BE56-0242AC120002
               //1551bbe8-2765-11ee-be56-0242ac120002
+              console.log(serverRobot)
+              console.log(serverRobot.connected)
               try{
                 serviceRobot = await serverRobot.getPrimaryService('0000fff0-0000-1000-8000-00805f9b34fb');
                 characteristicWriteRobot = await serviceRobot.getCharacteristic('0000fff1-0000-1000-8000-00805f9b34fb');
@@ -1027,35 +1036,40 @@
                 // console.log(window.bleAPI.getCurrentMode())
                 // 转成 Uint8Array
                 let raw;
-              if(!window.bleAPI.getCurrentMode()){
-                raw = new Uint8Array([0xcc,0x01]);
-              }else{
-                raw = new Uint8Array([0xcc,0x02]);
-              }
+                if(!window.bleAPI.getCurrentMode()){
+                  raw = new Uint8Array([0xcc,0x01]);
+                }else{
+                  raw = new Uint8Array([0xcc,0x02]);
+                }
 
-              // 计算 CRC16
-              let crc = crc16(raw);
+                // 计算 CRC16
+                let crc = crc16(raw);
 
-              // 新建数组，长度 = 原始数据 + 2
-              let packet = new Uint8Array(raw.length + 2);
-              packet.set(raw, 0);
-              packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
-              packet[raw.length + 1] = crc & 0xFF;     // 低字节
-              console.log(packet)
+                // 新建数组，长度 = 原始数据 + 2
+                let packet = new Uint8Array(raw.length + 2);
+                packet.set(raw, 0);
+                packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
+                packet[raw.length + 1] = crc & 0xFF;     // 低字节
+                console.log(packet)
 
-              await characteristicWriteRobot.writeValue(packet.buffer)
+                await characteristicWriteRobot.writeValue(packet.buffer)
 
-              document.getElementById(deviceRobot.name).remove()
-              document.getElementById('device-name').innerHTML = deviceRobot.name || `ID: ${deviceRobot.id}`
+                document.getElementById(deviceRobot.name).remove()
+                document.getElementById('device-name').innerHTML = deviceRobot.name || `ID: ${deviceRobot.id}`
 
               }catch(err){
-                alert('蓝牙连接异常断开，请重新连接')
+                // alert('蓝牙连接异常断开，请重新连接')
+                alert(strings['ble-connect.catchDisConnect'])
+                window.bleAPI.sendIsConnect(true)
+                deviceRobot.gatt.disconnect()
+                deviceRobot=''
               }
               
             }
             
           }else{
-            alert('请先断开当前蓝牙')
+            // alert('请先断开当前蓝牙')
+            alert(strings['ble-connect.disConnectFirst'])
           }
           
         }

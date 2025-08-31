@@ -579,6 +579,18 @@
     "string": "ble-connect",
     "developer_comment": "ble-connect"
   },
+   "ble-connect.disconnect": {
+    "string": "Device {deviceName} disconnected",
+    "developer_comment": "Device {deviceName} disconnected"
+  },
+  "ble-connect.disConnectFirst": {
+    "string": "Please disconnect the current Bluetooth device first.",
+    "developer_comment": "Please disconnect the current Bluetooth device first."
+  },
+  "ble-connect.catchDisConnect": {
+    "string": "Bluetooth connection lost unexpectedly. Please reconnect.",
+    "developer_comment": "Bluetooth connection lost unexpectedly. Please reconnect."
+  },
 
   "master.title":{
     "string": "controller",
