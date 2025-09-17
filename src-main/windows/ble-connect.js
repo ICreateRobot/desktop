@@ -396,7 +396,7 @@ class BleConnectWindow extends BrowserWindow {
     this.on('closed', () => {
       setWin(null)
     });
-    this.webContents.openDevTools()
+    // this.webContents.openDevTools()
     
 
   }
