@@ -1881,7 +1881,7 @@
         "connect-device.connecting":"连接中",
         "connect-device.openBle":"打开蓝牙连接界面",
         "connect-device.title": "连接",
-        "ble-connect.bleTitle":"已连接蓝牙",
+        "ble-connect.bleTitle":"已连接的蓝牙：",
         "ble-connect.clickme":"开始扫描",
         "ble-connect.closeBle":"断开蓝牙",
         "ble-connect.connectBle":"连接",

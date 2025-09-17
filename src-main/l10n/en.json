@@ -559,8 +559,8 @@
   
   },
   "ble-connect.bleTitle": {
-    "string": "Bluetooth Connected",
-    "developer_comment": "Bluetooth Connected"
+    "string": "Connected Bluetooth:",
+    "developer_comment": "Connected Bluetooth:"
   },
   "ble-connect.clickme": {
     "string": "Start Scanning",
