@@ -9,11 +9,11 @@ function safeSerialWrite(port, str) {
       return new Promise((res, rej) => {
         port.write(str, (err) => {
           if (err) {
-            console.error("串口写入失败:", err);
+            console.error("11串口写入失败:", err);
             rej(err);
             return reject('Error on write: ' + err.message);
           }
-          console.log(`📤 串口数据已发送: ${str}`);
+          console.log(`📤 222串口数据已发送: ${str}`);
           res();
           resolve();
         });
@@ -118,15 +118,16 @@ const WSS = new WebSocket.Server({ port: 8081 });
         // packet[raw.length + 2] = 10;
 
         // console.log(packet);
+        console.log(str)
         if(getPort()){
-          await safeSerialWrite(getPort(), str);
-          // await getPort().write(str, (err) => {
-          //   if (err) {
-          //     return reject('Error on write: ' + err.message);
-          //   }
+          // await safeSerialWrite(getPort(), str);
+          await getPort().write(str, (err) => {
+            if (err) {
+              return reject('Error on write: ' + err.message);
+            }
   
-          //   console.log(`Data sent: ${str}`);
-          // });
+            console.log(`Data sent: ${str}`);
+          });
         }
         
       }else if(JSON.parse(message).type=='mode'){
