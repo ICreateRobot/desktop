@@ -119,6 +119,7 @@ MIME_TYPES.set('.pb', 'application/octet-stream'); // 添加 .pd 文件支持
 MIME_TYPES.set('.css', 'text/css');
 MIME_TYPES.set('', 'application/octet-stream');
 MIME_TYPES.set('.tflite', 'application/octet-stream');
+MIME_TYPES.set('.sb3', 'application/octet-stream');
 
 protocol.registerSchemesAsPrivileged(Object.entries(FILE_SCHEMES).map(([scheme, metadata]) => ({
   scheme,
