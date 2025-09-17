@@ -1123,7 +1123,7 @@ class ConnectWindow extends AbstractWindow {
             if (bufferData.endsWith('\r\n')) {
               const message = bufferData.trim();
               bufferData = '';
-              console.log('222222222222222222222222',message)
+              // console.log('222222222222222222222222',message)
 
               try {
                 // const parsed = JSON.parse(message);
