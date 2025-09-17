@@ -1,282 +1,249 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <title>固件烧录</title> -->
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
 
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f5f5f5;
-        }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(160deg, #e8f5e9, #a5d6a7);
+    }
 
-        .container {
-            width: 320px;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
+    .panel {
+      width: 380px;
+      background: white;
+      padding: 30px 26px;
+      border-radius: 24px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      animation: fadeIn 0.6s ease;
+    }
 
-        h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
+    .panel h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #2e7d32;
+      margin-bottom: 6px;
+    }
 
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-        }
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #c8e6c9;
+      border-radius: 12px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      background: #f9fdf9;
+    }
 
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #ff4c4c;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.3s;
-        }
+    select:focus {
+      border-color: #66bb6a;
+      outline: none;
+      box-shadow: 0 0 8px rgba(102, 187, 106, 0.5);
+    }
 
-        button:hover {
-            background: #e04343;
-        }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #66bb6a, #43a047);
+      color: white;
+      border: none;
+      border-radius: 999px; /* 胶囊按钮 */
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(67, 160, 71, 0.25);
+    }
 
-        .qr-container {
-            margin-top: 20px;
-            display: none;
-        }
+    .btn:hover {
+      background: linear-gradient(135deg, #57a65a, #388e3c);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(67, 160, 71, 0.35);
+    }
 
-        .qr-container img {
-            width: 150px;
-            height: 150px;
-            border: 4px solid #ff4c4c;
-            padding: 8px;
-            background: white;
-            border-radius: 8px;
-        }
-    </style>
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .qr-container {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .qr-container img {
+      width: 160px;
+      height: 160px;
+      border: 4px solid #4caf50;
+      padding: 10px;
+      background: white;
+      border-radius: 12px;
+    }
+
+    #toast-container div {
+      background: linear-gradient(135deg, #66bb6a, #43a047) !important;
+      border-radius: 12px !important;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
+  <div class="panel">
+    <h2 id="title">请先选择设备</h2>
+    <select id="portSelector">
+      <option id="defaultSerial" disabled selected>请选择串口</option>
+    </select>
+    <button id="common" class="btn">ICRobot普通固件</button>
+    <button id="xiaoZhi" class="btn">小智AI固件</button>
+    <button id="microbit" class="btn">烧录Microbit基础固件</button>
+  </div>
 
-        <select id="portSelector">
-            <option id="defaultSerial" disabled selected>请选择串口</option>
-        </select>
-        <button id="common">ICRobot普通固件</button>
-        <button id="xiaoZhi">小智AI固件</button>
-        <button id="microbit">烧录Microbit基础固件</button>
-        <h1 id="title">请先选择设备</h1>
-        <!-- <h2>Wi-Fi 二维码生成</h2>
-        <input type="text" placeholder="请输入热点名称" id="name">
-        <input type="password" placeholder="请输入热点密码" id="password">
-        <button id="submit">生成二维码</button>
+  <script>
+    const {locale, strings} = electronAPI.getTranslate();
+    document.documentElement.lang = locale;
 
-        <div class="qr-container" id="qrContainer">
-            <p>请扫描二维码连接 Wi-Fi</p>
-            <img id="info" src="" alt="Wi-Fi 二维码">
-        </div> -->
-    </div>
+    document.getElementById('common').textContent=strings['download-code.common'];
+    document.getElementById('xiaoZhi').textContent=strings['download-code.xiaoZhi'];
+    document.getElementById('microbit').textContent=strings['download-code.microbit'];
+    document.getElementById('title').textContent=strings['download-code.title2'];
+    document.getElementById('defaultSerial').textContent=strings['download-code.defaultSerial'];
 
-    <script>
-
-        // // 加载串口列表
-        // window.addEventListener('DOMContentLoaded', () => {
-        //     const selector = document.getElementById('portSelector');
-        //     const ports = electronAPI.getPorts();
-        //     ports.forEach(port => {
-        //         const option = document.createElement('option');
-        //         option.value = port;
-        //         option.textContent = port;
-        //         selector.appendChild(option);
-        //     });
-        // });
-        const {locale, strings} = electronAPI.getTranslate();
-        document.documentElement.lang = locale;
-
-        document.getElementById('common').textContent=strings['download-code.common'];
-        document.getElementById('xiaoZhi').textContent=strings['download-code.xiaoZhi'];
-        document.getElementById('microbit').textContent=strings['download-code.microbit'];
-        document.getElementById('title').textContent=strings['download-code.title2'];
-        document.getElementById('defaultSerial').textContent=strings['download-code.defaultSerial'];
-
-        function updatePorts() {
-            const selector = document.getElementById('portSelector');
-            const selectedPort = selector.value;
-
-            // 获取串口列表
-            let ports=electronAPI.getPorts()
-             // 清空现有选项
-            selector.innerHTML = `<option disabled>${strings['download-code.defaultSerial']}</option>`;
-
-            let found = false;
-            ports.forEach(port => {
-                const option = document.createElement('option');
-                option.value = port;
-                option.textContent = port;
-                if (port === selectedPort) {
-                    option.selected = true;
-                    found = true;
-                }
-                selector.appendChild(option);
-            });
-
-            // 如果之前选择的串口不在当前列表中，选回默认
-            if (!found) {
-                selector.selectedIndex = 0;
-            }
+    function updatePorts() {
+      const selector = document.getElementById('portSelector');
+      const selectedPort = selector.value;
+      let ports=electronAPI.getPorts()
+      selector.innerHTML = `<option disabled>${strings['download-code.defaultSerial']}</option>`;
+      let found = false;
+      ports.forEach(port => {
+        const option = document.createElement('option');
+        option.value = port;
+        option.textContent = port;
+        if (port === selectedPort) {
+          option.selected = true;
+          found = true;
         }
+        selector.appendChild(option);
+      });
+      if (!found) {
+        selector.selectedIndex = 0;
+      }
+    }
 
-        // 初始加载一次
-        window.addEventListener('DOMContentLoaded', () => {
-            updatePorts();
-            let extension =electronAPI.getExtension()
-            if(extension =='2'){
-                document.getElementById('title').style.display='none'
-                document.getElementById('common').style.display='block';
-                document.getElementById('xiaoZhi').style.display='block'
-                document.getElementById('portSelector').style.display='block'
-                document.getElementById('microbit').style.display='none';
-            }else if(extension =='3'){
-                document.getElementById('title').style.display='none'
-                document.getElementById('microbit').style.display='block';
-                document.getElementById('common').style.display='none';
-                document.getElementById('xiaoZhi').style.display='none'
-                document.getElementById('portSelector').style.display='none'
-            }else{
-                document.getElementById('title').style.display='block'
-                document.getElementById('microbit').style.display='none';
-                document.getElementById('common').style.display='none';
-                document.getElementById('xiaoZhi').style.display='none'
-                document.getElementById('portSelector').style.display='none'
-            }
-            setInterval(updatePorts, 2000); // 每2秒更新一次
+    window.addEventListener('DOMContentLoaded', () => {
+      updatePorts();
+      let extension =electronAPI.getExtension()
+      if(extension =='2'){
+        document.getElementById('title').style.display='none'
+        document.getElementById('common').style.display='block';
+        document.getElementById('xiaoZhi').style.display='block'
+        document.getElementById('portSelector').style.display='block'
+        document.getElementById('microbit').style.display='none';
+      }else if(extension =='3'){
+        document.getElementById('title').style.display='none'
+        document.getElementById('microbit').style.display='block';
+        document.getElementById('common').style.display='none';
+        document.getElementById('xiaoZhi').style.display='none'
+        document.getElementById('portSelector').style.display='none'
+      }else{
+        document.getElementById('title').style.display='block'
+        document.getElementById('microbit').style.display='none';
+        document.getElementById('common').style.display='none';
+        document.getElementById('xiaoZhi').style.display='none'
+        document.getElementById('portSelector').style.display='none'
+      }
+      setInterval(updatePorts, 2000);
+    });
+
+    function showToast(message, duration = 3000) {
+      let container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        Object.assign(container.style, {
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
         });
+        document.body.appendChild(container);
+      }
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      Object.assign(toast.style, {
+        background: 'linear-gradient(135deg, #66bb6a, #43a047)',
+        color: '#fff',
+        padding: '12px 22px',
+        borderRadius: '12px',
+        boxShadow: '0 3px 10px rgba(0,0,0,0.2)',
+        opacity: '0',
+        transform: 'translateY(-20px)',
+        transition: 'opacity 0.3s ease, transform 0.3s ease',
+        maxWidth: '300px'
+      });
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+      });
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+          toast.remove();
+          if (container.children.length === 0) {
+            container.remove();
+          }
+        }, 300);
+      }, duration);
+    }
 
-         function showToast(message, duration = 3000) {
-            // 如果 toast 容器不存在，则创建一个
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                Object.assign(container.style, {
-                    position: 'fixed',
-                    top: '20px',
-                    right: '20px',
-                    zIndex: 9999,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px'
-                });
-                document.body.appendChild(container);
-            }
-        
-            // 创建 toast 元素
-            const toast = document.createElement('div');
-            toast.textContent = message;
-        
-            // 样式设置
-            Object.assign(toast.style, {
-                background: '#333',
-                color: '#fff',
-                padding: '10px 20px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                opacity: '0',
-                transform: 'translateY(-20px)',
-                transition: 'opacity 0.3s ease, transform 0.3s ease',
-                maxWidth: '300px'
-            });
-        
-            // 添加 toast 到容器
-            container.appendChild(toast);
-        
-            // 强制触发重绘以启用动画
-            requestAnimationFrame(() => {
-                toast.style.opacity = '1';
-                toast.style.transform = 'translateY(0)';
-            });
-        
-            // 3秒后移除
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(-20px)';
-                setTimeout(() => {
-                    toast.remove();
-                    // 若容器内无子元素则移除容器
-                    if (container.children.length === 0) {
-                        container.remove();
-                    }
-                }, 300); // 等动画结束
-            }, duration);
-        }
+    document.getElementById('microbit').addEventListener('click',async()=>{
+      showToast(strings['download-code.startFlash'])
+      const result = await window.electronAPI.flashFirmware()
+      if (result.success) {
+        showToast(strings['download-code.flashSuccess'], 'success')
+      } else {
+        showToast(`${strings['download-code.flashFailed']}: ${result.error}`, 'error')
+      }
+    })
 
-        document.getElementById('microbit').addEventListener('click',async()=>{
-            showToast(strings['download-code.startFlash'])
-        
-            // 调用烧录方法
-            console.log(window)
-            const result = await window.electronAPI.flashFirmware()
-            
-            if (result.success) {
-                showToast(strings['download-code.flashSuccess'], 'success')
-            } else {
-                showToast(`${strings['download-code.flashFailed']}: ${result.error}`, 'error')
-            }
-        })
+    document.getElementById('common').addEventListener('click', () => {
+      const port = document.getElementById('portSelector').value;
+      if (!port || port === strings['download-code.defaultSerial']) {
+        alert(strings['download-code.defaultSerial']);
+        return;
+      }
+      electronAPI.sendWho({ who: 'common', port });
+    });
 
-        // 烧录按钮事件
-        document.getElementById('common').addEventListener('click', () => {
-            const port = document.getElementById('portSelector').value;
-            if (!port || port === strings['download-code.defaultSerial']) {
-                alert(strings['download-code.defaultSerial']);
-                return;
-            }
-            electronAPI.sendWho({ who: 'common', port });
-        });
-
-        document.getElementById('xiaoZhi').addEventListener('click', () => {
-            const port = document.getElementById('portSelector').value;
-            if (!port || port === strings['download-code.defaultSerial']) {
-                alert(strings['download-code.defaultSerial']);
-                return;
-            }
-            electronAPI.sendWho({ who: 'xiaoZhi', port });
-        });
-        // document.getElementById('submit').addEventListener('click', async () => {
-        //     const name = document.getElementById('name').value.trim();
-        //     const password = document.getElementById('password').value.trim();
-        //     if (!name || !password) {
-        //         alert("请填写完整 Wi-Fi 信息！");
-        //         return;
-        //     }
-
-        //     let info = await espSend.wifiInfo({ name, password });
-
-        //     const qrContainer = document.getElementById('qrContainer');
-        //     const img = document.getElementById('info');
-
-        //     img.src = info;
-        //     qrContainer.style.display = "block"; // 显示二维码
-        // });
-    </script>
+    document.getElementById('xiaoZhi').addEventListener('click', () => {
+      const port = document.getElementById('portSelector').value;
+      if (!port || port === strings['download-code.defaultSerial']) {
+        alert(strings['download-code.defaultSerial']);
+        return;
+      }
+      electronAPI.sendWho({ who: 'xiaoZhi', port });
+    });
+  </script>
 </body>
 </html>
