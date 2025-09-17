@@ -565,6 +565,10 @@ const { dialog } = require('electron');
 
 const QRCode = require('qrcode');
 
+const https = require('https');
+const http = require('http');
+const os = require('os');
+
 const ssid = 'MyHotspot'; // Wi-Fi 名称
 const password = '12345678'; // Wi-Fi 密码
 
@@ -625,6 +629,30 @@ class DownloadCodeWindow extends AbstractWindow {
     });
 
 
+    function downloadFirmwareToTmp(url, saveAsName = 'firmware.bin') {
+      return new Promise((resolve, reject) => {
+        const tmpDir = os.tmpdir();
+        const savePath = path.join(tmpDir, saveAsName);
+
+        const protocol = url.startsWith('https') ? https : http;
+
+        const file = fs.createWriteStream(savePath);
+        const request = protocol.get(url, (res) => {
+          if (res.statusCode !== 200) {
+            reject(new Error(`下载失败，状态码: ${res.statusCode}`));
+            return;
+          }
+          res.pipe(file);
+          file.on('finish', () => {
+            file.close(() => resolve(savePath));
+          });
+        });
+
+        request.on('error', (err) => {
+          fs.unlink(savePath, () => reject(err));
+        });
+      });
+    }
 
     // 获取资源路径
     function getResourcePath(relativePath) {
@@ -637,10 +665,22 @@ class DownloadCodeWindow extends AbstractWindow {
       }
     }
 
+    let commonFilePath
+    (async () => {
+      try {
+        const firmwareUrl = 'https://arkt-advert.oss-cn-beijing.aliyuncs.com/www/IC_ROBOT_OTA/esp32s3/micropython.bin';
+        commonFilePath = await downloadFirmwareToTmp(firmwareUrl, 'myFirmware.bin');
+        console.log('download Success:', commonFilePath);
+        // 现在可以把 localPath 传给 esptool 烧录
+      } catch (err) {
+        console.error('download error:', err);
+      }
+    })();
+
     //ESP32
     const firmwareFilePath=getResourcePath('combined.bin')
 
-    const commonFilePath=getResourcePath('firmware.bin')
+    // const commonFilePath=getResourcePath('firmware.bin')
     const esptoolPath=getResourcePath('esptool.exe');
 
     const upload = getResourcePath('upload.exe')
@@ -655,12 +695,17 @@ class DownloadCodeWindow extends AbstractWindow {
       if(!this.canClose){
         return
       }
+      // 在开始烧录时调用
+      this.window.setAlwaysOnTop(false); 
+      this.window.blur(); // 让出焦点，主窗口会浮上来
       console.log(who)
       if(who=='common'){
 
         let isError=false
 
         let isTimeout=false
+
+        let isUploadErr=false
         // console.log(getPort().settings.path)
         console.log(firmwareFilePath);
         console.log(esptoolPath);
@@ -672,7 +717,7 @@ class DownloadCodeWindow extends AbstractWindow {
 
         flashProcess.stdout.on('data', (data) => {
           console.log(`stdout: ${data}`);
-          if(data.includes('A serial exception error occurred:')){
+          if(data.includes('A serial exception error occurred:') || data.includes('fatal error')){
             isTimeout=true
           }
           if(getSocket()){
@@ -733,23 +778,26 @@ class DownloadCodeWindow extends AbstractWindow {
             }
             this.canClose = true; 
           }else{
-            // await new Promise((resolve)=>{
-            //   dialog.showMessageBox({
-            //     type:'info',
-            //     buttons:[`${translate('download-code.reconnect')}`],
-            //     title:`${translate('download-code.prompt')}`,
-            //     message:`${translate('download-code.message')}`,
-            //     detail:`${translate('download-code.detail')}`
-            //   }).then(()=>{
-            //     resolve()
-            //   }).catch(err=>{
-            //     resolve()
-            //   })
-            // })
+            await new Promise((resolve)=>{
+              dialog.showMessageBox({
+                type:'info',
+                buttons:[`${translate('download-code.reconnect')}`],
+                title:`${translate('download-code.prompt')}`,
+                message:`${translate('download-code.message')}`,
+                detail:`${translate('download-code.detail')}`
+              }).then(()=>{
+                resolve()
+              }).catch(err=>{
+                resolve()
+              })
+            })
             const uploadProcess = spawn(upload, [port, mainPy, icrobotPy]);
 
             uploadProcess.stdout.on('data', (data) => {
               console.log(`[upload] stdout: ${data}`);
+              if(data.includes('REPL')){
+                isUploadErr=true
+              }
               if (getSocket()) {
                 getSocket().send(JSON.stringify({
                   type: 'burnLogs',
@@ -766,6 +814,7 @@ class DownloadCodeWindow extends AbstractWindow {
 
             uploadProcess.stderr.on('data', (data) => {
               console.error(`[upload] stderr: ${data}`);
+              isUploadErr=true
               if(getSocket()){
                   // console.log('可能发送了')
                   getSocket().send(JSON.stringify({
@@ -781,7 +830,19 @@ class DownloadCodeWindow extends AbstractWindow {
 
             uploadProcess.on('close', (code) => {
               console.log(`[upload] 子进程退出，code=${code}`);
-              if(getSocket()){
+
+              if(isUploadErr){
+                if(getSocket()){
+                  getSocket().send(JSON.stringify({
+                    type: 'burnLogs',
+                    data: { message: {
+                      flashing:false,
+                      logs:'Failed'
+                    } }
+                  }))
+                }
+                this.canClose = true; 
+              }else if(getSocket()){
                 // console.log('可能发送了')
                 getSocket().send(JSON.stringify({
                   type: 'burnLogs',
