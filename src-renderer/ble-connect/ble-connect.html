@@ -1,85 +1,151 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
   <head>
-    <meta charset="utf-8">
-    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'"> -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- <title>蓝牙设备连接</title> -->
     <style>
       :root {
-        --primary-color: hsl(120, 60%, 40%);
-        --primary-light: hsl(120, 60%, 60%);
-        --text-color: #fff;
+        --primary: hsl(145, 60%, 40%);
+        --primary-light: hsl(145, 60%, 50%);
+        --primary-dark: hsl(145, 60%, 30%);
+        --danger: hsl(0, 75%, 50%);
+        --text-dark: #1a1a1a;
+        --text-light: #ffffff;
+        --bg: #f0fdf4;
+        --card-bg: #ffffff;
+        --radius: 16px;
+        --shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
       }
+
       body {
         margin: 0;
-        padding: 0;
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        color: black;
-        background-color: white;
-        accent-color: #ff4c4c;
+        font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text-dark);
       }
-       h1 {
-        color: var(--primary-color);
-        font-size: 1.8rem;
-        justify-content: center;
+
+      header {
+        background: var(--primary);
+        color: var(--text-light);
         text-align: center;
+        padding: 20px 15px;
+        border-bottom-left-radius: var(--radius);
+        border-bottom-right-radius: var(--radius);
+        box-shadow: var(--shadow);
       }
+
+      header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+      }
+
+      header p {
+        margin: 8px 0 0;
+        font-size: 1rem;
+        opacity: 0.9;
+      }
+
       main {
-        padding: 20px;
-        box-sizing: border-box;
-        width: 100%;
-        min-height: 100vh;
-        border: 20px solid hsla(0, 100%, 65%, 1);
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 0 20px;
       }
-      .title {
-        margin-top: 0;
+
+      .card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        padding: 25px;
+        box-shadow: var(--shadow);
+        margin-bottom: 25px;
       }
-      label {
-        display: block;
-        margin: 0.5rem 0;
-      }
-      .label {
-        font-weight: bold;
-        margin-bottom: 0.25rem;
-      }
-      select {
-        width: 100%;
-        font: inherit;
-      }
-       .button-container {
+
+      .actions {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        margin: 20px 0;
+        gap: 15px;
         justify-content: center;
+        margin-bottom: 20px;
       }
 
       button {
-        padding: 10px 20px;
+        padding: 12px 28px;
         font-size: 1rem;
-        font-family: inherit;
         border: none;
-        border-radius: 6px;
-        background-color: var(--primary-color);
-        color: var(--text-color);
+        border-radius: var(--radius);
         cursor: pointer;
-        transition: background-color 0.3s ease;
+        transition: all 0.3s ease;
+        font-weight: 500;
       }
 
-      button:hover {
-        background-color: var(--primary-light);
+      .btn-primary {
+        background: var(--primary);
+        color: var(--text-light);
       }
 
-      .warning {
-        background-color: yellow;
-        color: black;
-        border: 1px solid black;
-        border-radius: 0.25rem;
-        padding: 0.5rem;
+      .btn-primary:hover {
+        background: var(--primary-light);
+        transform: translateY(-2px);
       }
-      /* .button-container {
+
+      .btn-danger {
+        background: var(--danger);
+        color: var(--text-light);
+      }
+
+      .btn-danger:hover {
+        background: hsl(0, 75%, 40%);
+        transform: translateY(-2px);
+      }
+
+      ul#device {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      ul#device li {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--radius);
+        padding: 15px 20px;
         display: flex;
-        margin: 300px;
-      } */
+        justify-content: space-between;
+        align-items: center;
+        margin: 12px 0;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      ul#device li:hover {
+        transform: translateY(-2px);
+        background: #ecfdf5;
+      }
+
+      ul#device li span {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-dark);
+      }
+
+      ul#device li button {
+        background: var(--primary);
+        color: var(--text-light);
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        border-radius: 10px;
+      }
+
+      ul#device li button:hover {
+        background: var(--primary-dark);
+      }
+
+      .status {
+        margin-top: 10px;
+        font-size: 0.95rem;
+        color: var(--primary-dark);
+        text-align: center;
+      }
 
       [hidden] {
         display: none !important;
@@ -87,30 +153,24 @@
     </style>
   </head>
   <body>
-    <!-- <main> -->
-      <div>
-        <h1><span id="bleTitle">已连接蓝牙：</span><strong id="device-name""></strong></h1>
 
-        <div class="button-container">
-          <button id="clickme">开始扫描</button>
-          <button id="closeBle">断开蓝牙</button>
+    <main>
+      <div class="card">
+        <div class="actions">
+          <button id="clickme" class="btn-primary">开始扫描</button>
+          <button id="closeBle" class="btn-danger">断开蓝牙</button>
         </div>
-        <!-- <div id="device">
 
+        <div class="status">
+          <span id="bleTitle">已连接蓝牙: </span><strong id="device-name"></strong>
+        </div>
 
-        </div> -->
-
-        <ul id="device" style="list-style: none; padding: 0; margin-top: 10px;"></ul>
-
-        <!-- <button id="cancel">Cancel Bluetooth Request</button> -->
-        <!-- <button id="get">获取代码</button>
-        <button id="downLoad">下载代码</button>
-        <button id="status">获取状态</button> -->
-
-        <!-- <p>Currently selected bluetooth device: <strong id="device-name""></strong></p> -->
-
+        <ul id="device"></ul>
       </div>
-      <script>
+    </main>
+
+
+    <script>
         let currentExtension
         let device
         let service
@@ -621,7 +681,7 @@
         }
         window.bleAPI.sendMotor(async (motor)=>{
           
-            console.log(motor)
+            // console.log(motor)
             if(currentExtension==1){
               const uint8Array = new Uint8Array(motor);
               console.log(uint8Array.buffer)
@@ -645,7 +705,7 @@
               packet.set(raw, 0);
               packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
               packet[raw.length + 1] = crc & 0xFF;     // 低字节
-              console.log(packet)
+              // console.log(packet)
 
               // const promise1 = createPromiseForRobot();
               // await characteristicWriteRobot.writeValue(packet.buffer)
@@ -865,10 +925,10 @@
           document.getElementById('clickme').addEventListener('click', testIt)
         });
         async function testIt () {
-          if(!device || !device.gatt.connected){
-            if(currentExtension==1){
+          if(currentExtension==1){
+            if(!device || !device.gatt.connected){
               console.log(navigator);
-          
+        
               device = await navigator.bluetooth.requestDevice({
                 filters: [{ services: ['108f94d5-570b-4a6c-9a47-12f428f362e6'] }],
                 optionalServices: ['108f94d5-570b-4a6c-9a47-12f428f362e6', '4e8d78da-f40e-4983-9cc6-9b888aab1800']
@@ -881,23 +941,8 @@
               
               server = await device.gatt.connect();
               console.log('结束');
+              // await new Promise(resolve => setTimeout(resolve, 5000));
               
-              if(server){
-                fetch('http://localhost:3000/set-ble', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'text/plain'
-                  },
-                  body: '0'
-                })
-                .then(response => response.text())
-                .then(data => {
-                  console.log('服务器响应:', data);
-                })
-                .catch(error => {
-                  console.error('错误:', error);
-                });
-              }
               //1551BBE8-2765-11EE-BE56-0242AC120002
               //1551bbe8-2765-11ee-be56-0242ac120002
               try{
@@ -935,16 +980,40 @@
 
                 document.getElementById(device.name).remove()
                 document.getElementById('device-name').innerHTML = device.name || `ID: ${device.id}`
+
+                if(server){
+                  fetch('http://localhost:3000/set-ble', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'text/plain'
+                    },
+                    body: '0'
+                  })
+                  .then(response => response.text())
+                  .then(data => {
+                    console.log('服务器响应:', data);
+                  })
+                  .catch(error => {
+                    console.error('错误:', error);
+                  });
+                }
               }catch(err){
                 // alert(err)
                 // alert('蓝牙连接异常断开，请重新连接')
-                alert(strings['ble-connect.catchDisConnect'])
-                window.bleAPI.sendIsConnect(true)
-                device.gatt.disconnect()
-                device=''
+                if(String(err).includes('NetworkError')){
+                  alert(strings['ble-connect.catchDisConnect'])
+                  window.bleAPI.sendIsConnect(true)
+                  device.gatt.disconnect()
+                }
+                // device=null
               }
-              
-            }else if(currentExtension==2){
+            }else{
+              alert(strings['ble-connect.disConnectFirst'])
+            }
+            
+            
+          }else if(currentExtension==2){
+            if(!deviceRobot || !deviceRobot.gatt.connected){
               deviceRobot = await navigator.bluetooth.requestDevice({
                 filters: [{ services: ['0000fff0-0000-1000-8000-00805f9b34fb'] }],
                 optionalServices: ['00001800-0000-1000-8000-00805f9b34fb', '0000fff0-0000-1000-8000-00805f9b34fb']
@@ -962,28 +1031,15 @@
               console.log('结束');
               
 
-              if(serverRobot){
-                fetch('http://localhost:3000/set-ble', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'text/plain'
-                  },
-                  body: '0'
-                })
-                .then(response => response.text())
-                .then(data => {
-                  console.log('服务器响应:', data);
-                })
-                .catch(error => {
-                  console.error('错误:', error);
-                });
-              }
+              
               //1551BBE8-2765-11EE-BE56-0242AC120002
               //1551bbe8-2765-11ee-be56-0242ac120002
               console.log(serverRobot)
               console.log(serverRobot.connected)
               try{
+                console.log(serverRobot.connected)
                 serviceRobot = await serverRobot.getPrimaryService('0000fff0-0000-1000-8000-00805f9b34fb');
+                console.log('-------------------')
                 characteristicWriteRobot = await serviceRobot.getCharacteristic('0000fff1-0000-1000-8000-00805f9b34fb');
                 characteristicReadRobot = await serviceRobot.getCharacteristic('0000fff2-0000-1000-8000-00805f9b34fb');
                 characteristicReadSensorRobot=await serviceRobot.getCharacteristic('0000fff3-0000-1000-8000-00805f9b34fb');
@@ -1054,23 +1110,45 @@
 
                 await characteristicWriteRobot.writeValue(packet.buffer)
 
+                console.log(deviceRobot.name)
                 document.getElementById(deviceRobot.name).remove()
                 document.getElementById('device-name').innerHTML = deviceRobot.name || `ID: ${deviceRobot.id}`
 
+                if(serverRobot){
+                  fetch('http://localhost:3000/set-ble', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'text/plain'
+                    },
+                    body: '0'
+                  })
+                  .then(response => response.text())
+                  .then(data => {
+                    console.log('服务器响应:', data);
+                  })
+                  .catch(error => {
+                    console.error('错误:', error);
+                  });
+                }
+
               }catch(err){
+                console.log(err)
                 // alert('蓝牙连接异常断开，请重新连接')
-                alert(strings['ble-connect.catchDisConnect'])
-                window.bleAPI.sendIsConnect(true)
-                deviceRobot.gatt.disconnect()
-                deviceRobot=''
+                if(String(err).includes('NetworkError')){
+                  alert(strings['ble-connect.catchDisConnect'])
+                  window.bleAPI.sendIsConnect(true)
+                  deviceRobot.gatt.disconnect()
+                  // deviceRobot=null
+                }
+                
               }
-              
+            }else{
+              alert(strings['ble-connect.disConnectFirst'])
             }
             
-          }else{
-            // alert('请先断开当前蓝牙')
-            alert(strings['ble-connect.disConnectFirst'])
+            
           }
+          
           
         }
 
@@ -1079,13 +1157,13 @@
         function globalEventListener(event) {
           const value = event.target.value;
           const arr = new Uint8Array(value.buffer);
-          console.log("📩 收到数据:", arr);
+          // console.log("📩 收到数据:", arr);
 
           const state1 = arr[0]; // 第一个字节（硬件返回）
 
           // ✅ 新增：无论是否队列匹配，都把 state 发出去
           if (window.bleAPI && typeof window.bleAPI.sendRobotSenor === "function") {
-            console.log('发送了')
+            // console.log('发送了')
             window.bleAPI.sendRobotSenor({
               type: "state",
               data: state1
@@ -1104,7 +1182,7 @@
               reject(new Error(`收到错误状态码: ${state}`));
             }
           } else {
-            console.warn("⚠️ 收到未匹配的响应:", arr);
+            // console.warn("⚠️ 收到未匹配的响应:", arr);
           }
         }
 
