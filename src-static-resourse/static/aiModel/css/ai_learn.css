@@ -612,8 +612,8 @@ body {
 }
 /*展示框*/
 .model_show{
-    width: 320px;
-    height: 520px;
+    width: 25vw;
+    height: 70vh;
     background-color: white;
     border-radius: 12px;
     margin-top: 5vh;
@@ -622,7 +622,7 @@ body {
 }
 #showLoad{
     width: 320px;
-    height: 420px;
+    height: 240px;
     background-color: white;
     border-radius: 12px;
     position: absolute;
