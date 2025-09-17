@@ -779,10 +779,10 @@ class EditorWindow extends ProjectRunningWindow {
       }else if(extensions.getExtension()==2){
         let p1 = createPromiseForSerial(PORT);
         let downloadCode=code.code
-        if (!downloadCode.includes('while')) {
-            // 2. 如果没有 'while' 循环，拼接一个
-            downloadCode += '\nwhile True:\n    pass';
-        }
+        // if (!downloadCode.includes('while')) {
+        //     // 2. 如果没有 'while' 循环，拼接一个
+        //     downloadCode += '\nwhile True:\n    pass';
+        // }
         downloadCode+='\n'
 
         let jsonData={
