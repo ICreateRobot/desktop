@@ -264,6 +264,8 @@ app.on('second-instance', (event, argv, workingDirectory) => {
     existingWindow.window.focus();
   }
 });
+// app.commandLine.appendSwitch('high-dpi-support', '1');
+// app.commandLine.appendSwitch('force-device-scale-factor', '1');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
