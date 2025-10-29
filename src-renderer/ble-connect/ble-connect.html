@@ -686,6 +686,7 @@
               const uint8Array = new Uint8Array(motor);
               console.log(uint8Array.buffer)
               if(motor.length==1 && motor[0]==5){
+                //获取所有端口状态
                 await characteristicWriteDown.writeValue(uint8Array.buffer)
               }else{
                 await characteristicWrite.writeValue(uint8Array.buffer)
