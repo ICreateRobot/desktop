@@ -665,22 +665,22 @@ class DownloadCodeWindow extends AbstractWindow {
       }
     }
 
-    let commonFilePath
-    (async () => {
-      try {
-        const firmwareUrl = 'https://arkt-advert.oss-cn-beijing.aliyuncs.com/www/IC_ROBOT_OTA/esp32s3/micropython.bin';
-        commonFilePath = await downloadFirmwareToTmp(firmwareUrl, 'myFirmware.bin');
-        console.log('download Success:', commonFilePath);
-        // 现在可以把 localPath 传给 esptool 烧录
-      } catch (err) {
-        console.error('download error:', err);
-      }
-    })();
+    // let commonFilePath
+    // (async () => {
+    //   try {
+    //     const firmwareUrl = 'https://arkt-advert.oss-cn-beijing.aliyuncs.com/www/IC_ROBOT_OTA/esp32s3/micropython.bin';
+    //     commonFilePath = await downloadFirmwareToTmp(firmwareUrl, 'myFirmware.bin');
+    //     console.log('download Success:', commonFilePath);
+    //     // 现在可以把 localPath 传给 esptool 烧录
+    //   } catch (err) {
+    //     console.error('download error:', err);
+    //   }
+    // })();
 
     //ESP32
     const firmwareFilePath=getResourcePath('combined.bin')
 
-    // const commonFilePath=getResourcePath('firmware.bin')
+    const commonFilePath=getResourcePath('firmware.bin')
     const esptoolPath=getResourcePath('esptool.exe');
 
     const upload = getResourcePath('upload.exe')
