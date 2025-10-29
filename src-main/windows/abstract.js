@@ -179,6 +179,7 @@ class AbstractWindow {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
+      zoomFactor: 1.0
     };
 
     const preloadName = this.getPreload();
