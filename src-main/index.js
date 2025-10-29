@@ -1,4 +1,4 @@
-const {app,session,powerSaveBlocker,powerMonitor, webContents} = require('electron');
+const {app,session,powerSaveBlocker,powerMonitor, webContents,Notification,BrowserWindow } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { dialog } = require('electron');
 const axios = require("axios");
@@ -32,22 +32,71 @@ console.log('powerSaveBlocker started, ID:', blockerId);
 
 
 // 系统从休眠状态恢复
+// powerMonitor.on('resume', () => {
+//     // 弹出警告提示
+//   dialog.showMessageBox({
+//     type: 'warning',
+//     buttons: [`${translate('index.confirm')}`],
+//     defaultId: 0,
+//     title: `${translate('index.sysTitle')}`,
+//     message: `${translate('index.sysMessage')}`,
+//     detail: `${translate('index.sysDetail')}`,
+//   });
+
+//   // 延时 60 秒后执行重启
+//   setTimeout(() => {
+//     app.relaunch(); // 重启应用
+//     app.exit();     // 退出当前实例
+//   }, 60 * 1000); // 60秒 = 60000 毫秒
+// });
+
 powerMonitor.on('resume', () => {
-    // 弹出警告提示
-  dialog.showMessageBox({
-    type: 'warning',
-    buttons: [`${translate('index.confirm')}`],
-    defaultId: 0,
-    title: `${translate('index.sysTitle')}`,
-    message: `${translate('index.sysMessage')}`,
-    detail: `${translate('index.sysDetail')}`,
+  const win = new BrowserWindow({
+    width: 420,
+    height: 200,
+    frame: false,
+    alwaysOnTop: true,
+    transparent: true,
+    resizable: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
   });
 
-  // 延时 60 秒后执行重启
+  // 倒计时秒数
+  const countdown = 60;
+
+  // 直接加载一段包含 JS 的 HTML
+  win.loadURL(`data:text/html;charset=utf-8,
+    <html>
+      <body style="display:flex;align-items:center;justify-content:center;
+        flex-direction:column;font-size:18px;background:rgba(0,0,0,0.6);
+        color:white;font-family:sans-serif;text-align:center;">
+        <div>${translate('index.sysMessage')}</div>
+        <div>${translate('index.sysDetail')}</div>
+        <div style="margin-top:12px;">系统将在 <span id="timer">${countdown}</span> 秒后重启...</div>
+        <script>
+          let time = ${countdown};
+          const timerEl = document.getElementById('timer');
+          const interval = setInterval(() => {
+            time--;
+            if (time <= 0) {
+              clearInterval(interval);
+            } else {
+              timerEl.textContent = time;
+            }
+          }, 1000);
+        </script>
+      </body>
+    </html>
+  `);
+
+  // 到时间后重启应用
   setTimeout(() => {
-    app.relaunch(); // 重启应用
-    app.exit();     // 退出当前实例
-  }, 60 * 1000); // 60秒 = 60000 毫秒
+    app.relaunch();
+    app.exit();
+  }, countdown * 1000);
 });
 app.enableSandbox();
 
