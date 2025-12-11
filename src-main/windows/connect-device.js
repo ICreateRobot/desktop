@@ -1004,10 +1004,18 @@ class ConnectWindow extends AbstractWindow {
 
           await new Promise(resolve => setTimeout(resolve, 1000))
 
-          await sendSerialCommand('\x03'); 
-          await sendSerialCommand('from microbit import *\r',200);
-          await sendSerialCommand('from ICreate import *\r',200);
-          await sendSerialCommand('display.show(Image.HEART)\n\r', 200);
+
+          if(!getMode()){
+            await sendSerialCommand('\x03'); 
+            await sendSerialCommand('from microbit import *\r',200);
+            await sendSerialCommand('from ICreate import *\r',200);
+            // await sendSerialCommand('from s4s import *\r',200);
+            await sendSerialCommand('display.show(Image.HEART)\n\r', 200);
+          }else{
+            await sendSerialCommand('\x03'); 
+            await sendSerialCommand('\x04'); 
+          }
+          
           // let bufferData = '';
           // getDeviceState().parser.on('data', (data) => {
           //   bufferData += data.toString();
@@ -1184,7 +1192,7 @@ class ConnectWindow extends AbstractWindow {
         getDeviceState().serialPort.on('data', data => {
           const buffer = getDeviceState().serialBuffer + data;
           setDeviceState(['serialBuffer',buffer])
-          // console.log(data)
+          //  console.log(data)
           if (getDeviceState().serialBuffer.includes('>>>') && getDeviceState().currentResolve) {
             const response = getDeviceState().serialBuffer;
             console.log("####",response)
@@ -1211,6 +1219,19 @@ class ConnectWindow extends AbstractWindow {
       }
 
 
+      async function closeDapLink(daplink) {
+        return new Promise(resolve => {
+          try {
+            daplink.disconnect().then(resolve).catch(err => {
+              console.error('DAPLink断开错误:', err);
+              resolve();
+            });
+          } catch (err) {
+            console.error('DAPLink断开异常:', err);
+            resolve();
+          }
+        });
+      }
       async function disconnectDevice() {
         const deviceState = getDeviceState();
 
@@ -1238,6 +1259,10 @@ class ConnectWindow extends AbstractWindow {
         } catch (err) {
           console.warn('USB 清理时异常:', err.message);
         }
+        if(getDeviceState().daplink){
+          let daplink=getDeviceState().daplink
+          await closeDapLink(daplink)
+        }
 
         // 清理状态
         setDeviceState(['serialPort', null]);
@@ -1246,6 +1271,7 @@ class ConnectWindow extends AbstractWindow {
         setDeviceState(['replActive', false]);
         setDeviceState(['serialBuffer', '']);
         setDeviceState(['currentResolve', null]);
+        setDeviceState(['daplink',null])
 
         // 通知前端
         if (socket.getSocket()) {
