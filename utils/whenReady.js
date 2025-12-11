@@ -36,6 +36,27 @@ const {websocketConnect} = require('./websocketConnect')
 const {startServer,stopServer} = require('./startServer')
 
 
+let shouldRelaunch = true;   // 是否重启的标记（用户关闭时设为 false）
+let countdownTimer = null;   // 保存 setTimeout
+let win = null;              // 提示窗口
+
+function getShouldLaunch(){
+  return shouldRelaunch
+}
+
+function setCountDownTimer(a){
+  countdownTimer=a
+}
+
+function setPowerWin(a){
+  win=a
+}
+
+function getPowerWin(){
+  return win
+}
+
+
 
 
 
@@ -64,7 +85,20 @@ async function initializeAppServices() {
       if (AbstractWindow.getAllWindows().length == 0 && getWin()) {
         getWin().destroy();
       }
-      if (AbstractWindow.getAllWindows()[0].constructor.name != 'EditorWindow') {
+      // console.log(AbstractWindow.getAllWindows()[0])
+      if (!AbstractWindow.getAllWindows()[0] || AbstractWindow.getAllWindows()[0].constructor.name != 'EditorWindow') {
+
+        console.log('aaaaaaaaaaaaaaaaaaaa')
+          shouldRelaunch = false; // 不再重启
+      
+          if (countdownTimer) {
+            clearTimeout(countdownTimer);
+            countdownTimer = null;
+          }
+      
+          if (win && !win.isDestroyed()) {
+            win.close();
+          }
         AbstractWindow.getAllWindows().forEach((win) => {
           if (!win.window.isDestroyed()) {
             win.window.close();
@@ -185,5 +219,9 @@ async function checkAndApplyCameraAccess(){
 }
 
 module.exports={
-    initializeAppServices
+    initializeAppServices,
+    setCountDownTimer,
+    setPowerWin,
+    getPowerWin,
+    getShouldLaunch
 }

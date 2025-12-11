@@ -25,7 +25,7 @@ require('./protocols');
 require('./context-menu');
 require('./menu-bar');
 require('./crash-messages');
-const {initializeAppServices} = require('../utils/whenReady')
+const {initializeAppServices,setCountDownTimer,setPowerWin,getPowerWin,getShouldLaunch} = require('../utils/whenReady')
 const blockerId = powerSaveBlocker.start('prevent-app-suspension');
 console.log('powerSaveBlocker started, ID:', blockerId);
 
@@ -50,8 +50,59 @@ console.log('powerSaveBlocker started, ID:', blockerId);
 //   }, 60 * 1000); // 60秒 = 60000 毫秒
 // });
 
+// powerMonitor.on('resume', () => {
+//   const win = new BrowserWindow({
+//     width: 420,
+//     height: 200,
+//     frame: false,
+//     alwaysOnTop: true,
+//     transparent: true,
+//     resizable: false,
+//     webPreferences: {
+//       nodeIntegration: false,
+//       contextIsolation: true,
+//     },
+//   });
+
+//   // 倒计时秒数
+//   const countdown = 60;
+
+//   // 直接加载一段包含 JS 的 HTML
+//   win.loadURL(`data:text/html;charset=utf-8,
+//     <html>
+//       <body style="display:flex;align-items:center;justify-content:center;
+//         flex-direction:column;font-size:18px;background:rgba(0,0,0,0.6);
+//         color:white;font-family:sans-serif;text-align:center;">
+//         <div>${translate('index.sysMessage')}</div>
+//         <div>${translate('index.sysDetail')}</div>
+//         <div style="margin-top:12px;">系统将在 <span id="timer">${countdown}</span> 秒后重启...</div>
+//         <script>
+//           let time = ${countdown};
+//           const timerEl = document.getElementById('timer');
+//           const interval = setInterval(() => {
+//             time--;
+//             if (time <= 0) {
+//               clearInterval(interval);
+//             } else {
+//               timerEl.textContent = time;
+//             }
+//           }, 1000);
+//         </script>
+//       </body>
+//     </html>
+//   `);
+
+//   // 到时间后重启应用
+//   setTimeout(() => {
+//     app.relaunch();
+//     app.exit();
+//   }, countdown * 1000);
+// });
+
+
 powerMonitor.on('resume', () => {
-  const win = new BrowserWindow({
+  // 创建提示窗口
+   setPowerWin(new BrowserWindow({
     width: 420,
     height: 200,
     frame: false,
@@ -62,13 +113,11 @@ powerMonitor.on('resume', () => {
       nodeIntegration: false,
       contextIsolation: true,
     },
-  });
+  }));
 
-  // 倒计时秒数
   const countdown = 60;
 
-  // 直接加载一段包含 JS 的 HTML
-  win.loadURL(`data:text/html;charset=utf-8,
+  getPowerWin().loadURL(`data:text/html;charset=utf-8,
     <html>
       <body style="display:flex;align-items:center;justify-content:center;
         flex-direction:column;font-size:18px;background:rgba(0,0,0,0.6);
@@ -92,12 +141,15 @@ powerMonitor.on('resume', () => {
     </html>
   `);
 
-  // 到时间后重启应用
-  setTimeout(() => {
-    app.relaunch();
-    app.exit();
-  }, countdown * 1000);
+  // 保存倒计时计划
+  setCountDownTimer(setTimeout(() => {
+    if (getShouldLaunch()) {
+      app.relaunch();
+      app.exit();
+    }
+  }, countdown * 1000));
 });
+
 app.enableSandbox();
 
 // Allows certain versions of Scratch Link to work without an internet connection
