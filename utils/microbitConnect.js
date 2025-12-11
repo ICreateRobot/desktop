@@ -9,6 +9,7 @@ const {setPort,getPort,setDeviceState,getDeviceState} = require('../utils/port')
 const path = require('path');
 const fs = require('fs');
 const { dialog,app } = require('electron');
+const {BrowserWindow } = require('electron');
 let options_mode ='full';//烧录模式---full：完整模式；incremental：增量模式
 
 
@@ -298,49 +299,53 @@ ipcMain.handle('usb-flash-firmware', async () => {
 //下载程序
 ipcMain.handle('usb-download-flash', async (_, code) => {
 
-    console.log(code)
+    console.log('CODE:',code)
     // code=`from microbit import *\ndisplay.show(Image.YES)\n`
     await generateV2Hex(code);
 
-    const hexPath = path.join(__dirname, '../utils/microbit_firmware/MICROBIT.hex');
+    console.log('123456789')
+    const hexPath = path.join(__dirname, './output_v2.hex');
     const hexData = fs.readFileSync(hexPath);
 
-    // try {
-    //   // 创建DAPLink传输层
-    //   const transport = new DAPjs.USB(getDeviceState().usbDevice);
-    //   // deviceState.daplink = new DAPLink(transport);
-    //   setDeviceState(['daplink',new DAPLink(transport)])
+    console.log('987654321')
+    try {
+      // 创建DAPLink传输层
+      const transport = new DAPjs.USB(getDeviceState().usbDevice);
+      // deviceState.daplink = new DAPLink(transport);
+      setDeviceState(['daplink',new DAPLink(transport)])
 
-    //   // 连接设备
-    //   await getDeviceState().daplink.connect();
+      // 连接设备
+      await getDeviceState().daplink.connect();
 
-    //   // 执行烧录
-    //   await new Promise((resolve, reject) => {
-    //     getDeviceState().daplink.on(DAPjs.DAPLink.EVENT_PROGRESS, progress => {
-    //       const percent = Math.round(progress * 100);
-    //       notifyRenderer('flash-progress', percent );
-    //     });
+      // 执行烧录
+      await new Promise((resolve, reject) => {
+        console.log('abcd')
+        getDeviceState().daplink.on(DAPjs.DAPLink.EVENT_PROGRESS, progress => {
+          const percent = Math.round(progress * 100);
+          console.log(percent)
+          notifyRenderer('flash-progress', percent );
+        });
 
-    //     getDeviceState().daplink.flash(hexData)
-    //       .then(async()=>{
-    //         await getDeviceState().daplink.disconnect().catch(() => {});
-    //         resolve()
-    //       })
-    //       .catch(reject);
-    //   });
-    // } catch (err) {
-    //   // 确保发生错误时断开连接
-    //   if (getDeviceState().daplink) {
-    //     await getDeviceState().daplink.disconnect().catch(() => {});
-    //     deviceState.daplink = null;
-    //     setDeviceState(['daplink',null])
-    //   }
-    //   return { 
-    //     success: false, 
-    //     error: `烧录失败: ${err.message}`,
-    //     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    //   };
-    // }   
+        getDeviceState().daplink.flash(hexData)
+          .then(async()=>{
+            await getDeviceState().daplink.disconnect().catch(() => {});
+            resolve()
+          })
+          .catch(reject);
+      });
+    } catch (err) {
+      // 确保发生错误时断开连接
+      if (getDeviceState().daplink) {
+        await getDeviceState().daplink.disconnect().catch(() => {});
+        deviceState.daplink = null;
+        setDeviceState(['daplink',null])
+      }
+      return { 
+        success: false, 
+        error: `烧录失败: ${err.message}`,
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+      };
+    }   
 
 
     // try {
@@ -383,48 +388,48 @@ ipcMain.handle('usb-download-flash', async (_, code) => {
     //   };
     // }
 
-      try {
-        console.log(code)
-        // 第一步：生成 HEX 文件（你已有这个函数）
-        await generateV2Hex(code);
+    //   try {
+    //     console.log(code)
+    //     // 第一步：生成 HEX 文件（你已有这个函数）
+    //     await generateV2Hex(code);
 
-        // 第二步：读取生成的 HEX 文件
-        // const hexPath = path.join(__dirname, '../utils/output_v2.hex');
-        const hexPath = getResourcePath('/output_v2.hex')
-        const hexData = fs.readFileSync(hexPath);
+    //     // 第二步：读取生成的 HEX 文件
+    //     // const hexPath = path.join(__dirname, '../utils/output_v2.hex');
+    //     const hexPath = getResourcePath('/output_v2.hex')
+    //     const hexData = fs.readFileSync(hexPath);
 
-        console.log(hexData)
-        // 第三步：弹出“保存文件”对话框，让用户选择保存路径（例如 micro:bit U盘）
-        const { canceled, filePath } = await dialog.showSaveDialog({
-          title: '保存 HEX 文件到 micro:bit',
-          defaultPath: 'microbit.hex',
-          filters: [
-            { name: 'HEX 文件', extensions: ['hex'] }
-          ]
-        });
+    //     console.log(hexData)
+    //     // 第三步：弹出“保存文件”对话框，让用户选择保存路径（例如 micro:bit U盘）
+    //     const { canceled, filePath } = await dialog.showSaveDialog({
+    //       title: '保存 HEX 文件到 micro:bit',
+    //       defaultPath: 'microbit.hex',
+    //       filters: [
+    //         { name: 'HEX 文件', extensions: ['hex'] }
+    //       ]
+    //     });
 
-        if (canceled || !filePath) {
-          return {
-            success: false,
-            error: '用户取消了保存操作'
-          };
-        }
+    //     if (canceled || !filePath) {
+    //       return {
+    //         success: false,
+    //         error: '用户取消了保存操作'
+    //       };
+    //     }
 
-        // 第四步：保存 HEX 文件到用户指定的位置
-        fs.writeFileSync(filePath, hexData);
+    //     // 第四步：保存 HEX 文件到用户指定的位置
+    //     fs.writeFileSync(filePath, hexData);
 
-        return {
-          success: true,
-          message: 'HEX 文件已保存，请在 micro:bit 中查看运行效果'
-        };
+    //     return {
+    //       success: true,
+    //       message: 'HEX 文件已保存，请在 micro:bit 中查看运行效果'
+    //     };
 
-      } catch (err) {
-        return {
-          success: false,
-          error: `保存 HEX 文件失败: ${err.message}`,
-          ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-        };
-    }
+    //   } catch (err) {
+    //     return {
+    //       success: false,
+    //       error: `保存 HEX 文件失败: ${err.message}`,
+    //       ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    //     };
+    // }
 });
 
 
@@ -439,10 +444,11 @@ function getResourcePath(relativePath) {
   }
 // ==================== HEX生成 ====================
 async function generateV2Hex(code) {
+  console.log(code)
   try{
     // 基础HEX
     // const baseHexPath = path.join(__dirname, '../utils/microbit_firmware/MICROBIT.hex');
-    const baseHexPath = getResourcePath('/microbit_firmware/MICROBIT.hex')
+    const baseHexPath = getResourcePath('/microbit_firmware/MICROBIT(8).hex')
     const hexContent = fs.readFileSync(baseHexPath, 'utf8');
     const fsHex = new MicropythonFsHex([{
       hex: hexContent,
@@ -473,9 +479,9 @@ async function generateV2Hex(code) {
 //进入烧录模式
 ipcMain.handle('usb-exit-repl', async () => {
   try {
-    if (!getDeviceState().replActive) {
-      return { success: false, error: "未处于REPL模式" };
-    }
+    // if (!getDeviceState().replActive) {
+    //   return { success: false, error: "未处于REPL模式" };
+    // }
 
     await sendSerialCommand('\x03'); 
     await sendSerialCommand('\x04'); 
