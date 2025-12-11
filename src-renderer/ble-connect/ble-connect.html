@@ -558,8 +558,8 @@
             // console.log(event.target.value.getUint8(1));
             // console.log(event.target.value.getUint8(2));
             // console.log(event.target.value.getUint8(3));
-            console.log('-------------------------')
-            console.log(event.target.value);
+            // console.log('-------------------------')
+            // console.log(event.target.value);
             distance=[]
             if(event.target.value.getUint8(1)==41){
               distance.push(event.target.value.getUint8(0))
@@ -961,7 +961,7 @@
                 characteristicReadDown.addEventListener('characteristicvaluechanged', (event)=>{
                   // console.log('有返回');
                   
-                  console.log(event.target.value);
+                  // console.log(event.target.value);
 
                   if(event.target.value.getUint8(0)==8 && event.target.value.getUint8(1)==254){
                     bleAPI.sendCodeProsser(false)
