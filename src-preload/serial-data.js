@@ -13,10 +13,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   isPosted: () => ipcRenderer.sendSync('is-posted'),
 
 
-  sendWho:({who,port}) => ipcRenderer.invoke('send-who', {who,port}),
+  sendWho:({who,port,filePath}) => ipcRenderer.invoke('send-who', {who,port,filePath}),
 
   getExtension: () => ipcRenderer.sendSync('get-extension'),
 
   flashFirmware: () =>ipcRenderer.invoke('flash-firmware'),
    getTranslate: () => ipcRenderer.sendSync('get-translate'),
+
+  downloadFirmware: (url) => ipcRenderer.invoke('download-firmware', url),
+  getCommonFirmwareVersions: () => ipcRenderer.invoke('get-common-firmware-versions'),
 });
