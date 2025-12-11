@@ -568,6 +568,11 @@ const QRCode = require('qrcode');
 const https = require('https');
 const http = require('http');
 const os = require('os');
+const {getDeviceState,setDeviceState} = require('../../utils/port')
+const DAPjs = require('dapjs');
+const { DAPLink } = DAPjs;
+const usb = require('usb');
+const {BrowserWindow } = require('electron');
 
 const ssid = 'MyHotspot'; // Wi-Fi 名称
 const password = '12345678'; // Wi-Fi 密码
@@ -578,6 +583,12 @@ function hexToByteArray(hex) {
     byteArray.push(parseInt(hex.substr(i, 2), 16));
   }
   return byteArray;
+}
+
+function notifyRenderer(channel, payload = {}) {
+  const win = BrowserWindow.getAllWindows()[0];
+  // console.log(win.webContents.send)
+  win?.webContents?.send(channel, payload);
 }
 
 class DownloadCodeWindow extends AbstractWindow {
@@ -668,8 +679,8 @@ class DownloadCodeWindow extends AbstractWindow {
     // let commonFilePath
     // (async () => {
     //   try {
-    //     const firmwareUrl = 'https://arkt-advert.oss-cn-beijing.aliyuncs.com/www/IC_ROBOT_OTA/esp32s3/micropython.bin';
-    //     commonFilePath = await downloadFirmwareToTmp(firmwareUrl, 'myFirmware.bin');
+    //     const firmwareUrl = 'https://gitee.com/lgmShine/bucket/raw/master/firmware.bin';
+    //     commonFilePath = await downloadFirmwareToTmp(firmwareUrl, 'firmware.bin');
     //     console.log('download Success:', commonFilePath);
     //     // 现在可以把 localPath 传给 esptool 烧录
     //   } catch (err) {
@@ -677,10 +688,13 @@ class DownloadCodeWindow extends AbstractWindow {
     //   }
     // })();
 
+
     //ESP32
     const firmwareFilePath=getResourcePath('combined.bin')
 
     const commonFilePath=getResourcePath('firmware.bin')
+    const testFirmware = getResourcePath('ICRobot_ESP32_V1.2.0.bin')
+    const testFirmwareVfs=getResourcePath('vfs.bin')
     const esptoolPath=getResourcePath('esptool.exe');
 
     const upload = getResourcePath('upload.exe')
@@ -688,8 +702,58 @@ class DownloadCodeWindow extends AbstractWindow {
     const icrobotPy = getResourcePath('icrobot.mpy')
 
 
+    ipc.handle('download-firmware', async (event, url) => {
+      return new Promise((resolve, reject) => {
+        const tmpDir = os.tmpdir();
+        const fileName = 'commonFirmware.bin';
+        const savePath = path.join(tmpDir, fileName);
 
-    ipc.handle('send-who', async (event, {who,port}) =>{
+        const protocol = url.startsWith('https') ? https : http;
+        const file = fs.createWriteStream(savePath);
+        const request = protocol.get(url, (res) => {
+          if (res.statusCode !== 200) {
+            reject(new Error(`下载失败，状态码: ${res.statusCode}`));
+            return;
+          }
+          res.pipe(file);
+          file.on('finish', () => {
+            file.close(() => resolve(savePath));
+          });
+        });
+
+        request.on('error', (err) => {
+          fs.unlink(savePath, () => reject(err));
+        });
+      });
+    });
+
+    ipc.handle('get-common-firmware-versions', async () => {
+      // 这里用之前的 Gitee API 获取最近3次提交
+      const owner = 'lgmShine';
+      const repo = 'bucket';
+      const filePath = 'firmware.bin';
+      const branch = 'master';
+      const token = ''; // 如果公开仓库可不填
+
+      const url = `https://gitee.com/api/v5/repos/${owner}/${repo}/commits?path=${filePath}&sha=${branch}&per_page=3`;
+
+      const axios = require('axios');
+      const res = await axios.get(url, {
+        headers: token ? { Authorization: `token ${token}` } : {}
+      });
+
+      // 返回给前端，包含下载原始 URL
+      return res.data.map(c => ({
+        sha: c.sha,
+        message: c.commit.message,
+        time: c.commit.committer.date,
+        author: c.commit.committer.name,
+        url: `https://gitee.com/${owner}/${repo}/raw/${branch}/${filePath}?commit=${c.sha}`
+      }));
+    });
+
+
+    ipc.handle('send-who', async (event, {who,port,filePath}) =>{
 
 
       if(!this.canClose){
@@ -712,7 +776,7 @@ class DownloadCodeWindow extends AbstractWindow {
         
         this.canClose = false;
 
-        const args = ['--port', port,"--baud", "1152000", 'write_flash', '0x0', commonFilePath];
+        const args = ['--port', port,"--baud", "1152000", 'write_flash', '0x0', filePath];
         const flashProcess = spawn(esptoolPath, args, { encoding: 'utf8' });
 
         flashProcess.stdout.on('data', (data) => {
@@ -949,43 +1013,237 @@ class DownloadCodeWindow extends AbstractWindow {
             event.sender.send('esptool-log', { type: 'done', code });
           });
 
+      }else if(who=='test'){
+         console.log(firmwareFilePath);
+          console.log(esptoolPath);
+
+          let isError=false
+
+          let isTimeout=false
+          
+
+          this.canClose = false;
+
+          // const args = ['--port', port,"--baud", "1152000", 'write_flash', '0x0', testFirmware];
+
+          const args = [
+              '--chip', 'esp32s3',
+              '--port', port,
+              '--baud', '1152000',
+              '--before', 'default_reset',
+              '--after', 'hard_reset',
+              'write_flash',
+              '--flash_mode', 'dio',
+              '--flash_size', '32MB',
+              '--flash_freq', '80m',
+
+              // 你的两个固件（保持你说的地址）
+              '0x0', commonFilePath,          // 第一个固件
+              '0x1420000', testFirmwareVfs,    // 第二个固件
+            ];
+          const flashProcess = spawn(esptoolPath, args, { encoding: 'utf8' });
+
+          flashProcess.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+            if(data.includes('A serial exception error occurred:')){
+              isTimeout=true
+            }
+            if(getSocket()){
+              // console.log('可能发送了')
+              getSocket().send(JSON.stringify({
+                type: 'burnLogs',
+                data: { message: {
+                  flashing:true,
+                  logs:`${data}`
+                } }
+              }))
+            }
+            event.sender.send('esptool-log', { type: 'stdout', message: data.toString() });
+          });
+
+          flashProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+            isError=true
+            if(getSocket()){
+              // console.log('可能发送了')
+              getSocket().send(JSON.stringify({
+                type: 'burnLogs',
+                data: { message: {
+                  flashing:false,
+                  logs:'Failed'
+                } }
+              }))
+            }
+            event.sender.send('esptool-log', { type: 'stderr', message: data.toString() });
+          });
+
+          flashProcess.on('close', (code) => {
+            console.log(`Child process exited with code ${code}`);
+            if(!isError && getSocket()){
+              // console.log('可能发送了')
+              if(isTimeout){
+                getSocket().send(JSON.stringify({
+                  type: 'burnLogs',
+                  data: { message: {
+                    flashing:false,
+                    logs:''
+                  } }
+                }))
+              }else{
+                 getSocket().send(JSON.stringify({
+                  type: 'burnLogs',
+                  data: { message: {
+                    flashing:false,
+                    logs:'success'
+                  } }
+                }))
+              }
+             
+            }
+            this.canClose = true; // ✅ 允许关闭窗口
+            event.sender.send('esptool-log', { type: 'done', code });
+          });
+
       }
     })
 
+    
+
      ipc.handle('flash-firmware', async (event) =>{
-      try {
+      // try {
+      //     // 读取HEX文件
+      //     const hexPath = path.join(__dirname, '../../utils/microbit_firmware/MICROBIT.hex');
+      //     const hexData = fs.readFileSync(hexPath);
+      
+      //     // 弹出保存窗口，让用户选择 micro:bit U盘目录（或任意位置）
+      //     const saveDialogResult = await dialog.showSaveDialog({
+      //       title: '保存 HEX 文件到 micro:bit',
+      //       defaultPath: 'MICROBIT.hex',
+      //       filters: [
+      //         { name: 'HEX 文件', extensions: ['hex'] }
+      //       ]
+      //     });
+      
+      //     if (saveDialogResult.canceled || !saveDialogResult.filePath) {
+      //       return {
+      //         success: false,
+      //         error: '用户取消了保存 HEX 文件操作'
+      //       };
+      //     }
+      
+      //     // 将 HEX 数据写入用户指定的位置
+      //     fs.writeFileSync(saveDialogResult.filePath, hexData);
+      
+      //     return {
+      //       success: true,
+      //       message: 'HEX 文件已保存，请手动复制或已直接保存至 micro:bit'
+      //     };
+      
+      //   } catch (err) {
+      //     return {
+      //       success: false,
+      //       error: `保存 HEX 文件失败: ${err.message}`,
+      //       ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+      //     };
+      //   }
+
+       try {
+          // if (!deviceState.usbDevice) {
+          //   throw new Error('未找到连接的USB设备');
+          // }
+          console.log('aaaaaaaa')
           // 读取HEX文件
-          const hexPath = path.join(__dirname, '../../utils/microbit_firmware/MICROBIT.hex');
+          const hexPath = path.join(__dirname, '../../utils/microbit_firmware/MICROBIT(8).hex');
           const hexData = fs.readFileSync(hexPath);
       
-          // 弹出保存窗口，让用户选择 micro:bit U盘目录（或任意位置）
-          const saveDialogResult = await dialog.showSaveDialog({
-            title: '保存 HEX 文件到 micro:bit',
-            defaultPath: 'MICROBIT.hex',
-            filters: [
-              { name: 'HEX 文件', extensions: ['hex'] }
-            ]
-          });
+          console.log('bbbbbbb')
+         // await flashHexToDevice(hexData);
+         try {
+          // 创建DAPLink传输层
+          const transport = new DAPjs.USB(getDeviceState().usbDevice);
+          // getDeviceState().daplink = new DAPLink(transport);
+          setDeviceState(['daplink',new DAPLink(transport)])
       
-          if (saveDialogResult.canceled || !saveDialogResult.filePath) {
-            return {
-              success: false,
-              error: '用户取消了保存 HEX 文件操作'
-            };
+          console.log('ccccc')
+          // 连接设备
+          await getDeviceState().daplink.connect();
+      
+          let lastPercent = -1; // 用于记录上一次的进度
+          // 执行烧录
+          await new Promise((resolve, reject) => {
+            console.log('start flash firmware')
+            getDeviceState().daplink.on(DAPjs.DAPLink.EVENT_PROGRESS, progress => {
+              const percent = Math.round(progress * 100);
+              // 只有 percent 变化时才发送
+              if (percent !== lastPercent) {
+                lastPercent = percent   // 更新缓存
+                if(getSocket()){
+                  // console.log('可能发送了')
+                  getSocket().send(JSON.stringify({
+                    type: 'burnLogs',
+                    data: { message: {
+                      flashing:true,
+                      logs:`${percent}`
+                    } }
+                  }))
+                }
+              }
+              console.log(percent)
+            });
+      
+            getDeviceState().daplink.flash(hexData)
+              .then(resolve)
+              .catch(reject);
+          });
+        } catch (err) {
+          console.log(err)
+          // 确保发生错误时断开连接
+          if(getSocket()){
+            // console.log('可能发送了')
+            getSocket().send(JSON.stringify({
+              type: 'burnLogs',
+              data: { message: {
+                flashing:false,
+                logs:'Failed'
+              } }
+            }))
+          }
+          if (getDeviceState().daplink) {
+            await getDeviceState().daplink.disconnect().catch(() => {});
+            setDeviceState(['daplink',null])
+          }
+          return { 
+            success: false, 
+            error: `烧录失败: ${err.message}`,
+            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+          };
+        }
+      
+      
+          if(getSocket()){
+            // console.log('可能发送了')
+            getSocket().send(JSON.stringify({
+              type: 'burnLogs',
+              data: { message: {
+                flashing:false,
+                logs:'success'
+              } }
+            }))
           }
       
-          // 将 HEX 数据写入用户指定的位置
-          fs.writeFileSync(saveDialogResult.filePath, hexData);
-      
-          return {
-            success: true,
-            message: 'HEX 文件已保存，请手动复制或已直接保存至 micro:bit'
-          };
+          // 完成烧录
+          //notifyRenderer('flash-status', { status: 'completed' });
+          return { success: true, message: '固件烧录完成' };
       
         } catch (err) {
-          return {
-            success: false,
-            error: `保存 HEX 文件失败: ${err.message}`,
+          // 确保发生错误时断开连接
+          if (getDeviceState().daplink) {
+            await getDeviceState().daplink.disconnect().catch(() => {});
+            setDeviceState(['daplink',null])
+          }
+          return { 
+            success: false, 
+            error: `烧录失败: ${err.message}`,
             ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
           };
         }
