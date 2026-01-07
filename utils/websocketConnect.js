@@ -2,26 +2,48 @@
 const {setMode,getMode} = require('../utils/mode')
 let serialWriteQueue = Promise.resolve();
 
-function safeSerialWrite(port, str) {
-  return new Promise((resolve, reject) => {
-    // 把任务排进队列
-    serialWriteQueue = serialWriteQueue.then(() => {
-      return new Promise((res, rej) => {
-        port.write(str, (err) => {
+// function safeSerialWrite(port, str) {
+//   return new Promise((resolve, reject) => {
+//     // 把任务排进队列
+//     serialWriteQueue = serialWriteQueue.then(() => {
+//       return new Promise((res, rej) => {
+//         port.write(str, (err) => {
+//           if (err) {
+//             console.error("11串口写入失败:", err);
+//             rej(err);
+//             return reject('Error on write: ' + err.message);
+//           }
+//           console.log(`📤 222串口数据已发送: ${str}`);
+//           res();
+//           resolve();
+//         });
+//       });
+//     }).catch(err => {
+//       console.error("串口 safeSerialWrite 队列错误:", err);
+//     });
+//   });
+// }
+
+function safeSerialWrite(port, data) {
+  serialWriteQueue = serialWriteQueue
+    .then(() => {
+      return new Promise((resolve, reject) => {
+        port.write(data, (err) => {
           if (err) {
-            console.error("11串口写入失败:", err);
-            rej(err);
-            return reject('Error on write: ' + err.message);
+            console.error('串口写入失败:', err);
+            return reject(err);
           }
-          console.log(`📤 222串口数据已发送: ${str}`);
-          res();
+          console.log('📤 串口发送:', data);
           resolve();
         });
       });
-    }).catch(err => {
-      console.error("串口 safeSerialWrite 队列错误:", err);
+    })
+    .catch(err => {
+      // ⚠️ 关键：吞掉错误，保证队列继续
+      console.error('safeSerialWrite 队列错误:', err);
     });
-  });
+
+  return serialWriteQueue;
 }
 function websocketConnect(setSocket,Current,getPort,setBricksSocket,setBricksMotor,WebSocket){
 const WSS = new WebSocket.Server({ port: 8081 });
