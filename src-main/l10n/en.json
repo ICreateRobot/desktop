@@ -588,7 +588,7 @@
     "developer_comment": "Please disconnect the current Bluetooth device first."
   },
   "ble-connect.catchDisConnect": {
-    "string": "Bluetooth connection lost unexpectedly. Please reconnect.",
+    "string": "Bluetooth connection error. Please restart Bluetooth settings and reconnect.",
     "developer_comment": "Bluetooth connection lost unexpectedly. Please reconnect."
   },
 
@@ -624,6 +624,12 @@
   "connect-device.showToast.disconnectFailed": {
     "string": "Failed to disconnect",
     "developer_comment": "connect-device.showToast.disconnectFailed"
+  },
+
+
+  "connect-device.connectFailed": {
+    "string": "Connection failed",
+    "developer_comment": "connect-device.connectFailed"
   },
 
   "please-scan-qr": {
@@ -683,6 +689,91 @@
     "string":"Flashing failed",
     "developer_comment":"download-code.flashFailed"
   },
+  "download-code.selectPort":{
+    "string":"select port",
+    "developer_comment":"download-code.selectPort"
+  },
+
+  "download-code.defaultSelect": {
+    "string": "COM - Please select",
+    "developer_comment": "download-code.defaultSelect"
+  },
+
+  "download-code.currentFirmware": {
+    "string": "Current firmware version:",
+    "developer_comment": "download-code.currentFirmware"
+  },
+
+  "download-code.standardFirmware": {
+    "string": "Standard firmware:",
+    "developer_comment": "download-code.standardFirmware"
+  },
+  "download-code.loading": {
+    "string": "Loading...",
+    "developer_comment": "download-code.loading"
+  },
+  "download-code.upgradeStandard": {
+    "string": "Upgrade",
+    "developer_comment": "download-code.upgradeStandard"
+  },
+
+  "download-code.xiaozhiFirmware": {
+    "string": "XiaoZhi firmware:",
+    "developer_comment": "download-code.xiaozhiFirmware"
+  },
+  "download-code.loading2": {
+    "string": "Loading...",
+    "developer_comment": "download-code.loading2"
+  },
+  "download-code.upgradeXiaoZhi": {
+    "string": "Upgrade",
+    "developer_comment": "download-code.upgradeXiaoZhi"
+  },
+
+  "download-code.microbitFirmware": {
+    "string": "Microbit base firmware",
+    "developer_comment": "download-code.microbitFirmware"
+  },
+  "download-code.microbitDesc": {
+    "string": "Base firmware compatible with this software.",
+    "developer_comment": "download-code.microbitDesc"
+  },
+  "download-code.burnMicrobitBtn": {
+    "string": "Flash Microbit firmware",
+    "developer_comment": "download-code.burnMicrobitBtn"
+  },
+
+    "download-code.onlyLocalFirm": {
+    "string": "Failed to load firmware. Only local firmware is available.",
+    "developer_comment": "download-code.onlyLocalFirm"
+  },
+  "download-code.localFirmware": {
+    "string": "Local firmware",
+    "developer_comment": "download-code.localFirmware"
+  },
+  "download-code.firstSelectVersion": {
+    "string": "Please select a firmware version",
+    "developer_comment": "download-code.firstSelectVersion"
+  },
+  "download-code.pleaseSelectPort": {
+    "string": "Please select a port",
+    "developer_comment": "download-code.pleaseSelectPort"
+  },
+  "download-code.startDownloadFirm": {
+    "string": "Starting firmware download",
+    "developer_comment": "download-code.startDownloadFirm"
+  },
+  "download-code.downloadFaild": {
+    "string": "Firmware download failed. Please check your network.",
+    "developer_comment": "download-code.downloadFaild"
+  },
+  "download-code.downloadSuccess": {
+    "string": "Firmware downloaded successfully. Preparing to flash.",
+    "developer_comment": "download-code.downloadSuccess"
+  },
+
+
+
 
 
   "index.confirm":{
@@ -700,5 +791,32 @@
   "index.sysDetail":{
     "string":"You have one minute to save your work before the application automatically restarts to ensure proper functionality",
     "developer_comment":"index.sysDetail"
+  },
+  "index.timeFirst":{
+    "string":"The software will restart in ",
+    "developer_comment":"index.timeFirst"
+  },
+  "index.timeSecond":{
+    "string":"seconds...",
+    "developer_comment":"index.timeSecond"
+  },
+  "connect-device.reScan":{
+    "string":"The device may be offline or the scan has expired. Please turn on the device or scan again.",
+    "developer_comment":"connect-device.reScan"
+  },
+
+
+  "connect-device.tipBle":{
+    "string":"Please switch the robot to Bluetooth mode first",
+    "developer_comment":"connect-device.tipBle"
+  },
+  "connect-device.tipAp":{
+    "string":"Please switch the robot to AP mode first",
+    "developer_comment":"connect-device.tipAp"
+  },
+  "connect-device.tipSta":{
+    "string":"Please switch the robot to STA mode first",
+    "developer_comment":"connect-device.tipSta"
   }
+  
 }
