@@ -10,6 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const { dialog,app } = require('electron');
 const {BrowserWindow } = require('electron');
+const AbstractWindow = require('../src-main/windows/abstract');
 let options_mode ='full';//烧录模式---full：完整模式；incremental：增量模式
 
 
@@ -304,7 +305,8 @@ ipcMain.handle('usb-download-flash', async (_, code) => {
     await generateV2Hex(code);
 
     console.log('123456789')
-    const hexPath = path.join(__dirname, './output_v2.hex');
+    // const hexPath = path.join(__dirname, './output_v2.hex');
+    const hexPath=getResourcePath('/output_v2.hex')
     const hexData = fs.readFileSync(hexPath);
 
     console.log('987654321')
@@ -322,7 +324,7 @@ ipcMain.handle('usb-download-flash', async (_, code) => {
         console.log('abcd')
         getDeviceState().daplink.on(DAPjs.DAPLink.EVENT_PROGRESS, progress => {
           const percent = Math.round(progress * 100);
-          console.log(percent)
+          // console.log(percent)
           notifyRenderer('flash-progress', percent );
         });
 
@@ -434,6 +436,7 @@ ipcMain.handle('usb-download-flash', async (_, code) => {
 
 
 function getResourcePath(relativePath) {
+  console.log(app.isPackaged)
     if (app.isPackaged) {
       // 打包后
       return path.join(process.resourcesPath, 'utils', relativePath);
@@ -708,7 +711,18 @@ async function sendSerialCommand(command, delay = 50) {
   });
 }
 
+// function notifyRenderer(channel, payload = {}) {
+//   const win = BrowserWindow.getAllWindows()[0];
+//   win?.webContents?.send(channel, payload);
+// }
 function notifyRenderer(channel, payload = {}) {
-  const win = BrowserWindow.getAllWindows()[0];
-  win?.webContents?.send(channel, payload);
+  const windows = AbstractWindow.getAllWindows();
+
+  windows.forEach((win) => {
+    // console.log('window class:', win.constructor.name);
+
+    if (win.constructor.name === 'EditorWindow') {
+      win.window?.webContents?.send(channel, payload);
+    }
+  });
 }
