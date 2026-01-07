@@ -3,6 +3,8 @@ const path = require('path');
 const openExternal = require('../open-external');
 const settings = require('../settings');
 
+const {setupConstruct} =  require('../../utils/abstractModule')
+
 /** @type {Map<unknown, AbstractWindow[]>} */
 const windowsByClass = new Map();
 
@@ -19,6 +21,8 @@ class AbstractWindow {
 
     /** @type {Electron.BrowserWindow} */
     this.window = options.existingWindow || new BrowserWindow(this.getWindowOptions());
+
+   setupConstruct(this)
     this.window.webContents.on('before-input-event', this.handleInput.bind(this));
     this.applySettings();
 
@@ -179,7 +183,8 @@ class AbstractWindow {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
-      zoomFactor: 1.0
+      zoomFactor: 1.0,
+      experimentalFeatures: true
     };
 
     const preloadName = this.getPreload();
@@ -209,6 +214,28 @@ class AbstractWindow {
     this.window.focus();
   }
 
+
+  /**
+   * @param {Electron.Event} event
+   * @param {Electron.BluetoothDevice[]} devices
+   * @param {(deviceId: string) => void} callback
+   */
+  handleSelectBluetoothDevice(event, devices, callback) {
+   if (!this.supportsWebBluetooth()) {
+      event.preventDefault();
+      callback('');
+      return;
+    }
+
+    event.preventDefault();
+
+    this._bluetoothCallback = callback;
+    this.window.webContents.send('bluetooth-device-list', devices);
+  }
+
+  supportsWebBluetooth() {
+    return false;
+  }
   /**
    * @see {Electron.WebContents.setWindowOpenHandler}
    * @param {Electron.HandlerDetails} details
@@ -295,6 +322,78 @@ class AbstractWindow {
       }
     }
   }
+  handleInput (event, input) {
+    if (input.isAutoRepeat || input.isComposing || input.type !== 'keyDown' || input.meta) {
+      return;
+    }
+
+    // Escape to exit fullscreen or close popup windows
+    if (input.key === 'Escape') {
+      if (settings.exitFullscreenOnEscape && this.window.isFullScreen() && this.canExitFullscreenByPressingEscape()) {
+        event.preventDefault();
+        this.window.setFullScreen(false);
+      } else if (this.isPopup()) {
+        event.preventDefault();
+        this.window.close();  
+      }
+    }
+    
+    // On macOS, these shortcuts are handled by the menu bar
+    if (process.platform !== 'darwin') {
+      const webContents = this.window.webContents;
+
+      // Ctrl+Shift+I to open dev tools
+      if (input.control && input.shift && input.key.toLowerCase() === 'i' && !input.alt) {
+        event.preventDefault();
+        webContents.toggleDevTools();
+      }
+
+      // Ctrl+N to open new window
+      if (input.control && input.key.toLowerCase() === 'n') {
+        event.preventDefault();
+
+        // Imported late to due circular dependencies
+        const EditorWindow = require('./editor');
+        EditorWindow.newWindow();
+      }
+
+      // // Ctrl+Equals/Plus to zoom in (depends on keyboard layout)
+      // if (input.control && (input.key === '=' || input.key === '+')) {
+      //   event.preventDefault();
+      //   webContents.setZoomLevel(webContents.getZoomLevel() + 1);
+      // }
+
+      // // Ctrl+Minus/Underscore to zoom out
+      // if (input.control && input.key === '-') {
+      //   event.preventDefault();
+      //   webContents.setZoomLevel(webContents.getZoomLevel() - 1);
+      // }
+
+      // // Ctrl+0 to reset zoom
+      // if (input.control && input.key === '0') {
+      //   event.preventDefault();
+      //   webContents.setZoomLevel(0);
+      // }
+
+      // F11 and alt+enter to toggle fullscreen
+      if (input.key === 'F11' || (input.key === 'Enter' && input.alt)) {
+        // Don't do preventDefault() for alt+enter as then the renderer won't receive the
+        // event that the alt key was unpressed, which causes the costume editor to get
+        // stuck in duplicating mode.
+        if (input.key === 'F11') {
+          event.preventDefault();
+        }
+        this.window.setFullScreen(!this.window.isFullScreen());
+      }
+
+      // Ctrl+R to reload
+      if (input.control && input.key.toLowerCase() === 'r') {
+        event.preventDefault();
+        this.reload();
+      }
+    }
+  }
+
 
   /**
    * @param {Electron.WillNavigateEvent} event 
