@@ -70,7 +70,7 @@ const currentEspIp = require('../../utils/currentEspIp')
 
 
 const {getWin,setWin} = require('../../utils/win')
-const {getCode,setCode,getDown,setDown} = require('../../utils/tempCode')
+const {getCode,setCode,getDown,setDown,setPlace,getPlace} = require('../../utils/tempCode')
 
 const {getDistance,setDistance} = require('../../utils/distance')
 // const {getDistance,setDistance} = require('../../node_modules/scratch-vm/src/util/action')
@@ -262,11 +262,13 @@ class ConnectWindow extends AbstractWindow {
     this.window.setTitle(`${translate('connect-device.title')} - ${APP_NAME}`);
     this.window.setMinimizable(false);
     this.window.setMaximizable(false);
+    // this.window.setClosable(false)
     // this.window.setResizable(false)
     // console.log(this.window.navigator);
     // this.window.webContents.openDevTools()
     isClosed=false
     THIS=this
+    setWin(this)
     const ipc = this.window.webContents.ipc;
 
     
@@ -280,7 +282,7 @@ class ConnectWindow extends AbstractWindow {
     ipc.on('get-extension', async(event) => {
 
       if(extensions.getExtension()!=1 && extensions.getExtension()!=2 && extensions.getExtension()!=3){
-        this.window.close()
+        this.window.hide()
         await new Promise(resolve => setTimeout(resolve, 200));
         const MasterWindow = require('./master')
         MasterWindow.show()
@@ -292,10 +294,23 @@ class ConnectWindow extends AbstractWindow {
       }
     });
 
+    this.window.on('show', () => {
+      console.log('aaa');
+      isClosed=false
+      this.window.webContents.send('what-language', {
+        locale: getLocale(),
+        strings: getStrings()
+      })
+
+      this.window.webContents.send('what-extension', extensions.getExtension())
+    });
+
     this.window.on('close', (event) => {
+      event.preventDefault();
       console.log('ConnectWindow is about to close');
       // 可在这里做清理工作，比如断开socket连接、保存状态等
       isClosed=true
+      this.window.hide()
       if(getSocket()){
         getSocket().send(JSON.stringify({
           type: 'addLoad',
@@ -305,6 +320,10 @@ class ConnectWindow extends AbstractWindow {
       if (netTimer.getTimer()) {
         clearInterval(netTimer.getTimer());
       }
+    });
+
+    this.window.on('closed', () => {
+      setWin(null)
     });
 //--------------wifi模式-----------------------
      // 扫描 Wi-Fi 网络
@@ -427,20 +446,40 @@ class ConnectWindow extends AbstractWindow {
               });
 
               // 等待并验证连接
-              const isConnected = await waitForConnection(ssid, 15000); // 最多等15秒
+              const isConnected = await waitForConnection(ssid, 10000); // 最多等15秒
               if (isConnected) {
                 console.log("connected----------")
-                currentWifi.setWifi(ssid);
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                const socket = new net.Socket();
+                socket.setTimeout(1000);
 
-                clearInterval(netTimer.getTimer())
-                if(getSocket()){
-                  console.log('可能发送了')
-                  getSocket().send(JSON.stringify({
-                    type: 'whatIp',
-                    data: { message: '192.168.4.1' }
-                  }))
-                }
-                resolve("connected");
+                socket.on("connect", async() => {
+                    console.log(`test success 192.168.4.1`);
+                    socket.destroy();
+                    await new Promise(resolve => setTimeout(resolve, 200))
+
+                    currentWifi.setWifi(ssid);
+
+                    clearInterval(netTimer.getTimer())
+                    if(getSocket()){
+                      console.log('可能发送了')
+                      getSocket().send(JSON.stringify({
+                        type: 'whatIp',
+                        data: { message: '192.168.4.1' }
+                      }))
+                    }
+                    resolve("connected");
+                });
+
+                socket.on("error", () => {
+                  reject(`connect failed:`);
+                });
+                socket.on("timeout", () => {
+                  reject(`connect failed:`);
+                });
+
+                socket.connect(8082, '192.168.4.1');
+                
               } else {
                 console.log("timeout------------")
                 throw new Error("timeout");
@@ -512,9 +551,9 @@ class ConnectWindow extends AbstractWindow {
         //     data: { message: true }
         //   }))
         // }
-        if (this.window && !this.window.isDestroyed()) {
+        if (this.window && !this.window.webContents.isDestroyed()) {
           setTimeout(() => {
-            this.window.close();
+            this.window.hide();
           }, 200); // 添加短暂延迟确保用户体验
         }
 
@@ -763,6 +802,158 @@ class ConnectWindow extends AbstractWindow {
        }
       })
 
+      ipc.on('get-current-mode', (event) => {
+        event.returnValue = getMode()
+      });
+
+      setInterval(()=>{
+        let codeDown={
+          down:getDown(),
+          code:getCode(),
+          place:getPlace()
+        }
+        try{
+          console.log(this.window.webContents.isDestroyed())
+          if(this.window.webContents.isDestroyed()) return
+          if(!this.window.webContents.isDestroyed()){
+            this.window.webContents.send('code-down', codeDown);
+            if(codeDown.down==1 || codeDown.down==2) setDown(0)
+          }
+        }catch(e){
+          console.log(e)
+        }
+        
+        
+      },2000)
+
+
+    
+
+    ipc.handle('send-code-prosser', async (event, state) =>{
+
+      console.log(state)
+      if(getSocket()){
+        getSocket().send(JSON.stringify({
+          type: 'bricks',
+          data: { message: state }
+      }))
+      }
+      
+
+    })
+    ipc.on('send-distance', (event, distance) => {
+        // console.log(distance[2][2])
+        // debouncedFetchData(distance)
+        // setDistance(distance)
+        // DIS=distance
+        console.log(JSON.stringify(distance))
+        if(getBricksSocket()){
+          getBricksSocket().send(JSON.stringify(distance))
+        }
+        setDistance(distance)
+  
+        
+      })
+  
+      ipc.on('send-robot', (event, senor) => {
+        const EditorWindow = require('./editor')
+        
+        if(senor.type=='senor'){
+          // console.log(senor.data)
+          EditorWindow.setRobotData(senor.data)
+        }else if(senor.type=='state'){
+          EditorWindow.dataSend(senor.data)
+        }
+  
+        
+      })
+  
+  
+      this.window.webContents.send('what-extension', extensions.getExtension())
+      setInterval(()=>{
+        console.log('sendExtension')
+        
+        this.window.webContents.send('what-extension', extensions.getExtension())
+  
+      },3000)
+
+        // 创建定时器持续检查
+    const checkInterval = setInterval(() => {
+      if (getBricksMotor()) {
+          console.log('成功获取BricksMotor连接');
+          clearInterval(checkInterval); // 停止检查
+
+          // 添加消息监听
+          getBricksMotor().on('message', function incoming(message) {
+              try {
+                  const parsed = JSON.parse(message);
+                  console.log('收到电机消息:', parsed);
+                  THIS.window.webContents.send('send-motor', parsed);
+              } catch (err) {
+                  console.error('消息解析失败:', err);
+              }
+          });
+
+          // // 可选：监听连接关闭事件
+          // getBricksMotor().on('close', () => {
+          //     console.log('连接断开，重新开始检查');
+          //     startChecking(); // 重新激活检查流程
+          // });
+      } else {
+          console.log('等待BricksMotor连接...');
+      }
+    }, 2000); // 每秒检查一次
+
+    
+
+    ipc.on('ble-connect', (event, connect) => {
+      console.log(connect)
+      console.log('#######################')
+
+      if(getSocket()){
+        getSocket().send(JSON.stringify({
+          type: 'ble',
+          data: { message: connect }
+      }))
+      }
+      
+    })
+
+    ipc.on('ble-isconnect', (event, flag) => {
+      // console.log(connect)
+      console.log('$$$$$$$$$$$$$$$$$$$$$$$$$')
+
+     if(getSocket()){
+        getSocket().send(JSON.stringify({
+            type: 'ble-connect',
+            data: { message: true }
+        }))
+      }
+      
+    })
+
+
+
+  
+
+    ipc.on('is-download', (event, down) => {
+
+      if(getSocket()){
+        getSocket().send(JSON.stringify({
+          type: 'bleIsDownLoad',
+          data: { message: down }
+      }))
+      }
+      
+    })
+
+     ipc.on('bluetooth-select', (event, deviceId) => {
+      console.log(deviceId)
+      const win = AbstractWindow.getWindowByWebContents(event.sender);
+      win?._bluetoothCallback?.(deviceId || '');
+      win._bluetoothCallback = null;
+    });
+
       //----------------serial---------------------
       ipc.on('get-strings', (event) => {
         event.returnValue = {
@@ -830,124 +1021,150 @@ class ConnectWindow extends AbstractWindow {
         // 如果不是这种格式，返回 null
         return null;
       }
+
+
+      function waitForSerialAck(PORT, timeout = 4000) {
+        let bufferData = '';
+
+        return new Promise((resolve) => {
+          let finished = false;
+
+          const timer = setTimeout(() => {
+            if (finished) return;
+            finished = true;
+            cleanup();
+            resolve(false); // ⏰ 超时
+          }, timeout);
+
+          const onData = (data) => {
+            bufferData += data.toString();
+
+            if (!bufferData.endsWith('\r\n')) return;
+
+            const message = bufferData.trim();
+            bufferData = '';
+
+            // 命中 ACK
+            if (message.includes('[0]')) {
+              if (finished) return;
+              finished = true;
+              cleanup();
+              resolve(true); // ✅ 成功
+            }
+          };
+
+          function cleanup() {
+            clearTimeout(timer);
+            PORT.off('data', onData);
+          }
+
+          // ⚠️ 立即监听（关键）
+          PORT.on('data', onData);
+        });
+      }
+
+
+      function connectNormalSerial(port) {
+        return new Promise((resolve) => {
+          const PORT = new SerialPort({
+            path: port,
+            baudRate: 115200,
+            dataBits: 8,
+            stopBits: 1,
+            parity: 'none',
+            autoOpen: false
+          });
+
+          PORT.open(async (err) => {
+            if (err) {
+              resolve({ success: false, microbit: false, error: err.message });
+              return;
+            }
+
+            console.log('串口打开成功');
+
+            // 通知前端端口已打开（可选）
+            socket.getSocket()?.send(JSON.stringify({
+              type: 'isOpenPort',
+              data: { message: true }
+            }));
+
+
+            const ackPromise = waitForSerialAck(PORT, 4000);
+            // 选择模式
+            const jsonData = {
+              command: 'select_mode',
+              params: {
+                mode: getMode() ? 'file' : 'scratch'
+              }
+            };
+
+            PORT.write(JSON.stringify(jsonData) + '\n');
+
+            // 等待 ACK
+            const ok = await ackPromise;
+
+            if (ok) {
+              console.log('recive success');
+              setPort(PORT);
+              setPortCom(port);
+
+              resolve({ success: true, microbit: false });
+            } else {
+              console.warn('not recive');
+              PORT.close();
+              resolve({ success: false, microbit: false, error: 'ACK timeout' });
+            }
+          });
+
+          PORT.on('error', err => {
+            resolve({ success: false, microbit: false, error: err.message });
+          });
+
+          PORT.on('close', () => {
+            console.log('串口关闭');
+            setPortCom('');
+            socket.getSocket()?.send(JSON.stringify({
+              type: 'isOpenPort',
+              data: { message: false }
+            }));
+          });
+
+          // data 监听保持原样
+          let bufferData = '';
+          PORT.on('data', (data) => {
+            bufferData += data.toString();
+            if (bufferData.endsWith('\r\n')) {
+              const message = bufferData.trim();
+              bufferData = '';
+              // console.log('222222222222222222222222',message)
+
+              try {
+                let parsed;
+                if (/^\{\[.*\]\}$/.test(message)) {
+                  const match = message.match(/\[(.*?)\]/);
+                  parsed = match ? match[1].split(',').map(Number) : message;
+                } else {
+                  parsed = JSON.parse(message);
+                }
+
+                socket.getSocket()?.send(JSON.stringify({
+                  type: 'serialData',
+                  data: { message: parsed }
+                }));
+              } catch {
+                socket.getSocket()?.send(JSON.stringify({
+                  type: 'serialData',
+                  data: { message }
+                }));
+              }
+            }
+          });
+        });
+      }
+
+
       ipc.handle('send-connect-port', async (event, port) =>{
-        // console.log(port)
-  
-        // // 创建一个 SerialPort 对象
-        // PORT = new SerialPort({
-        //     path: port, // 串口名称
-        //     baudRate: 115200, // 波特率
-        //     dataBits: 8, // 数据位
-        //     stopBits: 1, // 停止位
-        //     parity: 'none' // 校验位
-        // },(err) =>{
-        //   console.log(PORT)
-        // })
-  
-  
-        // // 监听打开事件
-        // PORT.on('open', () => {
-        //   console.log('Port opened successfully');
-        //   console.log(PORT)
-        //   setPort(PORT)
-        //   portCom=port
-        //   if(socket.getSocket()){
-        //     socket.getSocket().send(JSON.stringify({
-        //       type: 'isOpenPort',
-        //       data: { message: true }
-        //     }))
-        //   }
-        //   console.log('GETPORT: ')
-        //   console.log(getPort())
-        //   ipc.on('is-connected', (event) => {
-        //     event.returnValue = {
-        //       flag: true
-        //     }
-        //   });
-        //   // try {
-        //   //   let startMsg=[0xAF,0x04,0x96,0x00,0x01,0x4a]
-        //   //   const data1 = new Uint8Array(startMsg);
-        //   //   PORT.write(data1);
-        //   // }
-        //   // catch (err) {
-        //   //   console.log('发送数据失败: ' + err.message+'\n');
-        //   // }
-        //   // // 创建解析器
-        //   // const parserInstance = PORT.pipe(new parser({ delimiter: '\r\n' }));
-        //   // // 监听数据
-        //   // parserInstance.on('data', (data) => {
-        //   //   console.log(`Received: ${data}`);
-        //   // });
-        
-        // });
-    
-  
-        // PORT.on('close',()=>{
-        //   console.log('Port closed')
-        //   if(socket.getSocket()){
-        //     socket.getSocket().send(JSON.stringify({
-        //       type: 'isOpenPort',
-        //       data: { message: false }
-        //     }))
-        //   }
-        // })
-        // // 监听错误事件
-        // PORT.on('error', (err) => {
-        // console.error('Serial port error:', err);
-        // });
-  
-        // let bufferData = '';
-        // PORT.on('data', (data) => {
-        //   bufferData += data.toString(); // 累加接收到的串口数据
-  
-        //   // 判断是否一条消息结束（根据你的设备协议，这里以 \r\n 为结尾）
-        //   if (bufferData.endsWith('\r\n')) {
-        //     const message = bufferData.trim(); // 去除 \r\n 和空格
-        //     bufferData = ''; // 清空缓存，准备下一条
-        //     console.log(typeof message)
-        //     if(message=='["success"]'){
-        //       console.log(message)
-        //     }
-        
-        //     // 尝试判断是不是 JSON 数组
-        //     if (message.startsWith('[') && message.endsWith(']')) {
-        //       // console.log('recive array'+message)
-        //       try {
-        //         const parsedArray = JSON.parse(message);
-        //         // console.log('✅ 接收到数组:', parsedArray);
-        
-                
-        //         // 广播或其他操作...
-        //         socket.getSocket()?.send(JSON.stringify({
-        //           type: 'serialData',
-        //           data: { message: parsedArray }
-        //         }));
-        
-        //       } catch (err) {
-        //         // console.error('JSON 解析失败:', err.message);
-        //       }
-        //     } else {
-        //       // console.log('recive string:', message);
-        
-        //       socket.getSocket()?.send(JSON.stringify({
-        //         type: 'serialData',
-        //         data: { message }
-        //       }));
-        
-        //       // 你也可以做一些判断
-        //       if (message === 'success') {
-        //         console.log('SUCCESS');
-        //       } else if (message === 'fail') {
-        //         console.log('FAILED');
-        //       }
-        //     }
-        //   }
-        // });
-
-
-
-        
-        
 
         // 扫描串口列表，尝试识别 micro:bit
         const ports = await SerialPort.list();
@@ -1016,15 +1233,127 @@ class ConnectWindow extends AbstractWindow {
             await sendSerialCommand('\x04'); 
           }
           
+
+
+          return { success: true, microbit: true };
+        } else {
+          // 非 Micro:bit — 原有逻辑
+          console.log('非 Micro:bit 串口，使用原始连接方式');
+
+          // PORT = new SerialPort({
+          //   path: port,
+          //   baudRate: 115200,
+          //   dataBits: 8,
+          //   stopBits: 1,
+          //   parity: 'none'
+          // });
+
+          // PORT.on('open', async() => {
+          //   console.log('串口打开成功');
+            
+            
+
+          //   socket.getSocket()?.send(JSON.stringify({
+          //     type: 'isOpenPort',
+          //     data: { message: true }
+          //   }));
+
+          //   ipc.on('is-connected', (event) => {
+          //     event.returnValue = { flag: true };
+          //   });
+          //   // let raw;
+          //   // if(!getMode()){
+          //   //   raw = new Uint8Array([0xcc,0x01]);
+          //   // }else{
+          //   //   raw = new Uint8Array([0xcc,0x02]);
+          //   // }
+
+          //   // // 计算 CRC16
+          //   // let crc = crc16(raw);
+
+          //   // // 新建数组
+          //   // let packet = new Uint8Array(raw.length + 3);
+
+          //   // // 拷贝原始数据
+          //   // packet.set(raw, 0);
+
+          //   // packet[raw.length] = (crc >> 8) & 0xFF;   // 高字节
+          //   // packet[raw.length + 1] = crc & 0xFF;      // 低字节
+
+          //   // // 在最后添加换行符 \n
+          //   // packet[raw.length + 2] = 10;
+          //   // console.log(packet)
+
+          //   let jsonData
+
+          //   if(!getMode()){
+          //     jsonData={
+          //       "command": "select_mode",
+          //       "params": 
+          //           {
+          //               "mode": `scratch`,
+          //           }
+          //     }
+          //   }else{
+          //     jsonData={
+          //       "command": "select_mode",
+          //       "params": 
+          //           {
+          //               "mode": `file`,
+          //           }
+          //     }
+          //   }
+          //   let str=JSON.stringify(jsonData)
+          //   str+='\n'
+          //   console.log(str)
+          //   PORT.write(str)
+
+
+          //    // 等待串口返回 [0] 或超时
+          //   const ok = await waitForSerialAck(PORT, 4000);
+
+          //   // 根据结果返回
+          //   if (ok) {
+          //     console.log('revice [0]');
+          //     //  在这里 return true
+          //     setPort(PORT);
+          //     setPortCom(port)
+          //     return { success: true, microbit: false };
+          //   } else {
+          //     console.log('4 not get [0]，timeout');
+          //     PORT.close()
+          //     //  在这里 return false
+          //     return { success: false, microbit: false };
+          //   }
+             
+          // });
+
           // let bufferData = '';
-          // getDeviceState().parser.on('data', (data) => {
+          // PORT.on('data', (data) => {
+          //   // console.log('11111111111111',data)
+          //   // console.log('11111111111',data.toString('utf8'))
           //   bufferData += data.toString();
           //   if (bufferData.endsWith('\r\n')) {
           //     const message = bufferData.trim();
           //     bufferData = '';
+          //     console.log('222222222222222222222222',message)
 
           //     try {
-          //       const parsed = JSON.parse(message);
+          //       // const parsed = JSON.parse(message);
+          //       // console.log(parsed)
+
+          //        let parsed;
+
+          //       // 判断是否是特殊格式 {[…]}
+          //       if (/^\{\[.*\]\}$/.test(message)) {
+          //         const match = message.match(/\[(.*?)\]/);
+          //         if (match) {
+          //           parsed = match[1].split(',').map(n => Number(n.trim()));
+          //         }
+          //       } else {
+          //         // 如果是 JSON 就解析，否则丢异常走 catch
+          //         parsed = JSON.parse(message);
+          //       }
           //       socket.getSocket()?.send(JSON.stringify({
           //         type: 'serialData',
           //         data: { message: parsed }
@@ -1038,142 +1367,20 @@ class ConnectWindow extends AbstractWindow {
           //   }
           // });
 
-          // getDeviceState().serialPort.on('close', () => {
+          // PORT.on('close', () => {
+          //   console.log('串口关闭');
+          //   setPortCom('')
           //   socket.getSocket()?.send(JSON.stringify({
           //     type: 'isOpenPort',
           //     data: { message: false }
           //   }));
           // });
 
-          // getDeviceState().serialPort.on('error', err => console.error('串口错误:', err));
+          // PORT.on('error', err => console.error('串口错误:', err));
 
-
-          return { success: true, microbit: true };
-        } else {
-          // 非 Micro:bit — 原有逻辑
-          console.log('非 Micro:bit 串口，使用原始连接方式');
-
-          PORT = new SerialPort({
-            path: port,
-            baudRate: 115200,
-            dataBits: 8,
-            stopBits: 1,
-            parity: 'none'
-          });
-
-          PORT.on('open', () => {
-            console.log('串口打开成功');
-            setPort(PORT);
-            setPortCom(port)
-            
-
-            socket.getSocket()?.send(JSON.stringify({
-              type: 'isOpenPort',
-              data: { message: true }
-            }));
-
-            ipc.on('is-connected', (event) => {
-              event.returnValue = { flag: true };
-            });
-            // let raw;
-            // if(!getMode()){
-            //   raw = new Uint8Array([0xcc,0x01]);
-            // }else{
-            //   raw = new Uint8Array([0xcc,0x02]);
-            // }
-
-            // // 计算 CRC16
-            // let crc = crc16(raw);
-
-            // // 新建数组
-            // let packet = new Uint8Array(raw.length + 3);
-
-            // // 拷贝原始数据
-            // packet.set(raw, 0);
-
-            // packet[raw.length] = (crc >> 8) & 0xFF;   // 高字节
-            // packet[raw.length + 1] = crc & 0xFF;      // 低字节
-
-            // // 在最后添加换行符 \n
-            // packet[raw.length + 2] = 10;
-            // console.log(packet)
-
-            let jsonData
-
-            if(!getMode()){
-              jsonData={
-                "command": "select_mode",
-                "params": 
-                    {
-                        "mode": `scratch`,
-                    }
-              }
-            }else{
-              jsonData={
-                "command": "select_mode",
-                "params": 
-                    {
-                        "mode": `file`,
-                    }
-              }
-            }
-            let str=JSON.stringify(jsonData)
-            str+='\n'
-            console.log(str)
-            PORT.write(str)
-          });
-
-          let bufferData = '';
-          PORT.on('data', (data) => {
-            // console.log('11111111111111',data)
-            // console.log('11111111111',data.toString('utf8'))
-            bufferData += data.toString();
-            if (bufferData.endsWith('\r\n')) {
-              const message = bufferData.trim();
-              bufferData = '';
-              // console.log('222222222222222222222222',message)
-
-              try {
-                // const parsed = JSON.parse(message);
-                // console.log(parsed)
-
-                 let parsed;
-
-                // 判断是否是特殊格式 {[…]}
-                if (/^\{\[.*\]\}$/.test(message)) {
-                  const match = message.match(/\[(.*?)\]/);
-                  if (match) {
-                    parsed = match[1].split(',').map(n => Number(n.trim()));
-                  }
-                } else {
-                  // 如果是 JSON 就解析，否则丢异常走 catch
-                  parsed = JSON.parse(message);
-                }
-                socket.getSocket()?.send(JSON.stringify({
-                  type: 'serialData',
-                  data: { message: parsed }
-                }));
-              } catch {
-                socket.getSocket()?.send(JSON.stringify({
-                  type: 'serialData',
-                  data: { message }
-                }));
-              }
-            }
-          });
-
-          PORT.on('close', () => {
-            console.log('串口关闭');
-            setPortCom('')
-            socket.getSocket()?.send(JSON.stringify({
-              type: 'isOpenPort',
-              data: { message: false }
-            }));
-          });
-
-          PORT.on('error', err => console.error('串口错误:', err));
-
-          return { success: true, microbit: false };
+          const result = await connectNormalSerial(port);
+          return result;
+          
         }
   
   
@@ -1282,6 +1489,66 @@ class ConnectWindow extends AbstractWindow {
         }
       }
 
+
+      async function disconnectPortLogic() {
+        // 检查当前端口是否为 micro:bit
+        const ports = await SerialPort.list();
+        const currentPortInfo = ports.find(p => p.path === getPortCom());
+
+        const isMicrobit = currentPortInfo &&
+          currentPortInfo.vendorId === '0D28' &&
+          ['0204', '0205'].includes(currentPortInfo.productId?.toUpperCase?.());
+
+        try {
+          if (isMicrobit) {
+            await disconnectDevice();
+
+            setPort(null);
+            setPortCom('');
+
+            console.log('Micro:bit is disconnected');
+            return { success: true, microbit: true };
+          }
+
+          // 非 Micro:bit 串口
+          if (getPort() && getPort().isOpen) {
+            const jsonData = {
+              command: 'select_mode',
+              params: { mode: 'file' }
+            };
+
+            getPort().write(JSON.stringify(jsonData) + '\n');
+            await new Promise(r => setTimeout(r, 300));
+
+            await new Promise((resolve, reject) => {
+              getPort().close(err => {
+                if (err) {
+                  reject(err);
+                } else {
+                  setPort(null);
+                  setPortCom('');
+
+                  if (socket.getSocket()) {
+                    socket.getSocket().send(JSON.stringify({
+                      type: 'isOpenPort',
+                      data: { message: false }
+                    }));
+                  }
+
+                  resolve();
+                }
+              });
+            });
+
+            return { success: true, microbit: false };
+          }
+
+          return { success: true, message: '串口未打开' };
+
+        } catch (err) {
+          return { success: false, error: err.message };
+        }
+      }
       ipc.handle('disconnect', async (event) =>{
 
         //   if (PORT && PORT.isOpen) {
@@ -1323,61 +1590,75 @@ class ConnectWindow extends AbstractWindow {
 
 
 
-        // 检查当前端口是否为 micro:bit
-        const ports = await SerialPort.list();
-        const currentPortInfo = ports.find(p => p.path === getPortCom());
+        // // 检查当前端口是否为 micro:bit
+        // const ports = await SerialPort.list();
+        // const currentPortInfo = ports.find(p => p.path === getPortCom());
 
-        const isMicrobit = currentPortInfo &&
-          currentPortInfo.vendorId === '0D28' &&
-          ['0204', '0205'].includes(currentPortInfo.productId?.toUpperCase?.());
+        // const isMicrobit = currentPortInfo &&
+        //   currentPortInfo.vendorId === '0D28' &&
+        //   ['0204', '0205'].includes(currentPortInfo.productId?.toUpperCase?.());
 
-        try {
-          if (isMicrobit) {
-            await disconnectDevice();
+        // try {
+        //   if (isMicrobit) {
+        //     await disconnectDevice();
 
-            // 清空端口记录
-            setPort(null);
-            // portCom = '';
-            setPortCom('')
+        //     // 清空端口记录
+        //     setPort(null);
+        //     // portCom = '';
+        //     setPortCom('')
 
-            console.log('Micro:bit is disconnected');
-            return { success: true, microbit: true };
-          }
+        //     console.log('Micro:bit is disconnected');
+        //     return { success: true, microbit: true };
+        //   }
 
-          // 非 Micro:bit 串口处理（原逻辑）
-          if (getPort() && getPort().isOpen) {
-            await new Promise((resolve, reject) => {
-              getPort().close((err) => {
-                if (err) {
-                  console.error('serial close failed:', err.message);
-                  reject(err);
-                } else {
-                  console.log('serial close success');
+        //   // 非 Micro:bit 串口处理（原逻辑）
+        //   if (getPort() && getPort().isOpen) {
+        //     let jsonData={
+        //         "command": "select_mode",
+        //         "params": 
+        //             {
+        //                 "mode": `file`,
+        //             }
+        //       }
+        //     let str=JSON.stringify(jsonData)
+        //     str+='\n'
+        //     console.log(str)
+        //     getPort().write(str)
+        //     await new Promise(resolve => setTimeout(resolve, 300))
+        //     await new Promise((resolve, reject) => {
+        //       getPort().close((err) => {
+        //         if (err) {
+        //           console.error('serial close failed:', err.message);
+        //           reject(err);
+        //         } else {
+        //           console.log('serial close success');
 
-                  setPort(null);
-                  // portCom = '';
-                  setPortCom('')
+        //           setPort(null);
+        //           // portCom = '';
+        //           setPortCom('')
 
-                  if (socket.getSocket()) {
-                    socket.getSocket().send(JSON.stringify({
-                      type: 'isOpenPort',
-                      data: { message: false }
-                    }));
-                  }
+        //           if (socket.getSocket()) {
+        //             socket.getSocket().send(JSON.stringify({
+        //               type: 'isOpenPort',
+        //               data: { message: false }
+        //             }));
+        //           }
 
-                  // getPort().removeAllListeners();
-                  resolve();
-                }
-              });
-            });
+        //           // getPort().removeAllListeners();
+        //           resolve();
+        //         }
+        //       });
+        //     });
 
-            return { success: true, microbit: false };
-          } else {
-            return { success: true, message: '串口未打开' };
-          }
-        } catch (err) {
-          return { success: false, error: err.message };
-        }
+        //     return { success: true, microbit: false };
+        //   } else {
+        //     return { success: true, message: '串口未打开' };
+        //   }
+        // } catch (err) {
+        //   return { success: false, error: err.message };
+        // }
+
+        return await disconnectPortLogic();
       })
   
       const session = require('electron').session;
@@ -1388,7 +1669,6 @@ class ConnectWindow extends AbstractWindow {
         return false;
       });
   
-      
   
       let port;
       let writer;
@@ -1414,12 +1694,30 @@ class ConnectWindow extends AbstractWindow {
 
           // console.log(ports)
 
-          PORTS = ports.map(port => ({
-            path: port.path,
-             label: (port.vendorId === '0D28' && ['0204', '0205'].includes(port.productId)) 
-              ? `${port.path}（Microbit）`
-              : port.path
-          }));
+          // PORTS = ports.map(port => ({
+          //   path: port.path,
+          //    label: (port.vendorId === '0D28' && ['0204', '0205'].includes(port.productId)) 
+          //     ? `${port.path}（Microbit）`
+          //     : port.path
+          // }));
+          PORTS = ports
+            .filter(p =>
+              (
+                p.vendorId === '0D28' &&
+                ['0204', '0205'].includes(p.productId)
+              ) ||
+              (
+                p.vendorId &&
+                p.vendorId.toUpperCase() === '1A86'
+              )
+            )
+            .map(port => ({
+              path: port.path,
+              label:
+                (port.vendorId === '0D28' && ['0204', '0205'].includes(port.productId))
+                  ? `${port.path}（Microbit）`
+                  : port.path
+            }));
 
           // console.log(PORTS);
         } catch (error) {
@@ -1439,10 +1737,75 @@ class ConnectWindow extends AbstractWindow {
           PORTS
         }
       });
-      
+
     
-    
-    this.loadURL('connect://./connect-device.html');
+    let filePath=path.join(__dirname, '../../src-renderer/connect-device/connect-device.html')
+    // this.loadURL('connect://./connect-device.html');
+    this.loadURL(filePath)
+  }
+
+  supportsWebBluetooth() {
+    return true;
+  }
+
+  static async disconnectPortLogic() {
+    // 检查当前端口是否为 micro:bit
+    const ports = await SerialPort.list();
+    const currentPortInfo = ports.find(p => p.path === getPortCom());
+
+    const isMicrobit = currentPortInfo &&
+      currentPortInfo.vendorId === '0D28' &&
+      ['0204', '0205'].includes(currentPortInfo.productId?.toUpperCase?.());
+
+    try {
+      if (isMicrobit) {
+        await disconnectDevice();
+
+        setPort(null);
+        setPortCom('');
+
+        console.log('Micro:bit is disconnected');
+        return { success: true, microbit: true };
+      }
+
+      // 非 Micro:bit 串口
+      if (getPort() && getPort().isOpen) {
+        const jsonData = {
+          command: 'select_mode',
+          params: { mode: 'file' }
+        };
+
+        getPort().write(JSON.stringify(jsonData) + '\n');
+        await new Promise(r => setTimeout(r, 300));
+
+        await new Promise((resolve, reject) => {
+          getPort().close(err => {
+            if (err) {
+              reject(err);
+            } else {
+              setPort(null);
+              setPortCom('');
+
+              if (socket.getSocket()) {
+                socket.getSocket().send(JSON.stringify({
+                  type: 'isOpenPort',
+                  data: { message: false }
+                }));
+              }
+
+              resolve();
+            }
+          });
+        });
+
+        return { success: true, microbit: false };
+      }
+
+      return { success: true, message: '串口未打开' };
+
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   }
 
 

@@ -40,6 +40,24 @@ contextBridge.exposeInMainWorld('connect', {
 
     openBle: async (info) => await ipcRenderer.invoke('open-ble',info),
 
+    sendMotor: (callback) => ipcRenderer.on('send-motor', (event, motor) => callback(motor)),
+    codeDownLoad: (callback) => ipcRenderer.on('code-down', (event, codeDown) => callback(codeDown)),
+    getBluetooth: () => navigator,
+    sendCodeProsser:(state) => ipcRenderer.invoke('send-code-prosser', state),
+    sendDistance:(distance) => ipcRenderer.send('send-distance',distance),
+
+    sendIsConnect:(ble) => ipcRenderer.send('ble-connect',ble),
+
+    getTranslate: () => ipcRenderer.sendSync('get-translate'),
+
+    setIsDownLoad:(down) => ipcRenderer.send('is-download',down),
+    sendRobotSenor:(senor) => ipcRenderer.send('send-robot',senor),
+
+    getCurrentMode:() => ipcRenderer.sendSync('get-current-mode'),
+    whatExtension: (callback) => ipcRenderer.on('what-extension', (event, extension) => callback(extension)),
+
+    whatLanguage: (callback) => ipcRenderer.on('what-language', (event, lang) => callback(lang)),
+
 
     //serial
 
@@ -64,5 +82,9 @@ contextBridge.exposeInMainWorld('connect', {
 
 
     getTranslate: () => ipcRenderer.sendSync('get-translate'),
+
+    onDevices: (fn) => ipcRenderer.on('bluetooth-device-list', (_, d) => fn(d)),
+    select: (id) => ipcRenderer.send('bluetooth-select', id),
+    bleConnected: (flag) => ipcRenderer.send('ble-isconnect', flag)
 
 });

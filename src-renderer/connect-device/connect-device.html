@@ -109,6 +109,7 @@
           list-style: none;
           padding: 0;
           margin-bottom: 15px;
+          margin-top: 0;
           background-color: #c2f3ec;
           overflow-y: auto;
           overflow-x: hidden; /* 可选，防止横向滚动条 */
@@ -119,6 +120,7 @@
           list-style: none;
           padding: 0;
           margin-bottom: 15px;
+          margin-top: 0px;
           background-color: #c2f3ec;
           overflow-y: auto;
           overflow-x: hidden; /* 可选，防止横向滚动条 */
@@ -166,7 +168,7 @@
         }
 
         .connect-btn {
-          /* padding: 6px 6px; */
+
           font-size: 14px;
           background-color: #00bfa5;
           color: white;
@@ -190,7 +192,7 @@
           border-radius: 5px;
           cursor: pointer;
           transition: all 0.3s ease-in-out;
-          margin-top: 10px;
+          /* margin-top: 10px; */
         }
 
         button:hover {
@@ -336,6 +338,34 @@
         #password{
           width: 60%;
         } */
+         #device{
+          background-color: #ccf9f2;
+          height:200px;
+          /* padding-top: 10px; */
+          padding-left: 0;
+          margin-bottom: 0;
+          margin-top: 0;
+          overflow-y: auto;     /* 垂直滚动 */
+          overflow-x: hidden;   /* 防止横向滚动 */
+         }
+
+         .actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 30px;
+          justify-content: center;
+          margin-bottom: 20px;
+        }
+        #currentDev{
+          margin-bottom: 5px;
+        }
+        .hint-text {
+          font-size: 13px;          /* 比正文小一点 */
+          color: #999;              /* 浅灰色 */
+          display: inline-block;
+          margin-bottom: 8px;
+          line-height: 1.5;
+        }
 
     </style>
   </head>
@@ -343,7 +373,9 @@
 
       <script>
         
-        const {locale, strings} = connect.getTranslate();
+        // let {locale, strings} = connect.getTranslate();
+        let locale=connect.getTranslate().locale
+        let strings=connect.getTranslate().strings
         document.documentElement.lang = locale;
 
       </script>
@@ -362,11 +394,23 @@
         <!-- 内容区 -->
         <div class="content">
             <div id="serial" class="tab-page">
+              
                 <!-- <p>请选择要连接的设备端口：</p> -->
                 <div id="bnContainer" class="button-container"></div>
             </div>
             <div id="bluetooth" class="tab-page">
-                <button id="openBle">打开蓝牙连接界面</button>
+              <span class="hint-text" id="tipBle">请先将机器人切换至蓝牙模式</span>
+                <!-- <button id="openBle">打开蓝牙连接界面</button> -->
+                
+                <ul id="device"></ul>
+
+                <div class="status" id="currentDev">
+                  <span id="bleTitle">已连接蓝牙: </span><strong id="device-name"></strong>
+                </div>
+                <div class="actions">
+                  <button id="startScan" class="btn-primary">开始扫描</button>
+                  <button id="closeBle" class="btn-danger">断开蓝牙</button>
+                </div>
             </div>
             <div id="wifi" class="tab-page">
                 <!-- <img src="your-wifi-icon.png" alt="WiFi illustration" />
@@ -374,12 +418,13 @@
                 <button class="help-button" onclick="openHelp()">帮助</button> -->
 
                 <!-- 加载遮罩层 -->
+                 <span class="hint-text" id="tipAp">请先将机器人切换至AP模式</span>
                 <div id="loading-overlay">
                   <div class="spinner"></div>
                   <p id="loadingImg">正在连接 Wi-Fi...</p>
                 </div>
 
-                <h1 id="currentWifi"></h1>
+                <!-- <h1 id="currentWifi"></h1> -->
                 <!-- <h1>可连接wifi</h1> -->
                 <ul id="wifi-list"></ul>
               
@@ -397,6 +442,7 @@
 
             </div>
             <div id="qr" class="tab-page">
+              <span class="hint-text" id="tipSta">请先将机器人切换至STA模式</span>
               <div id="qr-button">
                  <h2 id="qrTitle">Wi-Fi 二维码生成</h2>
                 <span id="account">账号</span>&nbsp;&nbsp;<input type="text" id="name">
@@ -426,23 +472,37 @@
       </div>
       <script>
 
-        //翻译
-        document.querySelector('.tab[data-tab="serial"]').textContent = strings['connect-device.serial'];
-        document.querySelector('.tab[data-tab="bluetooth"]').textContent = strings['connect-device.bluetooth'];
-        document.querySelector('.tab[data-tab="qr"]').textContent = strings['connect-device.qr'];
+        let isConnecting=false
+        function translate(){
+          //翻译
+          document.querySelector('.tab[data-tab="serial"]').textContent = strings['connect-device.serial'];
+          document.querySelector('.tab[data-tab="bluetooth"]').textContent = strings['connect-device.bluetooth'];
+          document.querySelector('.tab[data-tab="qr"]').textContent = strings['connect-device.qr'];
 
-        document.getElementById('disConnect').textContent=strings['connect-device.disconnectAll'];
+          document.getElementById('disConnect').textContent=strings['connect-device.disconnectAll'];
 
-        document.getElementById('account').textContent=strings['connect-device.account'];
-        document.getElementById('pwd').textContent=strings['connect-device.pwd'];
-        document.getElementById('qrTitle').textContent=strings['connect-device.qrTitle'];
-        document.getElementById('submit').textContent=strings['connect-device.submit'];
+          document.getElementById('account').textContent=strings['connect-device.account'];
+          document.getElementById('pwd').textContent=strings['connect-device.pwd'];
+          document.getElementById('qrTitle').textContent=strings['connect-device.qrTitle'];
+          document.getElementById('submit').textContent=strings['connect-device.submit'];
 
-        document.getElementById('loadingImg').textContent=strings['connect-device.loadingImg'];
+          document.getElementById('loadingImg').textContent=strings['connect-device.loadingImg'];
 
-        document.getElementById('openBle').textContent=strings['connect-device.openBle'];
+          // document.getElementById('openBle').textContent=strings['connect-device.openBle'];
 
-        document.getElementById('pleaseScanQr').textContent=strings['please-scan-qr'];
+          document.getElementById('pleaseScanQr').textContent=strings['please-scan-qr'];
+          document.getElementById('startScan').textContent=strings['ble-connect.clickme'];
+          document.getElementById('closeBle').textContent=strings['ble-connect.closeBle'];
+          document.getElementById('bleTitle').textContent=strings['ble-connect.bleTitle'];
+
+          document.getElementById('tipBle').textContent=strings['connect-device.tipBle']
+          document.getElementById('tipAp').textContent=strings['connect-device.tipAp']
+          document.getElementById('tipSta').textContent=strings['connect-device.tipSta']
+          
+        }
+
+        translate()
+        
         
           let portStatusMap = {}; // 全局存储端口状态
           let currentConnectedPort = null; // 当前连接的端口
@@ -462,18 +522,36 @@
           if(extension.wifi==1){
             // tabEnabledMap.serial=true
             tabEnabledMap.bluetooth=true
+            tabEnabledMap.wifi=false
+            tabEnabledMap.qr=false
+            tabEnabledMap.serial=false
+
+            document.getElementById('tipBle').style.visibility = 'hidden';
+            document.getElementById('tipAp').style.visibility = 'hidden';
+            document.getElementById('tipSta').style.visibility = 'hidden';
 
           }else if(extension.wifi==2){
             tabEnabledMap.wifi=true
             tabEnabledMap.qr=true
             tabEnabledMap.serial=true
             tabEnabledMap.bluetooth=true
+             document.getElementById('tipBle').style.visibility = 'visible';
+            document.getElementById('tipAp').style.visibility = 'visible';
+            document.getElementById('tipSta').style.visibility = 'visible';
           }else if(extension.wifi==3){
             tabEnabledMap.serial=true
+            tabEnabledMap.bluetooth=false
+            tabEnabledMap.wifi=false
+            tabEnabledMap.qr=false
+
+              document.getElementById('tipBle').style.visibility = 'hidden';
+              document.getElementById('tipAp').style.visibility = 'hidden';
+              document.getElementById('tipSta').style.visibility = 'hidden';
+
+            
           }
           let wifiIntervalId = null;
           let offlineHandler = null;
-
           // tabs.forEach(tab => {
           //   tab.addEventListener('click', () => {
           //     const selected = tab.dataset.tab;
@@ -499,80 +577,177 @@
           // });
 
 
+          // let hasEnabledTab = false;
+
+          // tabs.forEach(tab => {
+          //     const tabName = tab.dataset.tab;
+
+          //     // 设置禁用样式
+          //     if (!tabEnabledMap[tabName]) {
+          //       tab.classList.add('disabled');
+          //     }
+
+
+          //     if (tabEnabledMap[tabName]) {
+          //       if (!hasEnabledTab) {
+          //         // 默认激活第一个可用 tab
+          //         tab.classList.add('active');
+          //         document.getElementById(tabName).classList.add('active');
+
+          //         const selected = tab.dataset.tab;
+          //         if (selected === 'wifi') {
+          //           wifiInit();
+          //           removeQr()
+          //         } else {
+          //           wifiCleanup();
+          //           if(selected === 'qr'){
+          //             qrInit();
+          //           } else if(selected === 'bluetooth'){
+          //             bleInit();
+          //           }else if(selected === 'serial'){
+          //             serialInit()
+          //             startPortMonitoring()
+          //              setInterval(() => {
+          //               if(!isConnecting){
+          //                 serialInit();
+          //               }
+                          
+          //             }, 2000); // 每 5 秒刷新一次串口列表
+          //           }
+          //         }
+          //       }
+          //       hasEnabledTab = true;
+          //     }
+
+          //     tab.addEventListener('click', () => {
+          //       // 若当前 tab 不可点击，则忽略
+          //       if (!tabEnabledMap[tabName]) return;
+
+          //       const selected = tab.dataset.tab;
+
+          //       tabs.forEach(t => t.classList.remove('active'));
+          //       pages.forEach(p => p.classList.remove('active'));
+
+          //       tab.classList.add('active');
+          //       document.getElementById(selected).classList.add('active');
+
+          //       if (selected === 'wifi') {
+          //         wifiInit();
+          //       } else {
+          //         wifiCleanup();
+          //         if(selected === 'qr'){
+          //           qrInit();
+          //         } else if(selected === 'bluetooth'){
+          //           bleInit();
+          //         }else if(selected === 'serial'){
+          //           serialInit()
+          //           startPortMonitoring()
+          //           setInterval(() => {
+          //             if(!isConnecting){
+          //               serialInit();
+          //             }
+                        
+          //           }, 2000); // 每 5 秒刷新一次串口列表
+          //         }
+          //       }
+          //     });
+          // });
+
+          //  if (!hasEnabledTab) {
+          //   // 所有标签都禁用，显示默认页
+          //   document.getElementById('default-page').classList.add('active');
+          // }
+
           let hasEnabledTab = false;
+          let serialTimer = null;
 
-          tabs.forEach(tab => {
+          function handleTabActivated(tabName) {
+            if (tabName === 'wifi') {
+              wifiInit();
+              removeQr?.();
+              return;
+            }
+
+            wifiCleanup();
+
+            if (tabName === 'qr') {
+              qrInit();
+              return;
+            }
+
+            if (tabName === 'bluetooth') {
+              bleInit();
+              return;
+            }
+
+            if (tabName === 'serial') {
+              serialInit();
+              startPortMonitoring();
+
+              // 防止重复 setInterval
+              if (serialTimer) clearInterval(serialTimer);
+
+              serialTimer = setInterval(() => {
+                if (!isConnecting) {
+                  serialInit();
+                }
+              }, 2000);
+
+              return;
+            }
+          }
+
+          function renderTabs() {
+            hasEnabledTab = false;
+            document.getElementById('default-page').classList.remove('active');
+
+            tabs.forEach(tab => {
               const tabName = tab.dataset.tab;
+              const page = document.getElementById(tabName);
 
-              // 设置禁用样式
+              // ① 清空状态
+              tab.classList.remove('active', 'disabled');
+              page.classList.remove('active');
+
+              // ② 禁用 tab
               if (!tabEnabledMap[tabName]) {
                 tab.classList.add('disabled');
+                return;
               }
 
-
-              if (tabEnabledMap[tabName]) {
-                if (!hasEnabledTab) {
-                  // 默认激活第一个可用 tab
-                  tab.classList.add('active');
-                  document.getElementById(tabName).classList.add('active');
-
-                  const selected = tab.dataset.tab;
-                  if (selected === 'wifi') {
-                    wifiInit();
-                    removeQr()
-                  } else {
-                    wifiCleanup();
-                    if(selected === 'qr'){
-                      qrInit();
-                    } else if(selected === 'bluetooth'){
-                      bleInit();
-                    }else if(selected === 'serial'){
-                      serialInit()
-                      startPortMonitoring()
-                       setInterval(() => {
-                          serialInit();
-                      }, 2000); // 每 5 秒刷新一次串口列表
-                    }
-                  }
-                }
+              // ③ 激活第一个可用 tab
+              if (!hasEnabledTab) {
+                tab.classList.add('active');
+                page.classList.add('active');
+                handleTabActivated(tabName);
                 hasEnabledTab = true;
               }
+            });
 
-              tab.addEventListener('click', () => {
-                // 若当前 tab 不可点击，则忽略
-                if (!tabEnabledMap[tabName]) return;
-
-                const selected = tab.dataset.tab;
-
-                tabs.forEach(t => t.classList.remove('active'));
-                pages.forEach(p => p.classList.remove('active'));
-
-                tab.classList.add('active');
-                document.getElementById(selected).classList.add('active');
-
-                if (selected === 'wifi') {
-                  wifiInit();
-                } else {
-                  wifiCleanup();
-                  if(selected === 'qr'){
-                    qrInit();
-                  } else if(selected === 'bluetooth'){
-                    bleInit();
-                  }else if(selected === 'serial'){
-                    serialInit()
-                    startPortMonitoring()
-                    setInterval(() => {
-                        serialInit();
-                    }, 2000); // 每 5 秒刷新一次串口列表
-                  }
-                }
-              });
-          });
-
-           if (!hasEnabledTab) {
-            // 所有标签都禁用，显示默认页
-            document.getElementById('default-page').classList.add('active');
+            // ④ 全禁用兜底页
+            if (!hasEnabledTab) {
+              pages.forEach(p => p.classList.remove('active'));
+              document.getElementById('default-page').classList.add('active');
+            }
           }
+
+          tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+              const tabName = tab.dataset.tab;
+
+              if (!tabEnabledMap[tabName]) return;
+
+              // 切换 active
+              tabs.forEach(t => t.classList.remove('active'));
+              pages.forEach(p => p.classList.remove('active'));
+
+              tab.classList.add('active');
+              document.getElementById(tabName).classList.add('active');
+
+              handleTabActivated(tabName);
+            });
+          });
+          renderTabs();
 
           function showToast(message, duration = 3000) {
               // 如果 toast 容器不存在，则创建一个
@@ -718,7 +893,8 @@
                           // alert(`成功连接 ${network.ssid}`);
                           await window.connect.isClose(true);
                         } catch (error) {
-                          alert(`连接失败 ${network.ssid}: ${error.message}`);
+                          
+                          alert(strings['connect-device.connectFailed']);
                         } finally {
                           document.getElementById('loading-overlay').style.display = 'none';
                           await loadWifiList(); // 成功或失败都刷新
@@ -912,216 +1088,1067 @@
                   // scrollToBottom()
               });
 
-
-              // document.getElementById('submitonly').addEventListener('click',async()=>{
-              //   const name = document.getElementById('name').value.trim();
-              //     const password = document.getElementById('password').value.trim();
-              //     console.log(name)
-              //     console.log(password);
-                  
-              //     if (!name || !password) {
-              //         // alert("请填写完整 Wi-Fi 信息！");
-              //         showToast('请填写完整 Wi-Fi 信息！')
-              //         return;
-              //     }
-              //     await window.connect.setHistory({ name, password })
-                
-
-              //     let isConnect=false
-              //     let info = await window.connect.wifiInfo({ name, password,isConnect });
-
-              //     const qrContainer = document.getElementById('qrContainer');
-              //     const img = document.getElementById('info');
-
-              //     img.src = info;
-              //     qrContainer.style.display = "block"; // 显示二维码
-              //     scrollToBottom()
-              // })
-
-              // document.getElementById("info").onclick =async function () {
-              //   if(!document.fullscreenElement){
-              //     showToast('点击图片或按ESC键退出全屏')
-              //     await new Promise(resolve => setTimeout(resolve, 1000));
-              //     if (this.requestFullscreen) {
-              //       this.requestFullscreen(); // 进入全屏
-              //     } else if (this.webkitRequestFullscreen) {
-              //       this.webkitRequestFullscreen(); // Safari
-              //     } else if (this.msRequestFullscreen) {
-              //       this.msRequestFullscreen(); // IE11
-              //     }
-              //   }else{
-              //     document.exitFullscreen();
-              //   }
-                
-              // };
-
-              // document.getElementById("info").ondblclick = function () {
-              //   if (document.fullscreenElement) {
-              //     document.exitFullscreen();
-              //   }
-              // }
               document.getElementById('submit-usb-card').addEventListener('click', hostPotWire);
           }
 
-          function bleInit(){
-            document.getElementById('openBle').addEventListener('click',()=>{
-              window.connect.openBle(true)
-            })
-          }
+          /**
+           * 蓝牙连接功能
+           * 
+           */ 
+          let currentExtension
+          let device
+          let service
+          let serviceDown
+          let server
+          let characteristicWrite
+          let characteristicRead
+          let characteristicWriteDown
+          let characteristicReadDown
+          let Lua=[0x4c,0x75,0x61,0x3a]
+          let Lua1=[0x4c,0x75,0x61,0x31]
+          let endLua=[0x65,0x6e,0x64,0x4c,0x75,0x61]
+          let CODE;
+          let place;
 
-          // function serialInit(){
-          //     const ports = connect.getPorts();
-          //     let portsArr = ports.PORTS;
-          //     document.getElementById('bnContainer').innerHTML=''
-
-          //     for (let i = 0; i < portsArr.length; i++) {
-          //         let button = document.createElement('button');
-          //         button.innerText = `连接 ${portsArr[i]}`;
-          //         button.id = 'bn' + i;
-          //         button.style.backgroundColor='transparent'
-          //         button.style.border='1px solid #41dd92'
-          //         button.style.color = '#000'; 
-          //         button.style.width='70%'
-          //         button.addEventListener('click', () => {
-          //             connect.sendConnectPort(portsArr[i]);
-          //             setTimeout(() => {
-          //                 const flag = connect.isConnected();
-          //                 if (flag.flag) {
-          //                     alert('✅ 连接成功！');
-          //                 } else {
-          //                     alert('❌ 连接失败，请重试。');
-          //                 }
-          //             }, 800);
-          //         });
-          //         document.getElementById('bnContainer').appendChild(button);
-          //     }
-          // }
+          //robot对应变量
+          let deviceRobot
+          let serverRobot
+          let serviceRobot
+          let characteristicWriteRobot
+          let characteristicReadRobot
+          let characteristicReadSensorRobot
 
           
+          let lanyaMsg=[]
+          let lanyaStrMsg=''
+          let DeviceList=[]
 
-          // function serialInit() {
-          //     const ports = connect.getPorts();
-          //     const portsArr = ports.PORTS;
-          //     const bnContainer = document.getElementById('bnContainer');
-          //     bnContainer.innerHTML = ''; 
-              
-          //     // 获取当前连接状态
-          //     const statusResponse = connect.whatPortConnect();
-          //     currentConnectedPort = statusResponse.port || null;
-              
-          //     portsArr.forEach(port => {
-          //         const isConnected = port === currentConnectedPort;
-          //         portStatusMap[port] = isConnected; // 更新状态映射
-                  
-          //         bnContainer.style.height='300px'
-          //         bnContainer.style.backgroundColor='#c2f3ec'
-          //         // 创建UI元素
-          //         const buttonContainer = document.createElement('div');
-          //         // buttonContainer.style.display = 'flex';
-          //         // buttonContainer.style.alignItems = 'center';
-          //         // buttonContainer.style.marginBottom = '10px';
+          
+        
+          function createPromise() {
+            return new Promise(resolve => {
+              const eventListener = async (event) => {
+                let value = await event.target.value;
+                // state = value.getUint8(0);
+                //   console.log(value.byteLength)
+                lanyaMsg=[]
+                for (let i=0;i<value.byteLength-1;i++){
+                    lanyaMsg.push(value.getUint8(i))
+                }
+                console.log(lanyaMsg)
+                // for (let i=0;i<lanyaMsg.length;i++){
+                //     let char = String.fromCharCode(lanyaMsg[i]);
+                //     lanyaStrMsg = lanyaStrMsg + char.toString()
+                // }
+                // isExit = true;
+                // console.log(state);
+                resolve(); // Signal event handling is done
+                characteristicReadDown.removeEventListener('characteristicvaluechanged', eventListener); // 移除事件监听器
+              };
+              characteristicReadDown.addEventListener('characteristicvaluechanged', eventListener);
+            });
+          }
 
-          //         buttonContainer.style.display = 'flex';
-          //         buttonContainer.style.justifyContent = 'center'; // 水平居中[6,7](@ref)
-          //         buttonContainer.style.alignItems = 'center';      // 垂直居中[6,7](@ref)
-          //         buttonContainer.style.margin = '0 auto 10px';     // 上下边距+水平居中[8](@ref)
-          //         buttonContainer.style.width = '80%';
-          //         buttonContainer.style.backgroundColor = 'transparent'; // 背景透明[3,9](@ref)
-          //         buttonContainer.style.border = '1px solid #00ff00';    // 绿色边框[4,9](@ref)
-          //         buttonContainer.style.borderRadius = '4px';            // 圆角边框
-          //         buttonContainer.style.padding = '8px';                 // 内边距
-          //         buttonContainer.id = `port-${port}`; // 唯一ID便于后续更新
-                  
-          //         const portLabel = document.createElement('span');
-          //         portLabel.textContent = port;
-          //         portLabel.style.flex = '1';
-          //         portLabel.style.textAlign = 'left';
-          //         portLabel.style.marginRight = '10px';
-                  
-          //         const actionButton = document.createElement('button');
-          //         updateButtonState(actionButton, isConnected); // 统一更新按钮状态
-                  
-          //         // 点击事件处理
-          //         actionButton.addEventListener('click', async () => {
-          //             if (portStatusMap[port]) {
-          //                 await handleDisconnect(port);
-          //             } else {
-          //                 await handleConnect(port);
-          //             }
-          //             updatePortUI(port); // 更新单个端口的UI
-          //         });
-                  
-          //         buttonContainer.appendChild(portLabel);
-          //         buttonContainer.appendChild(actionButton);
-          //         bnContainer.appendChild(buttonContainer);
+          // ===== 封装 Promise =====
+          function createPromiseForRobot(timeoutMs = 6000) {
+            return new Promise((resolve, reject) => {
+              const timer = setTimeout(() => {
+                // 超时处理
+                responseQueue = responseQueue.filter(item => item.resolve !== resolve);
+                reject(new Error(`等待超时（>${timeoutMs}ms 未收到数据）`));
+              }, timeoutMs);
+
+              // 推入队列，由全局监听处理
+              responseQueue.push({ resolve, reject, timer });
+            });
+          }
+
+          connect.codeDownLoad((codeDown) => {
+            console.log(codeDown);
+            if(currentExtension==1){
+              if(codeDown.down==1){
+                CODE=codeDown.code
+                downLoad()
+
+              }else if(codeDown.down==2){
+                cancelDown()
+              }
+            }else if(currentExtension==2){
+              if(codeDown.down==1){
+                CODE=codeDown.code
+                place=codeDown.place
+                downLoadForRobot()
+
+              }
+            }
+          
+            
+          });
+          function toTwoDigitHexadecimalPair(decimal) {
+            if (decimal < 0) {
+                throw new Error("Input must be a non-negative integer");
+            }
+
+            const rightHex = decimal % 256; // 右边的两位十六进制数表示255以内的数
+            const leftHex = Math.floor(decimal / 256); // 左边的两位十六进制数表示右边数满255时往左边进位的次数
+
+            return [
+                // leftHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+                // rightHex.toString(16).padStart(2, '0'), // 转换为两位十六进制字符串
+                leftHex,
+                rightHex
+            ];
+        }
+          async function downLoadForRobot(){
+            try{
+              // startMsg
+              console.log(CODE.length)
+              let startRaw = new Uint8Array([0xbb, 0x01, place, toTwoDigitHexadecimalPair(CODE.length)[0],toTwoDigitHexadecimalPair(CODE.length)[1]]);
+              let crcStart = crc16(startRaw);
+              let startMsg = new Uint8Array(startRaw.length + 2);
+              startMsg.set(startRaw, 0);
+              startMsg[startRaw.length] = (crcStart >> 8) & 0xFF; // 高字节
+              startMsg[startRaw.length + 1] = crcStart & 0xFF;    // 低字节
+
+              // endMsg
+              let endRaw = new Uint8Array([0xbb, 0x02]);
+              let crcEnd = crc16(endRaw);
+              let endMsg = new Uint8Array(endRaw.length + 2);
+              endMsg.set(endRaw, 0);
+              endMsg[endRaw.length] = (crcEnd >> 8) & 0xFF;
+              endMsg[endRaw.length + 1] = crcEnd & 0xFF;
+
+              let codeBin=stringToBinary(CODE)
+              // let crcCode = crc16(codeBin)
+              // let codeCrcMsg = new Uint8Array(codeBin.length+2)
+              // codeCrcMsg.set(codeBin,0)
+              // codeCrcMsg[codeBin.length] = (crcCode >> 8) & 0xFF
+              // codeCrcMsg[codeBin.length+1] = crcCode & 0xFF
+
+              let codeMsg=splitUint8Array(codeBin)
+              console.log(startMsg)
+              console.log(endMsg)
+              console.log(codeMsg)
+              const promise1 = createPromiseForRobot(); // 先创建 Promise 并加入队列
+              await characteristicWriteRobot.writeValue(startMsg)
+              await promise1
+              console.log('开始指令发送完成')
+              for(let i=0;i<codeMsg.length;i++){
+                const promise2 = createPromiseForRobot(); // 先创建 Promise 并加入队列
+                await characteristicWriteRobot.writeValue(codeMsg[i])
+                console.log('发送了代码')
+                await promise2
+                console.log('代码发送完成')
+              }
+              const promise3 = createPromiseForRobot(); // 先创建 Promise 并加入队列
+              await characteristicWriteRobot.writeValue(endMsg)
+              await promise3
+              connect.setIsDownLoad(true)
+            }catch(e){
+              console.log(e)
+            }
+            
+
+          }
+
+
+
+          function crc16(arr) {
+            let crc = 0xFFFF;
+            for (let i = 0; i < arr.length; i++) {
+              crc ^= arr[i];
+              for (let j = 0; j < 8; j++) {
+                if (crc & 0x0001) {
+                  crc = (crc >> 1) ^ 0xA001;
+                } else {
+                  crc >>= 1;
+                }
+                crc &= 0xFFFF; // 保持 16 位
+              }
+            }
+            return crc;
+          }
+        function splitUint8Array(uint8Array, chunkSize = 500) {
+            const chunks = [];
+            for (let i = 0; i < uint8Array.length; i += chunkSize) {
+              let slice = uint8Array.slice(i, i + chunkSize);
+
+              // 新包长度 = 头(2) + 数据(N) + CRC16(2)
+              let packet = new Uint8Array(slice.length + 4);
+
+              // 设置包头
+              packet[0] = 0xaa;
+              packet[1] = 0x02;
+
+              // 复制数据
+              packet.set(slice, 2);
+
+              // 计算 CRC16（头 + 数据）
+              let crc = crc16(packet.slice(0, packet.length - 2));
+
+              // 填充 CRC16 高低字节
+              packet[packet.length - 2] = (crc >> 8) & 0xFF;
+              packet[packet.length - 1] = crc & 0xFF;
+
+              chunks.push(packet);
+            }
+            return chunks;
+          }
+
+          function stringToBinary(str) {
+            const encoder = new TextEncoder();
+            const uint8Array = encoder.encode(str);
+            return uint8Array;
+          }
+          console.log(window);
+          async function getCode(){
+            await fetch(`http://localhost:3000/get`,{
+                      method: 'GET'
+              })
+              .then(response => {
+                  if (response.ok) {
+                  return response.text();
+                  } else {
+                  throw new Error('请求失败，状态码：' + response.status);
+                  }
+              })
+              .then(code => {
+                  console.log('返回的变量值：', code);
+                  CODE=code
+                  downLoad()
+              })
+              .catch(error => {
+                  console.error('发生错误：', error);
+              });
+          }
+          // document.getElementById('get').addEventListener('click',()=>{
+            
+          // })
+          
+          async function downOneCode(code,isFirst,isLast){
+            const encoder = new TextEncoder();
+            if(isFirst){
+              const data1 = encoder.encode('Lua:').buffer;
+              await characteristicWriteDown.writeValue(data1)
+            }
+
+            // const code=stringToBinary(CODE)
+              
+            const data2 = encoder.encode(code).buffer;
+            console.log(data2)
+            await characteristicWriteDown.writeValue(data2)
+            
+            if(isLast){
+                
+                const data3 = encoder.encode('endLua1').buffer;
+                await characteristicWriteDown.writeValue(data3)
+                await createPromise()
+                if((lanyaMsg[0]==7 && lanyaMsg[1]==4) || (lanyaMsg[0]==8 && lanyaMsg[1]==1)){
+                  connect.setIsDownLoad(true)
+                  // alert('下载结束')
+                }
+              
+            }
+            
+            // const data4=encoder.encode('Lua1').buffer;
+            // await characteristicWriteDown.writeValue(data4)
+            console.log('执行了')
+          }
+
+          async function downLoad(){
+            console.log(CODE);
+            
+            if(CODE.length<=500){
+              downOneCode(CODE,true,true)
+            }else{
+              let start=0
+              let end=500
+              let flag=true
+              let isLast=false
+              let isFirst=true
+              while(flag){
+                if(end>=CODE.length){
+                  flag=false
+                  end=CODE.length
+                  isLast=true
+                }
+                let tempC=CODE.substring(start, end)
+                console.log(tempC)
+                await downOneCode(tempC,isFirst,isLast)
+                isFirst=false
+                start=end
+                end=end+500
+              }
+              
+            }
+            
+
+          }
+          async function cancelDown(){
+            const encoder = new TextEncoder();
+            const data3 = encoder.encode('endLua2').buffer;
+            await characteristicWriteDown.writeValue(data3)
+            
+          }
+          // document.getElementById('downLoad').addEventListener('click',async()=>{
+          
+          // })
+          let distance=[]
+
+          const channel = new BroadcastChannel('test_channel');
+
+          // 监听消息
+          channel.onmessage = (event) => {
+            console.log('收到消息:', event.data);
+          };
+
+
+          function updateSensorState(index, distance) {
+              const existingIndex = sensorState[index].findIndex(item => item[0] === distance[0]);
+              if (existingIndex !== -1) {
+                  sensorState[index][existingIndex] = distance; // 替换已有
+              } else {
+                  sensorState[index].push(distance); // 新增
+              }
+          }
+          let sensorState=[[],[],[],[],[],[],[],[],[]]//最后一位是其他类型数据
+          function getStatus(){
+            characteristicRead.addEventListener('characteristicvaluechanged', (event)=>{
+              // console.log(event.target.value.getUint8(0));
+              // console.log(event.target.value.getUint8(1));
+              // console.log(event.target.value.getUint8(2));
+              // console.log(event.target.value.getUint8(3));
+              // console.log('-------------------------')
+              // console.log(event.target.value);
+              distance=[]
+              if(event.target.value.getUint8(1)==41){
+                distance.push(event.target.value.getUint8(0))
+                distance.push(event.target.value.getUint8(1))
+                distance.push(event.target.value.getUint8(2))
+                distance.push(event.target.value.getUint8(3))
+                // sensorState[0].push(distance)
+                updateSensorState(0, distance)
+              }else if(event.target.value.getUint8(1)==104){
+                distance.push(event.target.value.getUint8(0))
+                distance.push(event.target.value.getUint8(1))
+                distance.push(event.target.value.getUint8(2))
+                distance.push(event.target.value.getUint8(3))
+                distance.push(event.target.value.getUint8(5))
+                // sensorState[1].push(distance)
+                updateSensorState(1, distance)
+              }else if(event.target.value.getUint8(0)==127){
+                console.log(event.target.value.getUint8(2))
+                distance.push(event.target.value.getUint8(0))
+                distance.push(event.target.value.getUint8(1))
+                distance.push(event.target.value.getUint8(2))
+                // sensorState[2].push(distance)
+                updateSensorState(2, distance)
+              }else if(event.target.value.getUint8(1)==72){
+                distance.push(event.target.value.getUint8(0))
+                distance.push(event.target.value.getUint8(1))
+                distance.push(event.target.value.getUint8(2))
+                // sensorState[3].push(distance)
+                updateSensorState(3, distance)
+              }else if(event.target.value.getUint8(1)==57){
+                distance.push(event.target.value.getUint8(0))
+                distance.push(event.target.value.getUint8(1))
+                distance.push(event.target.value.getUint8(2))
+                // sensorState[4].push(distance)
+                updateSensorState(4, distance)
+              }else if(event.target.value.getUint8(1)==54){
+                distance.push(event.target.value.getUint8(0))
+                distance.push(event.target.value.getUint8(1))
+                distance.push(event.target.value.getUint8(2))
+                distance.push(event.target.value.getUint8(3))
+                distance.push(event.target.value.getUint8(4))
+                distance.push(event.target.value.getUint8(5))
+                // sensorState[5].push(distance)
+                updateSensorState(5, distance)
+              }else if(event.target.value.getUint8(1)==103){
+                console.log(event.target.value)
+                const result = (event.target.value.getUint8(3) << 8) | event.target.value.getUint8(4);
+                distance.push(event.target.value.getUint8(0))
+                distance.push(event.target.value.getUint8(1))
+                distance.push(result)
+                distance.push(event.target.value.getUint8(5))
+                // sensorState[6].push(distance)
+                updateSensorState(6, distance)
+                
+              }else if(event.target.value.getUint8(1)==64){
+                distance.push(event.target.value.getUint8(0))
+                distance.push(event.target.value.getUint8(1))
+                distance.push(event.target.value.getUint8(2))
+                distance.push(event.target.value.getUint8(3))
+                distance.push(event.target.value.getUint8(4))
+                // sensorState[7].push(distance)
+                updateSensorState(7, distance)
+              }else{
+                distance.push(event.target.value.getUint8(0))
+                distance.push(event.target.value.getUint8(1))
+                distance.push(event.target.value.getUint8(2))
+                distance.push(event.target.value.getUint8(3))
+                distance.push(event.target.value.getUint8(4))
+                distance.push(event.target.value.getUint8(5))
+                for(let i=0;i<sensorState.length;i++){
+                  for(let j=sensorState[i].length-1;j>=0;j--){
+                    if(sensorState[i][j][0]==event.target.value.getUint8(0)){
+                      sensorState[i].splice(j,1)
+                    }
+                  }
+                  // if(sensorState[i][0]==event.target.value.getUint8(0)){
+                  //   sensorState[i]=[]
+                  // }
+                }
+              }
+              
+              // console.log(distance);
+              console.log(sensorState)
+
+              connect.sendDistance(sensorState)
+              
+
+              // channel.postMessage('你好，广播频道1！');
+
+              
+            });
+          }
+        
+          
+
+          // document.getElementById('status').addEventListener('click',async()=>{
+          //   // setInterval(async()=>{
+          //   //   await createPromise()
+          //   // },1000)
+            
+          // })
+
+          function appendSum(arr) {
+            const sum = arr.reduce((acc, num) => acc + num, 0);
+            arr.push(sum);
+            return arr;
+          }
+          let writeQueue = Promise.resolve();
+
+          function safeWrite(characteristic, buffer) {
+            // 把任务排进队列
+            writeQueue = writeQueue.then(() => {
+              return characteristic.writeValue(buffer);
+            }).catch(err => {
+              console.error("写入失败:", err);
+            });
+
+            return writeQueue;
+          }
+            connect.sendMotor(async (motor)=>{
+            
+              // console.log(motor)
+              if(currentExtension==1){
+                const uint8Array = new Uint8Array(motor);
+                console.log(uint8Array.buffer)
+                if(motor.length==1 && motor[0]==5){
+                  //获取所有端口状态
+                  await characteristicWriteDown.writeValue(uint8Array.buffer)
+                }else{
+                  await characteristicWrite.writeValue(uint8Array.buffer)
+                }
+              }else if(currentExtension==2){
+
+                let data = motor; // 假设 data 是普通数组，例如 [0x11,0x22,0x33]
+
+                // 转成 Uint8Array
+                const raw = new Uint8Array(data);
+
+                // 计算 CRC16
+                let crc = crc16(raw);
+
+                // 新建数组，长度 = 原始数据 + 2
+                let packet = new Uint8Array(raw.length + 2);
+                packet.set(raw, 0);
+                packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
+                packet[raw.length + 1] = crc & 0xFF;     // 低字节
+                console.log(packet)
+
+                // const promise1 = createPromiseForRobot();
+                // await characteristicWriteRobot.writeValue(packet.buffer)
+                await safeWrite(characteristicWriteRobot, packet.buffer);
+                // await promise1
+              }
+              
+            
+          
+          })
+
+
+          connect.whatLanguage(async (lang)=>{
+            // console.log(lang)
+            locale=lang.locale
+            strings=lang.strings
+            document.documentElement.lang = locale;
+            translate()
+          })
+
+          connect.whatExtension(async (extension)=>{
+            console.log(extension)
+
+            if(extension==1){
+              // tabEnabledMap.serial=true
+              tabEnabledMap.bluetooth=true
+               tabEnabledMap.wifi=false
+              tabEnabledMap.qr=false
+              tabEnabledMap.serial=false
+                document.getElementById('tipBle').style.visibility = 'hidden';
+                document.getElementById('tipAp').style.visibility = 'hidden';
+                document.getElementById('tipSta').style.visibility = 'hidden';
+
+            }else if(extension==2){
+              tabEnabledMap.wifi=true
+              tabEnabledMap.qr=true
+              tabEnabledMap.serial=true
+              tabEnabledMap.bluetooth=true
+
+                document.getElementById('tipBle').style.visibility = 'visible';
+                document.getElementById('tipAp').style.visibility = 'visible';
+                document.getElementById('tipSta').style.visibility = 'visible';
+            }else if(extension==3){
+              tabEnabledMap.serial=true
+              tabEnabledMap.bluetooth=false
+               tabEnabledMap.wifi=false
+              tabEnabledMap.qr=false
+
+              document.getElementById('tipBle').style.visibility = 'hidden';
+              document.getElementById('tipAp').style.visibility = 'hidden';
+              document.getElementById('tipSta').style.visibility = 'hidden';
+            }
+
+             
+            if(extension!=currentExtension){
+              renderTabs();
+              if(device){
+                connect.sendIsConnect(true)
+                device.gatt.disconnect()
+                document.getElementById('device-name').innerText=''
+                testIt()
+
+              }else if(deviceRobot){
+                connect.sendIsConnect(true)
+                deviceRobot.gatt.disconnect()
+                document.getElementById('device-name').innerText=''
+                testIt()
+              }
+            }
+            currentExtension=extension
+          })
+
+           //------------------------新加的蓝牙列表刷新逻辑----------------------
+
+          // 在父元素上绑定事件委托（一次性绑定）
+          document.getElementById('device').addEventListener('click', (event) => {
+            if (event.target.classList.contains('connect-btn')) {
+              const li = event.target.closest('li');
+              if (li) {
+                const deviceName = li.id;
+                send(deviceName);
+              }
+            }
+          });
+
+
+
+          function isValidDevice(device) {
+            const name = device.deviceName || '';
+            return !(
+              name.includes('Unknown or Unsupported Device')||
+              name.includes('未知或不支持的设备')
+              
+            );
+          }
+          // function updateDeviceList(devicelist) {
+          //     const container = document.getElementById('device');
+          //     const existingDevices = new Set(
+          //       Array.from(container.children).map(li => li.id)
+          //     );
+
+          //     // 增量更新：仅添加新设备
+          //     devicelist.forEach(element => {
+          //       if (!existingDevices.has(element.deviceName)) {
+          //         container.appendChild(createDeviceElement(element));
+          //       }
           //     });
 
-          //     startPortMonitoring();
+          //     // 移除已消失设备
+          //     Array.from(container.children).forEach(li => {
+          //       if (!devicelist.some(d => d.deviceName === li.id)) {
+          //         li.remove();
+          //       }
+          //     });
           // }
 
-          // // 更新按钮状态
-          // function updateButtonState(button, isConnected) {
-          //     button.innerText = isConnected ? '断开' : '连接';
-          //     button.style.backgroundColor = isConnected ? '#ff4c4c' : '#00bfa5';
-          //     button.style.color = 'white';
-          //     button.style.border = 'none';
-          //     button.style.borderRadius = '4px';
-          //     button.style.padding = '5px 10px';
-          //     button.style.cursor = 'pointer';
-          // }
+          function updateDeviceList(devicelist) {
+            const container = document.getElementById('device');
 
-          // // 处理连接
-          // async function handleConnect(port) {
-          //     connect.sendConnectPort(port);
-          //     const button = document.querySelector(`#port-${port} button`);
-          //     button.innerText = '连接中...';
-          //     button.style.backgroundColor = '#ff9900';
+            // 只保留有效设备
+            const validDevices = devicelist.filter(isValidDevice);
+
+            const existingDevices = new Set(
+              Array.from(container.children).map(li => li.id)
+            );
+
+            // 新增设备
+            validDevices.forEach(element => {
+              if (!existingDevices.has(element.deviceName)) {
+                container.appendChild(createDeviceElement(element));
+              }
+            });
+
+            console.log(validDevices)
+            // 移除已消失设备
+            Array.from(container.children).forEach(li => {
+              if (!validDevices.some(d => d.deviceName === li.id)) {
+                li.remove();
+              }
+            });
+          }
+
+
+          function createDeviceElement(element) {
+            const li = document.createElement('li');
+            li.style.background = 'transparent';
+            li.style.padding = '6px';
+            li.style.margin = '8px auto';
+            li.style.borderRadius = '5px';
+            li.style.width = '90%';
+            li.style.height = '30px';
+            li.style.display = 'flex';
+            li.style.justifyContent = 'space-between';
+            li.style.alignItems = 'center';
+            li.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+            li.style.border = '1px solid lch(51.35% 35.67 178.75)';
+            li.style.transition = 'background 0.3s';
+
+            li.onmouseover = () => {
+              li.style.background = '#9cf3e6';
+            };
+            li.onmouseout = () => {
+              li.style.background = 'transparent';
+            };
+            li.id=element.deviceName
+
+            const nameSpan = document.createElement('span');
+            nameSpan.innerText = element.deviceName;
+            nameSpan.style.flex = '1';
+            nameSpan.style.fontSize = '16px';
+            nameSpan.style.color = '#333';
+
+            const btn = document.createElement('button');
+            // btn.innerText = '连接';
+            btn.innerText = strings['ble-connect.connectBle']
+            btn.style.display='flex'
+            btn.style.height='100%'
+            btn.style.alignItems='center'
+            btn.className = 'connect-btn';
+            btn.onclick = function () {
+              send(element.deviceId);
+            };
+
+            li.appendChild(nameSpan);
+            li.appendChild(btn);
+            // document.getElementById('device').appendChild(li);
+            return li;
+          }
+
+
+          let lastUpdate = 0;
+          const updateThrottle = 2000; // 5秒间隔
+
+          // connect.sendDeviceList((devicelist) => {
+          //   const now = Date.now();
+          //   if (now - lastUpdate > updateThrottle) {
+          //     updateDeviceList(devicelist);
+          //     lastUpdate = now;
+          //   }
+          // });
+
+            function send(dv){
+              console.log(dv);
               
-          //     // 添加连接状态检测
-          //     const checkInterval = setInterval(() => {
-          //         const status = connect.whatPortConnect();
-          //         if (status.port === port) {
-          //             portStatusMap[port] = true;
-          //             currentConnectedPort = port;
-          //             clearInterval(checkInterval);
-          //             updatePortUI(port);
-          //             showToast(`✅ ${port} 连接成功`);
-          //         }
-          //     }, 300);
-          // }
+              connect.select(dv)
+            }
+            // document.getElementById('device').addEventListener('click',()=>{
+            //   send()
+            // })
 
-          // // 处理断开
-          // async function handleDisconnect(port) {
-          //     connect.disconnectPort();
-          //     portStatusMap[port] = false;
-          //     if (currentConnectedPort === port) currentConnectedPort = null;
-          //     showToast(`已断开 ${port}`);
-          // }
+            function onDisconnected(event){
+              const Device = event.target;
+              document.getElementById('device-name').innerHTML = ''
+              connect.sendIsConnect(true)
+              // alert(`设备${Device.name}断开连接`)
+              alert(strings['ble-connect.disconnect'].replace('{deviceName}',Device.name))
+              document.getElementById('device').innerHTML=''
+              fetch('http://localhost:3000/set-ble', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'text/plain'
+                },
+                body: '1'
+              })
+              .then(response => response.text())
+              .then(data => {
+                console.log('服务器响应:', data);
+              })
+              .catch(error => {
+                console.error('错误:', error);
+              });
+            }
 
-          // // 更新单个端口的UI
-          // function updatePortUI(port) {
-          //     const container = document.getElementById(`port-${port}`);
-          //     if (!container) return;
+
+            async function testIt () {
+              if(currentExtension==1){
+                try{
+                  if(!device || !device.gatt.connected){
+                    console.log(navigator);
               
-          //     const button = container.querySelector('button');
-          //     updateButtonState(button, portStatusMap[port]);
+                    device = await navigator.bluetooth.requestDevice({
+                      filters: [{ services: ['108f94d5-570b-4a6c-9a47-12f428f362e6'] }],
+                      optionalServices: ['108f94d5-570b-4a6c-9a47-12f428f362e6', '4e8d78da-f40e-4983-9cc6-9b888aab1800']
+                    }).catch(e=>{
+                      console.log(e);
+                      
+                    })
+
+                    console.log('开始');
+                    
+                    server = await device.gatt.connect();
+                    console.log('结束');
+                    // await new Promise(resolve => setTimeout(resolve, 5000));
+                    
+                    //1551BBE8-2765-11EE-BE56-0242AC120002
+                    //1551bbe8-2765-11ee-be56-0242ac120002
+                    try{
+                      service = await server.getPrimaryService('108f94d5-570b-4a6c-9a47-12f428f362e6');
+                      serviceDown = await server.getPrimaryService('4e8d78da-f40e-4983-9cc6-9b888aab1800');
+                      characteristicWrite = await service.getCharacteristic('20bc2441-0aed-48d0-81bd-68f28d02c2a6');
+                      characteristicRead = await service.getCharacteristic('407ccc3a-7ed4-42fc-b66f-899d82e1a695');
+                      characteristicWriteDown = await serviceDown.getCharacteristic('1551bbe8-2765-11ee-be56-0242ac120002');
+                      characteristicReadDown = await serviceDown.getCharacteristic('1551bbe8-2765-11ee-be56-0242ac120002');
+                      device.addEventListener('gattserverdisconnected', onDisconnected);
+                      await characteristicRead.startNotifications()
+                      await characteristicReadDown.startNotifications()
+                      // console.log(characteristicWrite.properties.writeValue);
+                      getStatus()
+                      characteristicReadDown.addEventListener('characteristicvaluechanged', (event)=>{
+                        // console.log('有返回');
+                        
+                        // console.log(event.target.value);
+
+                        if(event.target.value.getUint8(0)==8 && event.target.value.getUint8(1)==254){
+                          bleAPI.sendCodeProsser(false)
+                        }else if(event.target.value.getUint8(0)==7 && event.target.value.getUint8(1)==4){
+                          bleAPI.sendCodeProsser(true)
+                        }
+                        
+                      })
+                      
+
+
+                    
+                      const uint8Array = new Uint8Array([5]);
+                      await characteristicWriteDown.writeValue(uint8Array.buffer)
+                      // electronAPI.sendCharacteristic(characteristicRead,characteristicWrite)
+                      // window.electronAPI.sendCharacteristic(JSON.stringify(service),JSON.stringify(characteristicWrite))
+
+                      connect.bleConnected(true)
+                     
+                      // document.getElementById(device.name).remove()
+                      console.log(device.name)
+                      document.getElementById('device-name').innerHTML = device.name || `ID: ${device.id}`
+
+                      if(server){
+                        fetch('http://localhost:3000/set-ble', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'text/plain'
+                          },
+                          body: '0'
+                        })
+                        .then(response => response.text())
+                        .then(data => {
+                          console.log('服务器响应:', data);
+                        })
+                        .catch(error => {
+                          console.error('错误:', error);
+                        });
+                      }
+                    }catch(err){
+                      // alert(err)
+                      // alert('蓝牙连接异常断开，请重新连接')
+                      if(String(err).includes('NetworkError')){
+                        alert(strings['ble-connect.catchDisConnect'])
+                        connect.sendIsConnect(true)
+                        device.gatt.disconnect()
+                      }
+                      // device=null
+                    }
+                  }else{
+                    alert(strings['ble-connect.disConnectFirst'])
+                  }
+                }catch(e){
+                  if(e=='NetworkError: Connection Error: Connection attempt failed.'){
+                    alert(strings['connect-device.reScan'])
+                  }
+                }
+                
+                
+              }else if(currentExtension==2){
+                const available = await navigator.bluetooth.getAvailability();
+                console.log(available)
+                try{
+                  if(!deviceRobot || !deviceRobot.gatt.connected){
+                    deviceRobot = await navigator.bluetooth.requestDevice({
+                      filters: [{ services: ['0000fff0-0000-1000-8000-00805f9b34fb'] }],
+                      optionalServices: ['00001800-0000-1000-8000-00805f9b34fb', '0000fff0-0000-1000-8000-00805f9b34fb']
+                      // acceptAllDevices:true
+                    }).catch(e=>{
+                      console.log(e);
+                      
+                    })
+
+                    console.log('开始');
+                    
+                    // serverRobot = await deviceRobot.gatt.connect();
+                    if (!deviceRobot.gatt.connected) {
+                      serverRobot = await deviceRobot.gatt.connect();
+                    }
+                    console.log('结束');
+                    
+
+                    
+                    //1551BBE8-2765-11EE-BE56-0242AC120002
+                    //1551bbe8-2765-11ee-be56-0242ac120002
+                    console.log(serverRobot)
+                    console.log(serverRobot.connected)
+                    try{
+                      console.log(serverRobot.connected)
+                      serviceRobot = await serverRobot.getPrimaryService('0000fff0-0000-1000-8000-00805f9b34fb');
+                      console.log('-------------------')
+                      characteristicWriteRobot = await serviceRobot.getCharacteristic('0000fff1-0000-1000-8000-00805f9b34fb');
+                      characteristicReadRobot = await serviceRobot.getCharacteristic('0000fff2-0000-1000-8000-00805f9b34fb');
+                      characteristicReadSensorRobot=await serviceRobot.getCharacteristic('0000fff3-0000-1000-8000-00805f9b34fb');
+                      deviceRobot.addEventListener('gattserverdisconnected', onDisconnected);
+                      await characteristicReadRobot.startNotifications()
+                      await characteristicReadSensorRobot.startNotifications()
+
+                      characteristicReadRobot.addEventListener('characteristicvaluechanged',globalEventListener)
+                      
+                      
+                      // characteristicReadRobot.addEventListener('characteristicvaluechanged',(event)=>{
+                      //   const value = event.target.value;
+                      //   const state = value.getUint8(0);
+                      //   console.log(state)
+                      //   console.log(value)
+                      //   console.log(event)
+                      //   // window.bleAPI.sendRobotSenor({
+                      //   //   type:'senor',
+                      //   //   data:event.target.value
+                      //   // })
+                      // })
+                      characteristicReadSensorRobot.addEventListener('characteristicvaluechanged',(event)=>{
+                        // console.log(event.target.value)
+                        // let value = event.target.value
+                        // let sensor=new Uint8Array(value.buffer);
+                        // let sensorArray = Array.from(sensor);
+                        // console.log(event.target.value);
+                        let value = event.target.value;
+                        let sensor = new Uint8Array(value.buffer);
+
+                        // 把字节数组转成字符串
+                        let jsonStr = new TextDecoder("utf-8").decode(sensor);
+                        // console.log("📩 收到 JSON 字符串:", jsonStr);
+
+                        let sensorArray = [];
+                        try {
+                          // 解析 JSON
+                          sensorArray = JSON.parse(jsonStr);
+                          // console.log("✅ 解析后的数组:", sensorArray);
+                        } catch (e) {
+                          console.error("❌ JSON 解析失败:", e);
+                        }
+                        // console.log(sensorArray)
+                        connect.sendRobotSenor({
+                          type:'senor',
+                          data:sensorArray
+                        })
+                      })
+
+                      // console.log(window.bleAPI.getCurrentMode())
+                      // 转成 Uint8Array
+                      let raw;
+                      if(!connect.getCurrentMode()){
+                        raw = new Uint8Array([0xcc,0x01]);
+                      }else{
+                        raw = new Uint8Array([0xcc,0x02]);
+                      }
+
+                      // 计算 CRC16
+                      let crc = crc16(raw);
+
+                      // 新建数组，长度 = 原始数据 + 2
+                      let packet = new Uint8Array(raw.length + 2);
+                      packet.set(raw, 0);
+                      packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
+                      packet[raw.length + 1] = crc & 0xFF;     // 低字节
+                      console.log(packet)
+
+                      await characteristicWriteRobot.writeValue(packet.buffer)
+
+                      connect.bleConnected(true)
+                      console.log(deviceRobot.name)
+                      
+                      // document.getElementById(deviceRobot.name).remove()
+                      document.getElementById('device-name').innerHTML = deviceRobot.name || `ID: ${deviceRobot.id}`
+
+                      if(serverRobot){
+                        fetch('http://localhost:3000/set-ble', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'text/plain'
+                          },
+                          body: '0'
+                        })
+                        .then(response => response.text())
+                        .then(data => {
+                          console.log('服务器响应:', data);
+                        })
+                        .catch(error => {
+                          console.error('错误:', error);
+                        });
+                      }
+
+                    }catch(err){
+                      console.log(err)
+                      // alert('蓝牙连接异常断开，请重新连接')
+                      if(String(err).includes('NetworkError')){
+                        alert(strings['ble-connect.catchDisConnect'])
+                        connect.sendIsConnect(true)
+                        deviceRobot.gatt.disconnect()
+                        // deviceRobot=null
+                      }
+                      
+                    }
+                  }else{
+                    alert(strings['ble-connect.disConnectFirst'])
+                  }
+                }catch(e){
+                  console.log(e)
+                  if(e=='NetworkError: Connection Error: Connection attempt failed.'){
+                    alert(strings['connect-device.reScan'])
+                  }
+                }
+                
+                
+              }
+              //  deviceRobot = await navigator.bluetooth.requestDevice({
+              //       filters: [{ services: ['0000fff0-0000-1000-8000-00805f9b34fb'] }],
+              //       optionalServices: ['00001800-0000-1000-8000-00805f9b34fb', '0000fff0-0000-1000-8000-00805f9b34fb']
+              //     }).catch(e=>{
+              //       console.log(e);
+                    
+              //     })
+
+              //   if (!deviceRobot.gatt.connected) {
+              //     serverRobot = await deviceRobot.gatt.connect();
+              //   }
+              
+            }
+
+            let responseQueue = []; // 等待响应的队列
+            // 全局监听器
+            function globalEventListener(event) {
+              const value = event.target.value;
+              const arr = new Uint8Array(value.buffer);
+              // console.log("📩 收到数据:", arr);
+
+              const state1 = arr[0]; // 第一个字节（硬件返回）
+
+              // ✅ 新增：无论是否队列匹配，都把 state 发出去
+              if (connect && typeof connect.sendRobotSenor === "function") {
+                // console.log('发送了')
+                connect.sendRobotSenor({
+                  type: "state",
+                  data: state1
+                });
+              }
+
+              // 如果队列里有等待的 promise，取出处理
+              if (responseQueue.length > 0) {
+                const { resolve, reject } = responseQueue.shift();
+                const state = arr[0]; // 第一个字节
+                console.log(state)
+
+                if (state === 0x00) {  // 48 十进制
+                  console.log('进入这里')
+                  resolve(true);
+                } else {
+                  reject(new Error(`收到错误状态码: ${state}`));
+                }
+              } else {
+                // console.warn("⚠️ 收到未匹配的响应:", arr);
+              }
+            }
+
+          // function cancelRequest () {
+          //   connect.cancelBluetoothRequest()
           // }
 
-          // // 定期检查所有端口状态（可选）
-          // function startPortMonitoring() {
-          //     setInterval(() => {
-          //         const status = connect.whatPortConnect();
-          //         if (status.port !== currentConnectedPort) {
-          //             // 连接状态变化时更新所有UI
-          //             Object.keys(portStatusMap).forEach(port => {
-          //                 portStatusMap[port] = (port === status.port);
-          //                 updatePortUI(port);
-          //             });
-          //             currentConnectedPort = status.port;
-          //         }
-          //     }, 2000); // 每2秒检查一次
-          // }
+          document.getElementById('closeBle').addEventListener('click',()=>{
+            if(device){
+              connect.sendIsConnect(true)
+              device.gatt.disconnect()
+              document.getElementById('device-name').innerText=''
+              testIt()
 
+            }else if(deviceRobot){
+              connect.sendIsConnect(true)
+              deviceRobot.gatt.disconnect()
+              document.getElementById('device-name').innerText=''
+              testIt()
+            }
+            
+          })
+          function bleInit(){
+            // document.getElementById('openBle').addEventListener('click',()=>{
+            //   window.connect.openBle(true)
+            // })
+
+            document.getElementById('startScan').addEventListener('click',testIt)
+          }
+          let deviceTimer;
+          let lastTimer
+          let isFirst=true
+          connect.onDevices((fn)=>{
+            console.log(fn)
+            // connect.select(fn[0].deviceId)
+             const now = Date.now();
+            if (now - lastUpdate > updateThrottle) {
+              updateDeviceList(fn);
+              lastUpdate = now;
+            }
+            lastTimer=Date.now()
+
+            if(isFirst){
+              if(deviceTimer) clearInterval(deviceTimer)
+              deviceTimer=setInterval(()=>{
+                if(Date.now()-lastTimer>1500){
+                  updateDeviceList([])
+                  clearInterval(deviceTimer)
+                  isFirst=true
+                }
+              },2000)
+            }
+
+            isFirst=false
+
+            
+          })
 
           function serialInit() {
             
@@ -1129,6 +2156,11 @@
             const portsArr = ports.PORTS;
             console.log(portsArr)
             const bnContainer = document.getElementById('bnContainer');
+            bnContainer.style.height = '200px';
+            bnContainer.style.overflowY = 'auto';
+            bnContainer.style.backgroundColor = '#c2f3ec';
+            bnContainer.style.marginTop='20px'
+            bnContainer.style.paddingTop='20px'
             bnContainer.innerHTML = '';
             portStatusMap = {}; // ✅ 清空旧状态
 
@@ -1139,11 +2171,6 @@
             portsArr.forEach(port => {
                 const isConnected = port.path === currentConnectedPort;
                 portStatusMap[port.path] = isConnected;
-
-                bnContainer.style.height = '280px';
-                bnContainer.style.backgroundColor = '#c2f3ec';
-                bnContainer.style.overflowY = 'auto';
-
                 const buttonContainer = document.createElement('div');
                 buttonContainer.style.display = 'flex';
                 buttonContainer.style.justifyContent = 'center';
@@ -1200,41 +2227,73 @@
             button.style.cursor = 'pointer';
         }
 
+        
         async function handleConnect(port) {
+            isConnecting=true
             const button = document.querySelector(`#port-${port} button`);
             button.disabled = true;
             // button.innerText = '连接中...';
             button.innerText =strings['connect-device.connecting']
             button.style.backgroundColor = '#ff9900';
 
-            connect.sendConnectPort(port);
+            let result = await connect.sendConnectPort(port);
+            console.log(result)
+            if(result.success){
+              const status = connect.whatPortConnect();
+              console.log(status.port)
+              
+              if (status.port === port) {
+                  
+                  portStatusMap = {}; // 重置所有状态
+                  portStatusMap[port] = true;
+                  currentConnectedPort = port;
 
-            const checkInterval = setInterval(() => {
-                const status = connect.whatPortConnect();
-                console.log(status.port)
-                if (status.port === port) {
-                    clearInterval(checkInterval);
-                    portStatusMap = {}; // 重置所有状态
-                    portStatusMap[port] = true;
-                    currentConnectedPort = port;
-
-                    clearTimeout(timeout)
-                    updateAllPortUI();
-                    showToast(`连接成功`);
-                }
-            }, 300);
-
-            // 设置最大超时时间（防止死循环）
-            let timeout=setTimeout(() => {
-                clearInterval(checkInterval);
-
+                  showToast(`连接成功`);
+                  updateAllPortUI();
+                  
+              }
+              isConnecting=false
+            }else{
+                
                 // 超时未连接成功，回退按钮状态
                 if (currentConnectedPort !== port) {
                     portStatusMap[port] = false;
-                    updateAllPortUI();
                     showToast(`连接超时，请重试`);
+                    updateAllPortUI();
+                    
                 }
-            }, 5000);
+                isConnecting=false
+            }
+            
+
+            // const checkInterval = setInterval(() => {
+            //     const status = connect.whatPortConnect();
+            //     console.log(status.port)
+            //     if (status.port === port) {
+            //       isConnecting=false
+            //         clearInterval(checkInterval);
+            //         portStatusMap = {}; // 重置所有状态
+            //         portStatusMap[port] = true;
+            //         currentConnectedPort = port;
+
+            //         clearTimeout(timeout)
+            //         updateAllPortUI();
+            //         showToast(`连接成功`);
+            //     }
+            // }, 300);
+
+            // // 设置最大超时时间（防止死循环）
+            // let timeout=setTimeout(() => {
+            //     clearInterval(checkInterval);
+            //     isConnecting=false
+
+            //     // 超时未连接成功，回退按钮状态
+            //     if (currentConnectedPort !== port) {
+            //         portStatusMap[port] = false;
+            //         updateAllPortUI();
+            //         showToast(`连接超时，请重试`);
+            //     }
+            // }, 5000);
 
         }
 
@@ -1269,7 +2328,8 @@
         function startPortMonitoring() {
             setInterval(() => {
                 const status = connect.whatPortConnect();
-                if (status.port !== currentConnectedPort) {
+                if (status.port !== currentConnectedPort && !isConnecting) {
+                  console.log('----')
                     Object.keys(portStatusMap).forEach(port => {
                         portStatusMap[port] = (port === status.port);
                     });
@@ -1283,7 +2343,6 @@
 
 
 
-        
       </script>
 
     <!-- </main> -->
