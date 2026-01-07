@@ -62,7 +62,7 @@ function getPowerWin(){
 
 async function initializeAppServices() {
   // 启用必要的命令行开关
-  app.commandLine.appendSwitch('enable-experimental-web-platform-features');
+  // app.commandLine.appendSwitch('enable-experimental-web-platform-features');
 
   // 配置USB权限
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
@@ -82,10 +82,11 @@ async function initializeAppServices() {
   // 定时检测窗口状态
   setInterval(() => {
     try {
+      // console.log(AbstractWindow.getAllWindows())
       if (AbstractWindow.getAllWindows().length == 0 && getWin()) {
         getWin().destroy();
       }
-      // console.log(AbstractWindow.getAllWindows()[0])
+      // console.log(AbstractWindow.getAllWindows())
       if (!AbstractWindow.getAllWindows()[0] || AbstractWindow.getAllWindows()[0].constructor.name != 'EditorWindow') {
 
         console.log('aaaaaaaaaaaaaaaaaaaa')
@@ -102,6 +103,7 @@ async function initializeAppServices() {
         AbstractWindow.getAllWindows().forEach((win) => {
           if (!win.window.isDestroyed()) {
             win.window.close();
+            win.window.destroy();
           }
         });
       }
