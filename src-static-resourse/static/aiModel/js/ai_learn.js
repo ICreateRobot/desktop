@@ -61,23 +61,21 @@ function createCameraSelectionModal() {
 
     document.body.appendChild(modal);
 
-    if(localStorage.getItem('tw:language')=='en'){
-        document.getElementById('selectTitle').textContent = languageDate['en']['selectTitle'];
-        document.getElementById('local').textContent = languageDate['en']['local'];
-        document.getElementById('network').textContent = languageDate['en']['network'];
-        document.getElementById('robot').textContent = languageDate['en']['robot'];
-        document.getElementById('cameraIp').placeholder = languageDate['en']['cameraIp'];
-        document.getElementById('cameraSelectConfirm').textContent = languageDate['en']['cameraSelectConfirm'];
-        document.getElementById('cameraSelectCancel').textContent = languageDate['en']['cameraSelectCancel'];
-    }else{
-        document.getElementById('selectTitle').textContent = languageDate['zh-cn']['selectTitle'];
-        document.getElementById('local').textContent = languageDate['zh-cn']['local'];
-        document.getElementById('network').textContent = languageDate['zh-cn']['network'];
-        document.getElementById('robot').textContent = languageDate['zh-cn']['robot'];
-        document.getElementById('cameraIp').placeholder = languageDate['zh-cn']['cameraIp'];
-        document.getElementById('cameraSelectConfirm').textContent = languageDate['zh-cn']['cameraSelectConfirm'];
-        document.getElementById('cameraSelectCancel').textContent = languageDate['zh-cn']['cameraSelectCancel'];
+    let langT = localStorage.getItem('tw:language') || 'zh-cn';
+
+    // 如果存储的语言不存在 languageDate，则回退中文
+    if (!languageDate[langT]) {
+        langT = 'zh-cn';
     }
+
+    // 更新页面文本
+    document.getElementById('selectTitle').textContent = languageDate[langT]['selectTitle'];
+    document.getElementById('local').textContent = languageDate[langT]['local'];
+    document.getElementById('network').textContent = languageDate[langT]['network'];
+    document.getElementById('robot').textContent = languageDate[langT]['robot'];
+    document.getElementById('cameraIp').placeholder = languageDate[langT]['cameraIp'];
+    document.getElementById('cameraSelectConfirm').textContent = languageDate[langT]['cameraSelectConfirm'];
+    document.getElementById('cameraSelectCancel').textContent = languageDate[langT]['cameraSelectCancel'];
 
     // 监听选择变化
     modal.querySelectorAll('input[name="cameraType"]').forEach(radio => {
@@ -255,6 +253,94 @@ const languageDate = {
     'nameNotNull':'The project name cannot be empty',
     'illeglStr':'Presence of illegal characters -',
     'stopTest':'Stop testing'
+  },
+  "pl": {
+    "tilt_G": "Trenowanie gestów",
+    "tilt_I": "Trenowanie obrazu",
+    "tilt_P": "Trenowanie pozy",
+
+    getCategoryName: (index) => `Kategoria ${index}`,
+    getSampleText: (index) => ` próbek obrazu`,
+
+    "addClass": "+ Dodaj kategorię",
+    "trainText": "Trenowanie",
+    "progressText": "0%",
+    "epo": "Epoki:",
+    "batch": "Rozmiar partii:",
+    "speed": "Współczynnik uczenia:",
+
+    "saveProject": "Eksportuj projekt",
+    "select-camera": "Wybierz kamerę",
+    "preview_title": "Podgląd",
+    "exportModel": "Testuj model",
+    "playModel": "Użyj modelu",
+
+    "nameTilt": "Nazwa:",
+    "instructionsTilt": "Opis:",
+
+    "keepPhoto": "Naciśnij i przytrzymaj, aby robić zdjęcia",
+    "highLevel": "Zaawansowane",
+    "reset": "Przywróć ustawienia domyślne",
+    "deepLearn": "Dowiedz się więcej",
+    "startTrain": "Rozpocznij trenowanie",
+
+    "selectTitle": "Wybierz typ kamery",
+    "local": "Kamera lokalna",
+    "network": "Kamera sieciowa",
+    "robot": "Kamera ICrobot",
+    "cameraIp": "Wprowadź adres IP kamery sieciowej",
+    "cameraSelectConfirm": "Potwierdź",
+    "cameraSelectCancel": "Anuluj",
+
+    "retrain": "Trenuj ponownie",
+    "completed": "Zakończono",
+    "nameNotNull": "Nazwa projektu nie może być pusta",
+    "illeglStr": "Zawiera niedozwolone znaki -",
+    "stopTest": "Zatrzymaj test"
+    },
+    "ru": {
+    "tilt_G": "обучение жестам",
+    "tilt_I": "обучение изображениям",
+    "tilt_P": "обучение позам",
+
+    getCategoryName: (index) => `категория ${index}`,
+    getSampleText: (index) => ` образцов изображений`,
+
+    "addClass": "+ добавить категорию",
+    "trainText": "обучение",
+    "progressText": "0%",
+    "epo": "эпохи:",
+    "batch": "размер пакета:",
+    "speed": "скорость обучения:",
+
+    "saveProject": "экспорт проекта",
+    "select-camera": "выбор камеры",
+    "preview_title": "предпросмотр",
+    "exportModel": "тестировать модель",
+    "playModel": "использовать модель",
+
+    "nameTilt": "название:",
+    "instructionsTilt": "описание:",
+
+    "keepPhoto": "нажмите и удерживайте для съёмки",
+    "highLevel": "расширенные",
+    "reset": "сбросить к настройкам по умолчанию",
+    "deepLearn": "узнать больше",
+    "startTrain": "начать обучение",
+
+    "selectTitle": "выбор типа камеры",
+    "local": "локальная камера",
+    "network": "сетевая камера",
+    "robot": "камера ICrobot",
+    "cameraIp": "введите IP-адрес сетевой камеры",
+    "cameraSelectConfirm": "подтвердить",
+    "cameraSelectCancel": "отмена",
+
+    "retrain": "повторное обучение",
+    "completed": "завершено",
+    "nameNotNull": "название проекта не может быть пустым",
+    "illeglStr": "содержит недопустимые символы -",
+    "stopTest": "остановить тестирование"
   }
 };
 
@@ -262,75 +348,108 @@ const languageDate = {
 const titleKey = `tilt_${MType}`;
 
 function changeLanguage(){
-    if(localStorage.getItem('tw:language')=='en'){
-        document.getElementById('tilt').textContent = languageDate['en'][titleKey];
-        document.getElementById('c1').value = languageDate['en'].getCategoryName(1);
-        document.getElementById('n1').textContent = languageDate['en'].getSampleText(1);
-        document.getElementById('c2').value = languageDate['en'].getCategoryName(2);
-        document.getElementById('n2').textContent = languageDate['en'].getSampleText(2);
-        document.getElementById('addClass').textContent = languageDate['en']['addClass'];
-        document.getElementById('trainText').textContent = languageDate['en']['trainText'];
-        document.getElementById('progressText').textContent = languageDate['en']['progressText'];
-        document.getElementById('epo').previousElementSibling.textContent = languageDate['en']['epo'];
-        document.getElementById('batch').previousElementSibling.textContent = languageDate['en']['batch'];
-        document.getElementById('speed').previousElementSibling.textContent = languageDate['en']['speed'];
-        document.getElementById('saveProject').textContent = languageDate['en']['saveProject'];
-        document.getElementById('select-camera').textContent = languageDate['en']['select-camera'];
-        document.querySelector('.preview_title').textContent = languageDate['en']['preview_title'];
-        document.getElementById('exportModel').textContent = languageDate['en']['exportModel'];
-        document.getElementById('playModel').textContent = languageDate['en']['playModel'];
-        document.getElementById('nameTilt').textContent = languageDate['en']['nameTilt'];
-        document.getElementById('instructionsTilt').textContent = languageDate['en']['instructionsTilt'];
+    // if(localStorage.getItem('tw:language')=='en'){
+    //     document.getElementById('tilt').textContent = languageDate['en'][titleKey];
+    //     document.getElementById('c1').value = languageDate['en'].getCategoryName(1);
+    //     document.getElementById('n1').textContent = languageDate['en'].getSampleText(1);
+    //     document.getElementById('c2').value = languageDate['en'].getCategoryName(2);
+    //     document.getElementById('n2').textContent = languageDate['en'].getSampleText(2);
+    //     document.getElementById('addClass').textContent = languageDate['en']['addClass'];
+    //     document.getElementById('trainText').textContent = languageDate['en']['trainText'];
+    //     document.getElementById('progressText').textContent = languageDate['en']['progressText'];
+    //     document.getElementById('epo').previousElementSibling.textContent = languageDate['en']['epo'];
+    //     document.getElementById('batch').previousElementSibling.textContent = languageDate['en']['batch'];
+    //     document.getElementById('speed').previousElementSibling.textContent = languageDate['en']['speed'];
+    //     document.getElementById('saveProject').textContent = languageDate['en']['saveProject'];
+    //     document.getElementById('select-camera').textContent = languageDate['en']['select-camera'];
+    //     document.querySelector('.preview_title').textContent = languageDate['en']['preview_title'];
+    //     document.getElementById('exportModel').textContent = languageDate['en']['exportModel'];
+    //     document.getElementById('playModel').textContent = languageDate['en']['playModel'];
+    //     document.getElementById('nameTilt').textContent = languageDate['en']['nameTilt'];
+    //     document.getElementById('instructionsTilt').textContent = languageDate['en']['instructionsTilt'];
 
         
 
-        const uploadButtons = document.querySelectorAll('.upload');
-        uploadButtons.forEach(button => {
-            button.textContent = languageDate['en']['keepPhoto'];
-        });
+    //     const uploadButtons = document.querySelectorAll('.upload');
+    //     uploadButtons.forEach(button => {
+    //         button.textContent = languageDate['en']['keepPhoto'];
+    //     });
         
-        // Update advanced options
-        document.querySelector('.advanced-toggle').textContent = languageDate['en']['highLevel'];
-        document.querySelector('.reset-button').textContent = languageDate['en']['reset'];
-        document.querySelector('.learn-more-button').textContent =languageDate['en']['deepLearn'];
+    //     // Update advanced options
+    //     document.querySelector('.advanced-toggle').textContent = languageDate['en']['highLevel'];
+    //     document.querySelector('.reset-button').textContent = languageDate['en']['reset'];
+    //     document.querySelector('.learn-more-button').textContent =languageDate['en']['deepLearn'];
         
-        // Update training button
-        document.getElementById('trainingModel').textContent = languageDate['en']['startTrain'];
-    }else{
-        document.getElementById('tilt').textContent = languageDate['zh-cn'][titleKey];
-        document.getElementById('c1').value = languageDate['zh-cn'].getCategoryName(1);
-        document.getElementById('n1').textContent = languageDate['zh-cn'].getSampleText(1);
-        document.getElementById('c2').value = languageDate['zh-cn'].getCategoryName(2);
-        document.getElementById('n2').textContent = languageDate['zh-cn'].getSampleText(2);
-        document.getElementById('addClass').textContent = languageDate['zh-cn']['addClass'];
-        document.getElementById('trainText').textContent = languageDate['zh-cn']['trainText'];
-        document.getElementById('progressText').textContent = languageDate['zh-cn']['progressText'];
-        document.getElementById('epo').previousElementSibling.textContent = languageDate['zh-cn']['epo'];
-        document.getElementById('batch').previousElementSibling.textContent = languageDate['zh-cn']['batch'];
-        document.getElementById('speed').previousElementSibling.textContent = languageDate['zh-cn']['speed'];
-        document.getElementById('saveProject').textContent = languageDate['zh-cn']['saveProject'];
-        document.getElementById('select-camera').textContent = languageDate['zh-cn']['select-camera'];
-        document.querySelector('.preview_title').textContent = languageDate['zh-cn']['preview_title'];
-        document.getElementById('exportModel').textContent = languageDate['zh-cn']['exportModel'];
-        document.getElementById('playModel').textContent = languageDate['zh-cn']['playModel'];
-        document.getElementById('nameTilt').textContent = languageDate['zh-cn']['nameTilt'];
-        document.getElementById('instructionsTilt').textContent = languageDate['zh-cn']['instructionsTilt'];
+    //     // Update training button
+    //     document.getElementById('trainingModel').textContent = languageDate['en']['startTrain'];
+    // }else{
+    //     document.getElementById('tilt').textContent = languageDate['zh-cn'][titleKey];
+    //     document.getElementById('c1').value = languageDate['zh-cn'].getCategoryName(1);
+    //     document.getElementById('n1').textContent = languageDate['zh-cn'].getSampleText(1);
+    //     document.getElementById('c2').value = languageDate['zh-cn'].getCategoryName(2);
+    //     document.getElementById('n2').textContent = languageDate['zh-cn'].getSampleText(2);
+    //     document.getElementById('addClass').textContent = languageDate['zh-cn']['addClass'];
+    //     document.getElementById('trainText').textContent = languageDate['zh-cn']['trainText'];
+    //     document.getElementById('progressText').textContent = languageDate['zh-cn']['progressText'];
+    //     document.getElementById('epo').previousElementSibling.textContent = languageDate['zh-cn']['epo'];
+    //     document.getElementById('batch').previousElementSibling.textContent = languageDate['zh-cn']['batch'];
+    //     document.getElementById('speed').previousElementSibling.textContent = languageDate['zh-cn']['speed'];
+    //     document.getElementById('saveProject').textContent = languageDate['zh-cn']['saveProject'];
+    //     document.getElementById('select-camera').textContent = languageDate['zh-cn']['select-camera'];
+    //     document.querySelector('.preview_title').textContent = languageDate['zh-cn']['preview_title'];
+    //     document.getElementById('exportModel').textContent = languageDate['zh-cn']['exportModel'];
+    //     document.getElementById('playModel').textContent = languageDate['zh-cn']['playModel'];
+    //     document.getElementById('nameTilt').textContent = languageDate['zh-cn']['nameTilt'];
+    //     document.getElementById('instructionsTilt').textContent = languageDate['zh-cn']['instructionsTilt'];
 
        
 
-        const uploadButtons = document.querySelectorAll('.upload');
-        uploadButtons.forEach(button => {
-            button.textContent = languageDate['zh-cn']['keepPhoto'];
-        });
+    //     const uploadButtons = document.querySelectorAll('.upload');
+    //     uploadButtons.forEach(button => {
+    //         button.textContent = languageDate['zh-cn']['keepPhoto'];
+    //     });
         
-        // Update advanced options
-        document.querySelector('.advanced-toggle').textContent = languageDate['zh-cn']['highLevel'];
-        document.querySelector('.reset-button').textContent = languageDate['zh-cn']['reset'];
-        document.querySelector('.learn-more-button').textContent =languageDate['zh-cn']['deepLearn'];
+    //     // Update advanced options
+    //     document.querySelector('.advanced-toggle').textContent = languageDate['zh-cn']['highLevel'];
+    //     document.querySelector('.reset-button').textContent = languageDate['zh-cn']['reset'];
+    //     document.querySelector('.learn-more-button').textContent =languageDate['zh-cn']['deepLearn'];
         
-        // Update training button
-        document.getElementById('trainingModel').textContent = languageDate['zh-cn']['startTrain'];
-    }
+    //     // Update training button
+    //     document.getElementById('trainingModel').textContent = languageDate['zh-cn']['startTrain'];
+    // }
+
+     const lang = localStorage.getItem('tw:language') || 'zh-cn';
+    const data = languageDate[lang] || languageDate['zh-cn'];
+
+    document.getElementById('tilt').textContent = data[titleKey];
+    document.getElementById('c1').value = data.getCategoryName(1);
+    document.getElementById('n1').textContent = data.getSampleText(1);
+    document.getElementById('c2').value = data.getCategoryName(2);
+    document.getElementById('n2').textContent = data.getSampleText(2);
+
+    document.getElementById('addClass').textContent = data.addClass;
+    document.getElementById('trainText').textContent = data.trainText;
+    document.getElementById('progressText').textContent = data.progressText;
+    document.getElementById('epo').previousElementSibling.textContent = data.epo;
+    document.getElementById('batch').previousElementSibling.textContent = data.batch;
+    document.getElementById('speed').previousElementSibling.textContent = data.speed;
+
+    document.getElementById('saveProject').textContent = data.saveProject;
+    document.getElementById('select-camera').textContent = data['select-camera'];
+    document.querySelector('.preview_title').textContent = data.preview_title;
+    document.getElementById('exportModel').textContent = data.exportModel;
+    document.getElementById('playModel').textContent = data.playModel;
+    document.getElementById('nameTilt').textContent = data.nameTilt;
+    document.getElementById('instructionsTilt').textContent = data.instructionsTilt;
+
+    document.querySelectorAll('.upload').forEach(btn => {
+        btn.textContent = data.keepPhoto;
+    });
+
+    document.querySelector('.advanced-toggle').textContent = data.highLevel;
+    document.querySelector('.reset-button').textContent = data.reset;
+    document.querySelector('.learn-more-button').textContent = data.deepLearn;
+    document.getElementById('trainingModel').textContent = data.startTrain;
 }
 changeLanguage()
 
@@ -685,22 +804,34 @@ function addCard() {
         closeCameraWin();
     });
 
+    const data =
+    languageDate[localStorage.getItem('tw:language')] ||
+    languageDate['zh-cn'];
+
+    document.getElementById(`c${NUM_CLASS}`).value =
+    data.getCategoryName(NUM_CLASS);
+    document.getElementById(`n${NUM_CLASS}`).textContent =
+    data.getSampleText(NUM_CLASS);
+
+    document.querySelectorAll('.upload').forEach(button => {
+    button.textContent = data.keepPhoto;
+    });
      
-    if(localStorage.getItem('tw:language')=='en'){
-        document.getElementById(`c${NUM_CLASS}`).value=languageDate['en'].getCategoryName(NUM_CLASS)
-        document.getElementById(`n${NUM_CLASS}`).textContent=languageDate['en'].getSampleText(NUM_CLASS)
-        const uploadButtons = document.querySelectorAll('.upload');
-        uploadButtons.forEach(button => {
-            button.textContent = languageDate['en']['keepPhoto'];
-        });
-    }else{
-        document.getElementById(`c${NUM_CLASS}`).value=languageDate['zh-cn'].getCategoryName(NUM_CLASS)
-        document.getElementById(`n${NUM_CLASS}`).textContent=languageDate['zh-cn'].getSampleText(NUM_CLASS)
-        const uploadButtons = document.querySelectorAll('.upload');
-        uploadButtons.forEach(button => {
-            button.textContent = languageDate['zh-cn']['keepPhoto'];
-        });
-    }
+    // if(localStorage.getItem('tw:language')=='en'){
+    //     document.getElementById(`c${NUM_CLASS}`).value=languageDate['en'].getCategoryName(NUM_CLASS)
+    //     document.getElementById(`n${NUM_CLASS}`).textContent=languageDate['en'].getSampleText(NUM_CLASS)
+    //     const uploadButtons = document.querySelectorAll('.upload');
+    //     uploadButtons.forEach(button => {
+    //         button.textContent = languageDate['en']['keepPhoto'];
+    //     });
+    // }else{
+    //     document.getElementById(`c${NUM_CLASS}`).value=languageDate['zh-cn'].getCategoryName(NUM_CLASS)
+    //     document.getElementById(`n${NUM_CLASS}`).textContent=languageDate['zh-cn'].getSampleText(NUM_CLASS)
+    //     const uploadButtons = document.querySelectorAll('.upload');
+    //     uploadButtons.forEach(button => {
+    //         button.textContent = languageDate['zh-cn']['keepPhoto'];
+    //     });
+    // }
 }
 
 /*删除卡片*/

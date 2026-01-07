@@ -531,19 +531,29 @@ function INIpage(projectName,image){
             relation.push(cent)
             data.push(image[i].data)
 
-             if(localStorage.getItem('tw:language')=='en'){
-                document.getElementById(`n${image[i].label+1}`).textContent=languageDate['en'].getSampleText(image[i].label+1)
-                 const uploadButtons = document.querySelectorAll('.upload');
-                uploadButtons.forEach(button => {
-                    button.textContent = languageDate['en']['keepPhoto'];
-                });
-            }else{
-                document.getElementById(`n${image[i].label+1}`).textContent=languageDate['zh-cn'].getSampleText(image[i].label+1)
-                const uploadButtons = document.querySelectorAll('.upload');
-                uploadButtons.forEach(button => {
-                    button.textContent = languageDate['zh-cn']['keepPhoto'];
-                });
-            }
+            //  if(localStorage.getItem('tw:language')=='en'){
+            //     document.getElementById(`n${image[i].label+1}`).textContent=languageDate['en'].getSampleText(image[i].label+1)
+            //      const uploadButtons = document.querySelectorAll('.upload');
+            //     uploadButtons.forEach(button => {
+            //         button.textContent = languageDate['en']['keepPhoto'];
+            //     });
+            // }else{
+            //     document.getElementById(`n${image[i].label+1}`).textContent=languageDate['zh-cn'].getSampleText(image[i].label+1)
+            //     const uploadButtons = document.querySelectorAll('.upload');
+            //     uploadButtons.forEach(button => {
+            //         button.textContent = languageDate['zh-cn']['keepPhoto'];
+            //     });
+            // }
+            const lang = localStorage.getItem('tw:language') || 'zh-cn';
+            const data = languageDate[lang] || languageDate['zh-cn'];
+
+            document.getElementById(`n${image[i].label + 1}`).textContent =
+            data.getSampleText(image[i].label + 1);
+
+            const uploadButtons = document.querySelectorAll('.upload');
+            uploadButtons.forEach(button => {
+            button.textContent = data.keepPhoto;
+            });
         }
         $('.cameraWinButton_close').click(function() {
             closeCameraWin();

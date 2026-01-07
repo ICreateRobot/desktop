@@ -56,50 +56,94 @@ let typeP=[]
 //   });
 
 const language = {
-    "zh-cn": {
-      "back": "返回",
-      "topBar_tilt": "训练模型",
-      "back_less": "分类",
-      "recognize1": "图像识别",
-      "recognize2": "手势识别",
-      "recognize3": "姿态识别",
-      "recognize4": "语音识别",
-      "newProject": "新建项目",
-      "importProject": "导入项目",
-      'manageProject':"项目管理",
+  "zh-cn": {
+    "back": "返回",
+    "topBar_tilt": "训练模型",
+    "back_less": "分类",
+    "recognize1": "图像识别",
+    "recognize2": "手势识别",
+    "recognize3": "姿态识别",
+    "recognize4": "语音识别",
+    "newProject": "新建项目",
+    "importProject": "导入项目",
+    "manageProject": "项目管理",
 
-      "title": "选择模型训练界面",
-      "image_alt": "图像识别",
-      "gesture_alt": "手势识别",
-      "posture_alt": "姿态识别",
-      "sound_alt": "语音识别",
-      "createImg_alt": "新建项目",
-      "importImg_alt": "导入项目"
-    },
-    "en": {
-      "back": "Back",
-      "topBar_tilt": "Training Model",
-      "back_less": "Classification",
-      "recognize1": "Image Recognition",
-      "recognize2": "Gesture Recognition",
-      "recognize3": "Pose Recognition",
-      "recognize4": "Speech Recognition",
-      "newProject": "New Project",
-      "importProject": "Import Project",
-      'manageProject':"project management",
+    "title": "选择模型训练界面",
+    "image_alt": "图像识别",
+    "gesture_alt": "手势识别",
+    "posture_alt": "姿态识别",
+    "sound_alt": "语音识别",
+    "createImg_alt": "新建项目",
+    "importImg_alt": "导入项目"
+  },
 
-        "title": "Model Training Selection Interface",
-        "image_alt": "Image Recognition",
-        "gesture_alt": "Gesture Recognition",
-        "posture_alt": "Pose Recognition",
-        "sound_alt": "Speech Recognition",
-        "createImg_alt": "New Project",
-        "importImg_alt": "Import Project"
-    }
+  "en": {
+    "back": "Back",
+    "topBar_tilt": "Training Model",
+    "back_less": "Classification",
+    "recognize1": "Image Recognition",
+    "recognize2": "Gesture Recognition",
+    "recognize3": "Pose Recognition",
+    "recognize4": "Speech Recognition",
+    "newProject": "New Project",
+    "importProject": "Import Project",
+    "manageProject": "Project Management",
+
+    "title": "Model Training Selection Interface",
+    "image_alt": "Image Recognition",
+    "gesture_alt": "Gesture Recognition",
+    "posture_alt": "Pose Recognition",
+    "sound_alt": "Speech Recognition",
+    "createImg_alt": "New Project",
+    "importImg_alt": "Import Project"
+  },
+
+  "pl": {
+    "back": "Wstecz",
+    "topBar_tilt": "Trenowanie modelu",
+    "back_less": "Klasyfikacja",
+    "recognize1": "Rozpoznawanie obrazu",
+    "recognize2": "Rozpoznawanie gestów",
+    "recognize3": "Rozpoznawanie pozy",
+    "recognize4": "Rozpoznawanie mowy",
+    "newProject": "Nowy projekt",
+    "importProject": "Importuj projekt",
+    "manageProject": "Zarządzanie projektami",
+
+    "title": "Interfejs wyboru trenowania modelu",
+    "image_alt": "Rozpoznawanie obrazu",
+    "gesture_alt": "Rozpoznawanie gestów",
+    "posture_alt": "Rozpoznawanie pozy",
+    "sound_alt": "Rozpoznawanie mowy",
+    "createImg_alt": "Nowy projekt",
+    "importImg_alt": "Importuj projekt"
+  },
+
+  "ru": {
+    "back": "назад",
+    "topBar_tilt": "обучение модели",
+    "back_less": "классификация",
+    "recognize1": "распознавание изображений",
+    "recognize2": "распознавание жестов",
+    "recognize3": "распознавание поз",
+    "recognize4": "распознавание речи",
+    "newProject": "новый проект",
+    "importProject": "импорт проекта",
+    "manageProject": "управление проектами",
+
+    "title": "интерфейс выбора обучения модели",
+    "image_alt": "распознавание изображений",
+    "gesture_alt": "распознавание жестов",
+    "posture_alt": "распознавание поз",
+    "sound_alt": "распознавание речи",
+    "createImg_alt": "новый проект",
+    "importImg_alt": "импорт проекта"
+  }
 }
 
+
 function changeLanguageChoice(){
-    const lang = localStorage.getItem('tw:language') === 'en' ? 'en' : 'zh-cn';
+    const lang = localStorage.getItem('tw:language') || 'zh-cn'
     document.getElementById('topBar_tilt').textContent = language[lang]['topBar_tilt'];
     document.getElementById('back_less').textContent = language[lang]['back_less'];
     document.getElementById('recognize1').textContent = language[lang]['recognize1'];
