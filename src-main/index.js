@@ -100,54 +100,167 @@ console.log('powerSaveBlocker started, ID:', blockerId);
 // });
 
 
+// powerMonitor.on('resume', () => {
+//   // 创建提示窗口
+//    setPowerWin(new BrowserWindow({
+//     width: 420,
+//     height: 200,
+//     frame: false,
+//     alwaysOnTop: true,
+//     transparent: false, // ❗关闭
+//     backgroundColor: '#00000000', // 可留
+//     resizable: false,
+//     webPreferences: {
+//       nodeIntegration: false,
+//       contextIsolation: true,
+//     },
+//   }));
+
+//   const countdown = 60;
+
+//   getPowerWin().loadURL(`data:text/html;charset=utf-8,
+//     <html>
+//       <body style="display:flex;align-items:center;justify-content:center;
+//         flex-direction:column;font-size:18px;background:rgba(0,0,0,0.6);;
+//         color:white;font-family:sans-serif;text-align:center;">
+//         <div>${translate('index.sysMessage')}</div>
+//         <div>${translate('index.sysDetail')}</div>
+//         <div style="margin-top:12px;">${translate('index.timeFirst')} <span id="timer">${countdown}</span> ${translate('index.timeSecond')}</div>
+//         <script>
+//           let time = ${countdown};
+//           const timerEl = document.getElementById('timer');
+//           const interval = setInterval(() => {
+//             time--;
+//             if (time <= 0) {
+//               clearInterval(interval);
+//             } else {
+//               timerEl.textContent = time;
+//             }
+//           }, 1000);
+//         </script>
+//       </body>
+//     </html>
+//   `);
+
+//   // 保存倒计时计划
+//   setCountDownTimer(setTimeout(() => {
+//     if (getShouldLaunch()) {
+//       app.relaunch();
+//       app.exit();
+//     }
+//   }, countdown * 1000));
+// });
+
+// powerMonitor.on('resume', () => {
+//   setPowerWin(new BrowserWindow({
+//     width: 420,
+//     height: 200,
+//     frame: false,
+//     alwaysOnTop: true,
+//     transparent: false,
+//     backgroundColor: '#00000000',
+//     resizable: true,          // ✅ 允许缩放
+//     minWidth: 300,
+//     minHeight: 150,
+//     webPreferences: {
+//       nodeIntegration: false,
+//       contextIsolation: true,
+//     },
+//   }));
+
+//   const countdown = 60;
+
+//   getPowerWin().loadURL(`data:text/html;charset=utf-8,
+// <html>
+//   <body style="
+//     margin:0;
+//     width:100%;
+//     height:100%;
+//     display:flex;
+//     flex-direction:column;
+//     background:rgba(0,0,0,0.6);
+//     color:white;
+//     font-family:sans-serif;
+//     text-align:center;
+//   ">
+
+//     <!-- 拖动区域 -->
+//     <div style="
+//       -webkit-app-region: drag;
+//       padding:8px;
+//       font-size:14px;
+//       cursor:move;
+//       user-select:none;
+//     ">
+//       ${translate('index.sysMessage')}
+//     </div>
+
+//     <!-- 内容区域（禁止拖动，避免选中文字拖不动） -->
+//     <div style="
+//       flex:1;
+//       display:flex;
+//       align-items:center;
+//       justify-content:center;
+//       flex-direction:column;
+//       -webkit-app-region: no-drag;
+//       font-size:18px;
+//     ">
+//       <div>${translate('index.sysDetail')}</div>
+//       <div style="margin-top:12px;">
+//         ${translate('index.timeFirst')}
+//         <span id="timer">${countdown}</span>
+//         ${translate('index.timeSecond')}
+//       </div>
+//     </div>
+
+//   <script>
+//     let time = ${countdown};
+//     const timerEl = document.getElementById('timer');
+//     const interval = setInterval(() => {
+//       time--;
+//       if (time <= 0) {
+//         clearInterval(interval);
+//       } else {
+//         timerEl.textContent = time;
+//       }
+//     }, 1000);
+//   </script>
+
+//   </body>
+// </html>
+//   `);
+
+//   setCountDownTimer(setTimeout(() => {
+//     if (getShouldLaunch()) {
+//       app.relaunch();
+//       app.exit();
+//     }
+//   }, countdown * 1000));
+// });
+
 powerMonitor.on('resume', () => {
-  // 创建提示窗口
-   setPowerWin(new BrowserWindow({
-    width: 420,
-    height: 200,
-    frame: false,
-    alwaysOnTop: true,
-    transparent: true,
-    resizable: false,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-    },
-  }));
 
   const countdown = 60;
 
-  getPowerWin().loadURL(`data:text/html;charset=utf-8,
-    <html>
-      <body style="display:flex;align-items:center;justify-content:center;
-        flex-direction:column;font-size:18px;background:rgba(0,0,0,0.6);
-        color:white;font-family:sans-serif;text-align:center;">
-        <div>${translate('index.sysMessage')}</div>
-        <div>${translate('index.sysDetail')}</div>
-        <div style="margin-top:12px;">系统将在 <span id="timer">${countdown}</span> 秒后重启...</div>
-        <script>
-          let time = ${countdown};
-          const timerEl = document.getElementById('timer');
-          const interval = setInterval(() => {
-            time--;
-            if (time <= 0) {
-              clearInterval(interval);
-            } else {
-              timerEl.textContent = time;
-            }
-          }, 1000);
-        </script>
-      </body>
-    </html>
-  `);
-
-  // 保存倒计时计划
+  // ========= 60 秒后自动重启（逻辑不变） =========
   setCountDownTimer(setTimeout(() => {
     if (getShouldLaunch()) {
       app.relaunch();
       app.exit();
     }
   }, countdown * 1000));
+
+  // ========= 使用 dialog 显示提示 =========
+  dialog.showMessageBox({
+    type: 'info',
+    title: translate('index.sysMessage'),
+    message: translate('index.sysDetail'),
+    detail: `${translate('index.timeFirst')} ${countdown} ${translate('index.timeSecond')}`,
+    buttons: ['OK'],
+    defaultId: 0,
+    noLink: true
+  });
+
 });
 
 app.enableSandbox();
@@ -372,6 +485,8 @@ app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('enable-webgl'); // 保证 WebGL 不被停
 app.commandLine.appendSwitch('enable-media-stream'); // 确保音视频流保持工作
+app.commandLine.appendSwitch('enable-web-bluetooth');
+app.commandLine.appendSwitch('enable-experimental-web-platform-features');
 app.whenReady().then(async () => {
   await initializeAppServices();
   AbstractWindow.settingsChanged();
