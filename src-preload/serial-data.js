@@ -22,4 +22,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   downloadFirmware: (url) => ipcRenderer.invoke('download-firmware', url),
   getCommonFirmwareVersions: () => ipcRenderer.invoke('get-common-firmware-versions'),
+
+
+  getFirmwareList: async () => {
+    const res = await ipcRenderer.invoke('get-firmware-list');
+    return res;
+  },
+  getFolderCommits: async (type, folderName) => {
+    const res = await ipcRenderer.invoke('get-folder-commits', { type, folderName });
+    return res;
+  },
+  downloadFirmware: async (type, folderName) => {
+    const res = await ipcRenderer.invoke('download-firmware', { type, folderName });
+    return res;
+  },
 });

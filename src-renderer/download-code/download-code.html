@@ -1,186 +1,412 @@
+
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- <title>烧录固件</title> -->
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    }
+    /* 基本重置 */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; }
 
+    /* 页面背景：浅绿色 */
     body {
+      background: #f4fdfa; /* 浅绿色基调 */
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: linear-gradient(160deg, #e8f5e9, #a5d6a7);
+      padding: 18px;
+      min-height: 100vh;
     }
 
+    /* 最外容器 */
     .panel {
-      width: 380px;
-      background: white;
-      padding: 30px 26px;
-      border-radius: 24px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      width: 440px;
+      background: transparent;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: none;
+    }
+
+    /* 顶部串口选择 & 当前版本显示 */
+    .field {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      color: #0b7c68;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 2px solid #66cbb3; /* 绿边 */
+      background: transparent;
+      font-size: 14px;
+      color: #333;
+    }
+
+    /* 卡片容器 — 两列布局 */
+    .cards-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    /* 单个卡片样式：灰色背景 */
+    .card {
+      flex: 1;
+      background: #f6f8f8; /* 浅灰 */
+      border: 2px solid rgba(31,150,120,0.15);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 18px;
-      animation: fadeIn 0.6s ease;
+      gap: 8px;
+      min-height: 160px;
     }
 
-    .panel h2 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #2e7d32;
-      margin-bottom: 6px;
+    .card .title {
+      font-size: 14px;
+      color: #108769; /* 深绿标题 */
+      font-weight: 700;
     }
 
-    select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #c8e6c9;
-      border-radius: 12px;
-      font-size: 15px;
-      transition: all 0.3s ease;
-      background: #f9fdf9;
+    .card .subtitle {
+      font-size: 12px;
+      color: #0f6b5a;
+      background: rgba(16,135,105,0.04);
+      padding: 6px 8px;
+      border-radius: 6px;
+      display: inline-block;
     }
 
-    select:focus {
-      border-color: #66bb6a;
-      outline: none;
-      box-shadow: 0 0 8px rgba(102, 187, 106, 0.5);
+    .card .desc {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #108769;
+      line-height: 1.5;
     }
 
-    .btn {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #66bb6a, #43a047);
-      color: white;
+    /* 下拉框在卡片内部 */
+    .card select {
+      margin-top: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: 1px solid #cddfd6;
+      background: transparent;
+    }
+
+    /* 升级按钮风格（小绿按钮） */
+    .card .btn {
+      margin-top: auto; /* 自动占用上方空间，推到卡片底部 */
+      /* margin-top: 10px; */
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: #22a37a;
+      color: #fff;
       border: none;
-      border-radius: 999px; /* 胶囊按钮 */
-      font-size: 16px;
-      font-weight: 500;
+      font-size: 14px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(67, 160, 71, 0.25);
+      /* width: 50%; */
     }
 
-    .btn:hover {
-      background: linear-gradient(135deg, #57a65a, #388e3c);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(67, 160, 71, 0.35);
+    .card .btn:active { transform: translateY(1px); }
+
+    /* 当只有一张卡片（Microbit 模式）时让它占满宽度 */
+    .single {
+      width: 100%;
     }
 
-    .btn:active {
-      transform: scale(0.98);
+    /* 响应：窄屏时堆叠成一列 */
+    @media (max-width: 520px) {
+      .panel { width: 100%; padding: 8px; }
+      .cards-row { flex-direction: column; }
     }
 
-    .qr-container {
-      margin-top: 10px;
-      display: none;
-    }
-
-    .qr-container img {
-      width: 160px;
-      height: 160px;
-      border: 4px solid #4caf50;
-      padding: 10px;
-      background: white;
-      border-radius: 12px;
-    }
-
-    #toast-container div {
-      background: linear-gradient(135deg, #66bb6a, #43a047) !important;
-      border-radius: 12px !important;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* 小提示样式 */
+    .muted {
+      font-size: 12px;
+      color: #5c5c5c;
+      margin-top: 6px;
     }
   </style>
 </head>
 <body>
   <div class="panel">
-    <h2 id="title">请先选择设备</h2>
-    <select id="portSelector">
-      <option id="defaultSerial" disabled selected>请选择串口</option>
-    </select>
-    <!-- <button id="common" class="btn">ICRobot普通固件</button> -->
-     <div id="common" style="width: 100%; display: flex; gap: 8px;">
-      <select id="commonVersionSelect">
-        <option disabled selected>加载中...</option>
+    <!-- 串口选择 -->
+    <div class="field">
+      <label for="portSelector" id="titlePortSelect">选择串口：</label>
+      <select id="portSelector">
+        <option disabled selected id="defaultSelect">COM-请选择</option>
       </select>
-      <button id="commonFlashBtn" class="btn">烧录普通固件</button>
     </div>
-    <button id="xiaoZhi" class="btn">小智AI固件</button>
-    <button id="test" class="btn">测试固件</button>
-    <button id="microbit" class="btn">烧录Microbit基础固件</button>
+
+    <!-- 当前固件版本显示 -->
+    <!-- <div class="field">
+      <label for="currentVersion">当前固件版本：</label>
+      <input id="currentVersion" type="text" readonly placeholder="ICROBOT-V3.0" />
+    </div> -->
+
+    <h2 id="firstSelectDevice">请先选择设备</h2>
+    <!-- 两个卡片并排：标准版 & 小智版 -->
+    <div class="cards-row" id="twoCardsRow">
+      <div class="card" id="standardCard">
+        <div class="title" id="standardFirmware">标准版本固件：</div>
+        <!-- <div class="subtitle" id="standardVersionLabel">ICROBOT-V3.0 ▾</div> -->
+
+        <select id="standardSelect" aria-label="标准固件版本下拉">
+          <option disabled selected id="loading">加载中...</option>
+        </select>
+
+        <div class="desc" id="standCommit">
+
+        </div>
+
+        <button class="btn" id="upgradeStandard">升级</button>
+      </div>
+
+      <div class="card" id="xiaozhiCard">
+        <div class="title" id="xiaozhiFirmware">小智版本固件：</div>
+        <!-- <div class="subtitle" id="xiaozhiVersionLabel">ICRobot-xiaozhi-V3.0 ▾</div> -->
+
+        <select id="xiaozhiSelect" aria-label="小智固件版本下拉">
+          <option disabled selected id="loading2">加载中...</option>
+        </select>
+
+        <div class="desc" id="xiaozhiCommit">
+
+        </div>
+
+        <button class="btn" id="upgradeXiaoZhi">升级</button>
+      </div>
+    </div>
+
+    <!-- Microbit 卡片（同风格，但单独显示时占满宽度） -->
+    <div class="card single" id="microbitCard" style="display:none; margin-top:12px;">
+      <div class="title" id="microbitFirmware">Microbit 基础固件</div>
+      <div class="subtitle">microbit-base-v1.0</div>
+
+      <div class="desc" style="margin-top:8px;" id="microbitDesc">
+适配此软件的基础固件。
+      </div>
+
+      <button class="btn" id="burnMicrobitBtn">烧录 Microbit 固件</button>
+    </div>
+
   </div>
 
   <script>
-    const {locale, strings} = electronAPI.getTranslate();
-    document.documentElement.lang = locale;
+
+    //  const {locale, strings} = electronAPI.getTranslate();
+    // document.documentElement.lang = locale;
 
     // document.getElementById('common').textContent=strings['download-code.common'];
-    document.getElementById('xiaoZhi').textContent=strings['download-code.xiaoZhi'];
-    document.getElementById('microbit').textContent=strings['download-code.microbit'];
-    document.getElementById('title').textContent=strings['download-code.title2'];
-    document.getElementById('defaultSerial').textContent=strings['download-code.defaultSerial'];
+    // 取本地翻译（如果没有也不会阻塞）
+    const t = electronAPI.getTranslate();
+    try {
+      
+      if (t?.strings) {
+        // 替换少量文本（可选）
+        document.querySelector('label[for="portSelector"]').textContent = t.strings['download-code.selectPort'] || '选择串口：';
+        document.getElementById('defaultSelect').textContent=t.strings['download-code.defaultSelect']
+        document.getElementById('standardFirmware').textContent=t.strings['download-code.standardFirmware']
+        document.getElementById('loading').textContent=t.strings['download-code.loading']
+        document.getElementById('upgradeStandard').textContent=t.strings['download-code.upgradeStandard']
+        document.getElementById('xiaozhiFirmware').textContent=t.strings['download-code.xiaozhiFirmware']
+        document.getElementById('loading2').textContent=t.strings['download-code.loading2']
+        document.getElementById('upgradeXiaoZhi').textContent=t.strings['download-code.upgradeXiaoZhi']
+        document.getElementById('microbitFirmware').textContent=t.strings['download-code.microbitFirmware']
+        document.getElementById('microbitDesc').textContent=t.strings['download-code.microbitDesc']
+        document.getElementById('burnMicrobitBtn').textContent=t.strings['download-code.burnMicrobitBtn']
+        document.getElementById('firstSelectDevice').textContent=t.strings['download-code.title2'];
+        // document.getElementById('currentVersion').placeholder = t.strings['download-code.currentFirmware'] || '当前固件版本：';
+        // document.querySelector('label[for="currentVersion"]').textContent = t.strings['download-code.currentFirmware'] || '当前固件版本：';
+      }
+    } catch (e) { /* ignore */ }
 
-    function updatePorts() {
-      const selector = document.getElementById('portSelector');
-      const selectedPort = selector.value;
-      let ports=electronAPI.getPorts()
-      selector.innerHTML = `<option disabled>${strings['download-code.defaultSerial']}</option>`;
-      let found = false;
-      ports.forEach(port => {
-        const option = document.createElement('option');
-        option.value = port;
-        option.textContent = port;
-        if (port === selectedPort) {
-          option.selected = true;
-          found = true;
-        }
-        selector.appendChild(option);
-      });
-      if (!found) {
-        selector.selectedIndex = 0;
+    /* 显示/隐藏逻辑（使用你原来的 getExtension()） */
+    function updateExtensionUI(extension) {
+      if (extension == "2") {
+        document.getElementById('standardCard').style.display = 'flex';
+        document.getElementById('xiaozhiCard').style.display = 'flex';
+        document.getElementById('microbitCard').style.display = 'none';
+        // port selector visible
+        document.getElementById('portSelector').style.display = 'block';
+        document.getElementById('titlePortSelect').style.display = 'block';
+        
+        document.getElementById('firstSelectDevice').style.display = 'none';
+        
+      } else if (extension == "3") {
+        // 只显示 microbit 卡片（占满宽度）
+        document.getElementById('standardCard').style.display = 'none';
+        document.getElementById('xiaozhiCard').style.display = 'none';
+        document.getElementById('microbitCard').style.display = 'flex';
+        // hide port selector
+        document.getElementById('portSelector').style.display = 'none';
+        document.getElementById('titlePortSelect').style.display = 'none';
+        document.getElementById('firstSelectDevice').style.display = 'none';
+      } else {
+        // 默认隐藏固件卡片，仅显示标题（或按你原逻辑）
+        document.getElementById('standardCard').style.display = 'none';
+        document.getElementById('xiaozhiCard').style.display = 'none';
+        document.getElementById('microbitCard').style.display = 'none';
+        document.getElementById('portSelector').style.display = 'block';
+        document.getElementById('titlePortSelect').style.display = 'block';
+        document.getElementById('firstSelectDevice').style.display = 'block';
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      updatePorts();
-      let extension =electronAPI.getExtension()
-      if(extension =='2'){
-        document.getElementById('title').style.display='none'
-        document.getElementById('common').style.display='block';
-        document.getElementById('xiaoZhi').style.display='block'
-        document.getElementById('test').style.display='block'
-        document.getElementById('portSelector').style.display='block'
-        document.getElementById('microbit').style.display='none';
-      }else if(extension =='3'){
-        document.getElementById('title').style.display='none'
-        document.getElementById('microbit').style.display='block';
-        document.getElementById('common').style.display='none';
-        document.getElementById('xiaoZhi').style.display='none'
-        document.getElementById('test').style.display='none'
-        document.getElementById('portSelector').style.display='none'
-      }else{
-        document.getElementById('title').style.display='block'
-        document.getElementById('microbit').style.display='none';
-        document.getElementById('common').style.display='none';
-        document.getElementById('xiaoZhi').style.display='none'
-        document.getElementById('test').style.display='none'
-        document.getElementById('portSelector').style.display='none'
+    /* 加载端口列表（同步/异步兼容） */
+    function loadPorts() {
+      try {
+        const ports = electronAPI.getPorts(); // 你原来的 API
+        const sel = document.getElementById('portSelector');
+        const current = sel.value;
+        sel.innerHTML = `<option disabled selected>${t.strings['download-code.defaultSelect']}</option>`;
+        if (Array.isArray(ports)) {
+          ports.forEach(p => {
+            const o = document.createElement('option');
+            o.value = p;
+            o.textContent = p;
+            if (p === current) o.selected = true;
+            sel.appendChild(o);
+          });
+        }
+      } catch (err) {
+        // 如果是异步函数返回 Promise
+        if (err instanceof Promise) {
+          // shouldn't happen, but just in case
+        } else {
+          // try async call
+          (async () => {
+            try {
+              const ports = await electronAPI.getPorts();
+              const sel = document.getElementById('portSelector');
+              sel.innerHTML = `<option disabled selected>${t.strings['download-code.defaultSelect']}</option>`;
+              (ports || []).forEach(p => {
+                const o = document.createElement('option');
+                o.value = p;
+                o.textContent = p;
+                sel.appendChild(o);
+              });
+            } catch(e) {}
+          })();
+        }
       }
-      setInterval(updatePorts, 2000);
-      loadCommonVersions();
+    }
+
+    // /* 填充版本下拉：传入 select 元素 id 和版本数组（[{sha,message,time,author,url}]） */
+    // function fillVersionSelect(selectId, versions) {
+    //   const sel = document.getElementById(selectId);
+    //   sel.innerHTML = '';
+    //   if (!Array.isArray(versions) || versions.length === 0) {
+    //     const opt = document.createElement('option');
+    //     opt.disabled = true;
+    //     opt.selected = true;
+    //     opt.textContent = '无可用版本';
+    //     sel.appendChild(opt);
+    //     return;
+    //   }
+
+    //   versions.forEach(v => {
+    //     const opt = document.createElement('option');
+    //     opt.value = v.url || v.sha || v.message || '';
+    //     opt.textContent = v.message ? `${v.message}` : (v.sha || 'unknown');
+    //     sel.appendChild(opt);
+    //   });
+    // }
+
+    // /* 加载固件列表（通过你指定的 API） */
+    // async function loadFirmwareLists() {
+    //   try {
+    //     const versions = await electronAPI.getCommonFirmwareVersions(); // [{sha,...}]
+    //     // 标准版与小智版都使用同一接口（按你的描述）
+    //     fillVersionSelect('standardSelect', versions);
+    //     fillVersionSelect('xiaozhiSelect', versions);
+
+    //     // 更新卡片顶部显示（取第一个作为默认显示）
+    //     if (versions && versions.length > 0) {
+    //       const first = versions[0];
+    //       const vname = first.message || first.sha || '';
+    //       document.getElementById('standardVersionLabel').textContent = vname;
+    //       document.getElementById('xiaozhiVersionLabel').textContent = vname;
+    //     }
+    //   } catch (e) {
+    //     console.error('loadFirmwareLists error', e);
+    //     fillVersionSelect('standardSelect', []);
+    //     fillVersionSelect('xiaozhiSelect', []);
+    //   }
+    // }
+
+    // /* 按钮事件：下载固件并调用 sendWho（和你原来逻辑一致） */
+    // document.getElementById('upgradeStandard').addEventListener('click', async () => {
+    //   const port = document.getElementById('portSelector').value;
+    //   if (!port) return alert('请选择串口');
+    //   const url = document.getElementById('standardSelect').value;
+    //   if (!url) return alert('请选择固件版本');
+    //   try {
+    //     // 下载到本地临时路径（你的 electron 后端实现）
+    //     const localPath = await electronAPI.downloadFirmware(url);
+    //     // 通知主进程开始烧录（保持你原来的 sendWho 形式）
+    //     electronAPI.sendWho({ who: 'common', port, filePath: localPath });
+    //   } catch (err) {
+    //     alert('下载或烧录失败：' + (err && err.message ? err.message : err));
+    //   }
+    // });
+
+    // document.getElementById('upgradeXiaoZhi').addEventListener('click', async () => {
+    //   const port = document.getElementById('portSelector').value;
+    //   if (!port) return alert('请选择串口');
+    //   const url = document.getElementById('xiaozhiSelect').value;
+    //   if (!url) return alert('请选择固件版本');
+    //   try {
+    //     const localPath = await electronAPI.downloadFirmware(url);
+    //     electronAPI.sendWho({ who: 'xiaoZhi', port, filePath: localPath });
+    //   } catch (err) {
+    //     alert('下载或烧录失败：' + (err && err.message ? err.message : err));
+    //   }
+    // });
+
+    document.getElementById('burnMicrobitBtn').addEventListener('click', async () => {
+      // Microbit 烧录使用你原来的 flashFirmware 接口（示例）
+      try {
+        const res = await electronAPI.flashFirmware();
+        
+      } catch (e) {
+        console.log('Microbit 烧录失败：' + (e && e.message ? e.message : e));
+      }
     });
+
+    const portSel = document.getElementById('portSelector');
+    const standardSelect = document.getElementById('standardSelect');
+    const xiaozhiSelect = document.getElementById('xiaozhiSelect');
+    // const standardLabel = document.getElementById('standardVersionLabel');
+    // const xiaozhiLabel = document.getElementById('xiaozhiVersionLabel');
+    const upgradeStandardBtn = document.getElementById('upgradeStandard');
+    const upgradeXiaoZhiBtn = document.getElementById('upgradeXiaoZhi');
+    const standCommit = document.getElementById('standCommit')
+    const xiaozhiCommit = document.getElementById('xiaozhiCommit')
+
+    // helper to load ports
+    // async function loadPorts() {
+    //   try {
+    //     const res = await window.electronAPI.getPorts();
+    //     if (res && res.ok) {
+    //       const ports = res.data || [];
+    //       portSel.innerHTML = '<option disabled selected>COM-请选择</option>';
+    //       ports.forEach(p => {
+    //         const o = document.createElement('option'); o.value = p; o.textContent = p; portSel.appendChild(o);
+    //       });
+    //     }
+    //   } catch (e) {
+    //     console.error('getPorts err', e);
+    //   }
+    // }
 
     function showToast(message, duration = 3000) {
       let container = document.getElementById('toast-container');
@@ -228,83 +454,284 @@
       }, duration);
     }
 
+    // 加载固件 list
+    // async function loadFirmwareList() {
+    //   const res = await window.electronAPI.getFirmwareList();
+    //   if (!res || !res.ok) {
+    //     console.error('加载固件列表失败', res);
+    //     // standardSelect.innerHTML = '<option disabled selected>加载失败</option>';
+    //     // xiaozhiSelect.innerHTML = '<option disabled selected>加载失败</option>';
+    //     // return;
+    //   }
+    //   const { standard, xiaozhi } = res.data;
 
-    // 获取最近3个版本信息
-    async function loadCommonVersions() {
-      // 假设后端已经提供了获取版本列表接口
-      const versions = await electronAPI.getCommonFirmwareVersions(); // 返回数组 [{sha, message, time, author, url}]
-      const select = document.getElementById('commonVersionSelect');
-      select.innerHTML = ''; // 清空
-      versions.forEach(v => {
-        const option = document.createElement('option');
-        option.value = v.url; // 下载地址
-        option.textContent = `${v.message} - ${v.author} - ${v.time}`;
-        select.appendChild(option);
-      });
-    }
+    //   function populate(selectElem, arr) {
+    //     selectElem.innerHTML = '';
 
-    document.getElementById('microbit').addEventListener('click',async()=>{
-      showToast(strings['download-code.startFlash'])
-      const result = await window.electronAPI.flashFirmware()
-      if (result.success) {
-        showToast(strings['download-code.flashSuccess'], 'success')
-      } else {
-        showToast(`${strings['download-code.flashFailed']}: ${result.error}`, 'error')
-      }
-    })
+    //     // 先添加本地固件选项
+    //     const localOpt = document.createElement('option');
+    //     localOpt.value = JSON.stringify({ local: true }); // 标记这是本地固件
+    //     localOpt.textContent = '本地固件';
+    //     selectElem.appendChild(localOpt);
 
-    document.getElementById('commonFlashBtn').addEventListener('click', async() => {
-      // const port = document.getElementById('portSelector').value;
-      // if (!port || port === strings['download-code.defaultSerial']) {
-      //   alert(strings['download-code.defaultSerial']);
-      //   return;
-      // }
-      // electronAPI.sendWho({ who: 'common', port });
+    //     if (!arr || arr.length === 0) {
+    //       const o = document.createElement('option'); o.disabled = true; o.selected = true; o.textContent = '无可用版本'; 
+    //       selectElem.appendChild(o);
+    //       return;
+    //     }
 
-      const select = document.getElementById('commonVersionSelect');
-      const firmwareUrl = select.value;
-      if (!firmwareUrl) {
-        alert('请选择固件版本');
-        return;
-      }
+    //     // 添加远程固件
+    //     arr.forEach(item => {
+    //       const display = item.version ? `${item.version} (${item.name})` : `${item.name}`;
+    //       const opt = document.createElement('option');
+    //       opt.value = JSON.stringify({ folder: item.name }); 
+    //       opt.textContent = display;
+    //       selectElem.appendChild(opt);
+    //     });
 
-      // 弹窗提示正在下载
-      showToast('正在下载固件，请稍候...', 5000);
+    //     // 默认选中本地固件
+    //     selectElem.value = localOpt.value;
+    //   }
+
+    //   populate(standardSelect, standard);
+    //   populate(xiaozhiSelect, xiaozhi);
+    // }
+
+    async function loadFirmwareList() {
+      let standardArr = [];
+      let xiaozhiArr = [];
 
       try {
-        // 下载固件到临时路径
-        const localPath = await electronAPI.downloadFirmware(firmwareUrl);
-        showToast('固件下载完成，即将开始烧录');
+        const res = await window.electronAPI.getFirmwareList();
 
-        // 调用原来的烧录逻辑
-        const port = document.getElementById('portSelector').value;
-        if (!port) {
-          alert('请选择串口');
+        if (res && res.ok && res.data) {
+          standardArr = res.data.standard || [];
+          xiaozhiArr = res.data.xiaozhi || [];
+        } else {
+          console.error("加载固件列表失败，进入本地模式", res);
+          showToast && showToast(t.strings['download-code.onlyLocalFirm']);
+        }
+      } catch (err) {
+        console.error("获取固件列表时发生异常:", err);
+        showToast && showToast(t.strings['download-code.onlyLocalFirm']);
+      }
+
+      function populate(selectElem, arr) {
+        selectElem.innerHTML = '';
+
+        // 本地固件选项
+        const localOpt = document.createElement('option');
+        localOpt.value = JSON.stringify({ local: true });
+        localOpt.textContent = t.strings['download-code.localFirmware'];
+        selectElem.appendChild(localOpt);
+
+        // 如果无远程固件，显示提示
+        if (!arr || arr.length === 0) {
+          const o = document.createElement('option'); 
+          o.disabled = true; 
+          o.selected = true; 
+          o.textContent = '无可用版本';
+          selectElem.appendChild(o);
           return;
         }
 
-        electronAPI.sendWho({ who: 'common', port, filePath: localPath });
+        // 添加远程固件
+        arr.forEach(item => {
+          const display = item.version ? `${item.version}` : item.name;
+          const opt = document.createElement('option');
+          opt.value = JSON.stringify({ folder: item.name });
+          opt.textContent = display;
+          selectElem.appendChild(opt);
+        });
+
+        // 默认选中本地固件
+        selectElem.value = localOpt.value;
+      }
+
+      populate(standardSelect, standardArr);
+      populate(xiaozhiSelect, xiaozhiArr);
+    }
+
+
+    // 点击某个 select 时显示 commit（监听 change）
+    async function bindShowCommits(selectElem, type) {
+      selectElem.addEventListener('change', async (ev) => {
+        try {
+          console.log('---------------')
+          const val = ev.target.value;
+          if (!val) return;
+          const meta = JSON.parse(val);
+          const folder = meta.folder;
+          const res = await window.electronAPI.getFolderCommits(type, folder);
+          if (res && res.ok) {
+            console.log(`${type}/${folder} commits:`, res.data);
+            if(type=='standard'){
+              standCommit.innerText=res?.data[0].message
+
+            }else{
+              xiaozhiCommit.innerText=res?.data[0].message
+            }
+            
+            // 你可以把 commits 渲染到一个 UI 区域。此处仅 console.log
+          } else {
+            console.warn('getFolderCommits fail', res);
+            if(type=='standard'){
+              standCommit.innerText=''
+
+            }else{
+              xiaozhiCommit.innerText=''
+            }
+          }
+        } catch (e) {
+           console.error(e);
+           if(type=='standard'){
+              standCommit.innerText=''
+
+            }else{
+              xiaozhiCommit.innerText=''
+            }
+          }
+      });
+    }
+
+    // 点击升级：先下载 -> 再烧录
+    // async function handleUpgrade(type) {
+    //   const selected = (type === 'standard' ? standardSelect.value : xiaozhiSelect.value);
+    //   if (!selected) return alert('请选择固件版本');
+    //   const meta = JSON.parse(selected);
+    //   const folder = meta.folder;
+    //   const port = portSel.value;
+    //   if (!port  || port === 'COM-请选择') return alert('请选择串口');
+
+    //   // 1. 下载
+    //   try {
+    //     // 告知 UI 下载中...
+    //     console.log('开始下载固件', type, folder);
+    //     showToast('开始下载固件，请稍后')
+    //     const dlRes = await window.electronAPI.downloadFirmware(type, folder);
+    //     if (!dlRes || !dlRes.ok) {
+    //       return alert('下载失败：' + (dlRes && dlRes.error ? dlRes.error : '未知错误'));
+    //       showToast('固件下载失败，请检测网络')
+    //     }
+    //     const downloaded = dlRes.data.downloaded; // [{name, path}]
+    //     console.log('下载完成：', downloaded);
+    //     showToast('固件下载成功，即将开始烧录')
+
+
+    //     // 调用 burn-firmware
+    //     const burnRes = await electronAPI.sendWho({who: (type === 'standard' ? 'test' : 'xiaoZhi'), port, filePath: downloaded  });
+    //   } catch (err) {
+    //     console.error('upgrade err', err);
+    //     alert('升级流程异常：' + (err && err.message ? err.message : err));
+    //   }
+    // }
+
+    async function handleUpgrade(type) {
+    const selected = (type === 'standard' ? standardSelect.value : xiaozhiSelect.value);
+    if (!selected) return alert(t.strings['download-code.firstSelectVersion']);
+
+    const meta = JSON.parse(selected);
+
+    const port = portSel.value;
+    if (!port  || port === t.strings['download-code.defaultSelect']) return alert(t.strings['download-code.pleaseSelectPort']);
+
+    try {
+      if (meta.local) {
+        // ✅ 选择了本地固件，直接调用烧录接口
+        console.log('选择了本地固件，直接烧录');
+        await electronAPI.sendWho({
+          who: type === 'standard' ? 'test' : 'xiaoZhi',
+          port,
+          filePath: null  // 或传入本地固件固定路径，根据你的API实现
+        });
+        // showToast('本地固件烧录已触发');
+      } else {
+        // ✅ 选择远程固件，需要下载再烧录
+        console.log('开始下载远程固件', type, meta.folder);
+        showToast(t.strings['download-code.startDownloadFirm']);
+
+        const dlRes = await electronAPI.downloadFirmware(type, meta.folder);
+        if (!dlRes || !dlRes.ok) {
+          showToast(t.strings['download-code.downloadFaild']);
+          return '下载失败：' + (dlRes && dlRes.error ? dlRes.error : '未知错误');
+        }
+
+        const downloaded = dlRes.data.downloaded;
+        console.log('下载完成：', downloaded);
+        showToast(t.strings['download-code.downloadSuccess']);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await electronAPI.sendWho({
+          who: type === 'standard' ? 'test' : 'xiaoZhi',
+          port,
+          filePath: downloaded
+        });
+      }
+    } catch (err) {
+      console.error('upgrade err', err);
+      // alert('升级流程异常：' + (err && err.message ? err.message : err));
+    }
+  }
+
+    // 绑定事件
+    upgradeStandardBtn.addEventListener('click', async () => { await handleUpgrade('standard'); });
+    upgradeXiaoZhiBtn.addEventListener('click', async () => { await handleUpgrade('xiaozhi'); });
+
+
+
+    async function loadDefaultCommits() {
+      try {
+        // Standard
+        if (standardSelect.value) {
+          const meta = JSON.parse(standardSelect.value);
+          const folder = meta.folder;
+          const res = await window.electronAPI.getFolderCommits("standard", folder);
+          console.log("[Standard 默认版本 commits]:", res?.data);
+          standCommit.innerText=res?.data[0].message
+        }
+
+        // XiaoZhi
+        if (xiaozhiSelect.value) {
+          const meta2 = JSON.parse(xiaozhiSelect.value);
+          const folder2 = meta2.folder;
+          const res2 = await window.electronAPI.getFolderCommits("xiaozhi", folder2);
+          console.log("[XiaoZhi 默认版本 commits]:", res2?.data);
+          xiaozhiCommit.innerText=res2?.data[0].message
+        }
       } catch (err) {
-        showToast(`下载失败：${err.message}`);
+        console.error("加载默认固件 commits 失败", err);
       }
-    });
+    }
+    
 
-    document.getElementById('xiaoZhi').addEventListener('click', () => {
-      const port = document.getElementById('portSelector').value;
-      if (!port || port === strings['download-code.defaultSerial']) {
-        alert(strings['download-code.defaultSerial']);
-        return;
-      }
-      electronAPI.sendWho({ who: 'xiaoZhi', port ,filePath:''});
-    });
 
-    document.getElementById('test').addEventListener('click', () => {
-      const port = document.getElementById('portSelector').value;
-      if (!port || port === strings['download-code.defaultSerial']) {
-        alert(strings['download-code.defaultSerial']);
-        return;
+    // 页面初始化
+    window.addEventListener('DOMContentLoaded', async() => {
+      // 使用你原来的 getExtension()
+      const ext = String(electronAPI.getExtension());
+      updateExtensionUI(ext);
+
+      // 加载端口与固件
+      loadPorts();
+      // loadFirmwareLists();
+      if(ext=="2"){
+        await loadFirmwareList();
       }
-      electronAPI.sendWho({ who: 'test', port ,filePath:''});
+      
+      await loadDefaultCommits();
+      bindShowCommits(standardSelect, 'standard');
+      bindShowCommits(xiaozhiSelect, 'xiaozhi');
+
+      // setInterval(async()=>{
+      //    const res = await window.electronAPI.getFolderCommits('standard', 'last');
+      //     if (res && res.ok) {
+      //       console.log(`standard/last commits:`, res.data);
+      //       // 你可以把 commits 渲染到一个 UI 区域。此处仅 console.log
+      //     } else {
+      //       console.warn('getFolderCommits fail', res);
+      //     }
+      // },4000)
+      // 每 2s 刷新端口列表（与你之前逻辑一致）
+      setInterval(loadPorts, 2000);
     });
   </script>
 </body>
