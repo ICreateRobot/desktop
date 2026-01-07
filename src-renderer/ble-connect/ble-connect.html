@@ -205,50 +205,7 @@
         document.getElementById('bleTitle').textContent=strings['ble-connect.bleTitle'];
         document.getElementById('clickme').textContent=strings['ble-connect.clickme'];
         document.getElementById('closeBle').textContent=strings['ble-connect.closeBle'];
-        // 监听键盘按下事件
-        // document.addEventListener('keydown', (event) => {
-        //       switch (event.key) {
-        //           case 'w':
-        //           case 'W':
-        //               console.log('w被按下')
-        //               Wifi('w',90)
-        //               break;
-        //           case 'a':
-        //           case 'A':
-        //               console.log('A按下')
-        //               break;
-        //           case 's':
-        //           case 'S':
-        //               console.log('S按下')
-        //               break;
-        //           case 'd':
-        //           case 'D':
-        //               console.log('D按下')
-        //               break;
-        //           case 'r':
-        //           case 'R':
-        //               console.log('R按下')
-        //               Wifi('r',0)
-        //               break;
-        //       }
-        //     });
-
-        // function Wifi(dir,speed){
-        //   fetch(`http://192.168.4.1:8080/move?move=${dir}&speed=${speed}`, {
-        //       method: 'POST',
-        //       headers: {
-        //         'Content-Type': 'application/json;'
-        //       },
-        //     })
-        //     .then(response => response.text())
-        //     .then(data => {
-        //       console.log('服务器响应:', data);
-        //     })
-        //     .catch(error => {
-        //       console.error('错误:', error);
-        //     });
-          
-        // }
+       
         function createPromise() {
           return new Promise(resolve => {
             const eventListener = async (event) => {
@@ -356,10 +313,13 @@
             const promise1 = createPromiseForRobot(); // 先创建 Promise 并加入队列
             await characteristicWriteRobot.writeValue(startMsg)
             await promise1
+            console.log('开始指令发送完成')
             for(let i=0;i<codeMsg.length;i++){
               const promise2 = createPromiseForRobot(); // 先创建 Promise 并加入队列
               await characteristicWriteRobot.writeValue(codeMsg[i])
+              console.log('发送了代码')
               await promise2
+              console.log('代码发送完成')
             }
             const promise3 = createPromiseForRobot(); // 先创建 Promise 并加入队列
             await characteristicWriteRobot.writeValue(endMsg)
@@ -373,27 +333,8 @@
         }
 
 
-        // function splitUint8Array(uint8Array, chunkSize = 20) {
-        //   const chunks = [];
-        //   for (let i = 0; i < uint8Array.length; i += chunkSize) {
-        //     chunks.push(uint8Array.slice(i, i + chunkSize));
-        //   }
-        //   return chunks;
-        // }
 
         function crc16(arr) {
-          // let crc = 0xFFFF; // 初始值
-          // for (let i = 0; i < arr.length; i++) {
-          //   crc ^= (arr[i] << 8);
-          //   for (let j = 0; j < 8; j++) {
-          //     if (crc & 0x8000) {
-          //       crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
-          //     } else {
-          //       crc = (crc << 1) & 0xFFFF;
-          //     }
-          //   }
-          // }
-          // return crc;
           let crc = 0xFFFF;
           for (let i = 0; i < arr.length; i++) {
             crc ^= arr[i];
@@ -706,7 +647,7 @@
               packet.set(raw, 0);
               packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
               packet[raw.length + 1] = crc & 0xFF;     // 低字节
-              // console.log(packet)
+              console.log(packet)
 
               // const promise1 = createPromiseForRobot();
               // await characteristicWriteRobot.writeValue(packet.buffer)
@@ -824,70 +765,6 @@
           lastUpdate = now;
         }
       });
-      //----------------------------------------------------------------------
-        //接收来自主进程的蓝牙设备列表
-        // window.bleAPI.sendDeviceList((devicelist) => {
-        //   // console.log(devicelist);
-        //   // document.getElementById('device').innerHTML=''
-        //   // let container = document.getElementById('device')
-        //   // devicelist.forEach(element => {
-        //   //   let button=document.createElement('button')
-        //   //   button.onclick=function(){
-        //   //     send(element.deviceName)
-        //   //   }
-        //   //   button.id=element.deviceName
-        //   //   button.innerText=element.deviceName
-        //   //   button.style.display = 'block';
-        //   //   button.style.marginBottom = '10px';
-        //   //   container.appendChild(button)
-        //   // });
-
-        //   console.log(devicelist);
-        //   const container = document.getElementById('device');
-        //   container.innerHTML = '';
-
-        //   devicelist.forEach(element => {
-        //     const li = document.createElement('li');
-        //     li.style.background = 'transparent';
-        //     li.style.padding = '6px';
-        //     li.style.margin = '8px auto';
-        //     li.style.borderRadius = '5px';
-        //     li.style.width = '80%';
-        //     li.style.display = 'flex';
-        //     li.style.justifyContent = 'space-between';
-        //     li.style.alignItems = 'center';
-        //     li.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
-        //     li.style.border = '1px solid lch(51.35% 35.67 178.75)';
-        //     li.style.transition = 'background 0.3s';
-
-        //     li.onmouseover = () => {
-        //       li.style.background = '#9cf3e6';
-        //     };
-        //     li.onmouseout = () => {
-        //       li.style.background = 'transparent';
-        //     };
-        //     li.id=element.deviceName
-
-        //     const nameSpan = document.createElement('span');
-        //     nameSpan.innerText = element.deviceName;
-        //     nameSpan.style.flex = '1';
-        //     nameSpan.style.fontSize = '16px';
-        //     nameSpan.style.color = '#333';
-
-        //     const btn = document.createElement('button');
-        //     // btn.innerText = '连接';
-        //     btn.innerText = strings['ble-connect.connectBle']
-        //     btn.className = 'connect-btn';
-        //     btn.onclick = function () {
-        //       send(element.deviceName);
-        //     };
-
-        //     li.appendChild(nameSpan);
-        //     li.appendChild(btn);
-        //     container.appendChild(li);
-        //   });
-          
-        // })
 
         function send(dv){
           console.log(dv);
@@ -1178,6 +1055,7 @@
             console.log(state)
 
             if (state === 0x00) {  // 48 十进制
+              console.log('进入这里')
               resolve(true);
             } else {
               reject(new Error(`收到错误状态码: ${state}`));
