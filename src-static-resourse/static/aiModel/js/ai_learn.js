@@ -341,7 +341,51 @@ const languageDate = {
     "nameNotNull": "название проекта не может быть пустым",
     "illeglStr": "содержит недопустимые символы -",
     "stopTest": "остановить тестирование"
-  }
+  },
+  "zh-tw": {
+    "tilt_G": "手勢訓練",
+    "tilt_I": "影像訓練",
+    "tilt_P": "姿態訓練",
+
+    getCategoryName: (index) => `類別 ${index}`,
+    getSampleText: (index) => ` 個影像樣本`,
+
+    "addClass": "+ 新增一個類別",
+    "trainText": "訓練",
+    "progressText": "0%",
+    "epo": "週期數：",
+    "batch": "批次大小：",
+    "speed": "學習速率：",
+
+    "saveProject": "匯出專案",
+    "select-camera": "選擇攝影機",
+    "preview_title": "預覽",
+    "exportModel": "測試模型",
+    "playModel": "使用模型",
+
+    "nameTilt": "名稱：",
+    "instructionsTilt": "說明：",
+
+    "keepPhoto": "長按此處持續拍照",
+    "highLevel": "進階",
+    "reset": "重置為預設設定",
+    "deepLearn": "深入了解",
+    "startTrain": "開始訓練",
+
+    "selectTitle": "選擇攝影機類型",
+    "local": "本地攝影機",
+    "network": "網路攝影機",
+    "robot": "ICrobot 攝影機",
+    "cameraIp": "請輸入網路攝影機 IP 位址",
+    "cameraSelectConfirm": "確定",
+    "cameraSelectCancel": "取消",
+
+    "retrain": "再次訓練",
+    "completed": "已完成",
+    "nameNotNull": "專案名稱不能為空",
+    "illeglStr": "存在非法字元 -",
+    "stopTest": "停止測試"
+    }
 };
 
 // Determine title key based on MType

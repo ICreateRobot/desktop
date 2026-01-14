@@ -138,7 +138,27 @@ const language = {
     "sound_alt": "распознавание речи",
     "createImg_alt": "новый проект",
     "importImg_alt": "импорт проекта"
-  }
+  },
+  "zh-tw": {
+    "back": "返回",
+    "topBar_tilt": "訓練模型",
+    "back_less": "分類",
+    "recognize1": "影像辨識",
+    "recognize2": "手勢辨識",
+    "recognize3": "姿態辨識",
+    "recognize4": "語音辨識",
+    "newProject": "新建專案",
+    "importProject": "匯入專案",
+    "manageProject": "專案管理",
+
+    "title": "選擇模型訓練介面",
+    "image_alt": "影像辨識",
+    "gesture_alt": "手勢辨識",
+    "posture_alt": "姿態辨識",
+    "sound_alt": "語音辨識",
+    "createImg_alt": "新建專案",
+    "importImg_alt": "匯入專案"
+    }
 }
 
 
