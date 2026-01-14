@@ -572,6 +572,12 @@ class EditorWindow extends ProjectRunningWindow {
       
       
     });
+
+    this.ipc.handle('disconnect-wifi', (event,isDis) => {
+      if(isDis){
+        ConnectWindow.disconnectWifi()
+      }
+    });
     this.ipc.on('get-robot-data', (event) => {
       // console.log(this.robotData)
       event.returnValue = this.robotData

@@ -33,6 +33,8 @@ contextBridge.exposeInMainWorld('EditorPreload', {
   SerialDownload: (code) => ipcRenderer.invoke('serial-download',code),
   cancelload: () => ipcRenderer.invoke('cancelload'),
 
+
+  disConnectWifi: (isDis) => ipcRenderer.invoke('disconnect-wifi',isDis),
    // 浦东第一帅-----------------------------------------------
    //连接相关
    requestUSBPermission: () => ipcRenderer.invoke('usb-request-device'),

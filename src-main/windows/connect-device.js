@@ -449,36 +449,49 @@ class ConnectWindow extends AbstractWindow {
               const isConnected = await waitForConnection(ssid, 10000); // 最多等15秒
               if (isConnected) {
                 console.log("connected----------")
-                await new Promise(resolve => setTimeout(resolve, 1000))
-                const socket = new net.Socket();
-                socket.setTimeout(1000);
+                await new Promise(resolve => setTimeout(resolve, 1500))
+                // const socket = new net.Socket();
+                // socket.setTimeout(1000);
 
-                socket.on("connect", async() => {
-                    console.log(`test success 192.168.4.1`);
-                    socket.destroy();
-                    await new Promise(resolve => setTimeout(resolve, 200))
+                // socket.on("connect", async() => {
+                //     console.log(`test success 192.168.4.1`);
+                //     socket.destroy();
+                //     await new Promise(resolve => setTimeout(resolve, 500))
 
-                    currentWifi.setWifi(ssid);
+                //     currentWifi.setWifi(ssid);
 
-                    clearInterval(netTimer.getTimer())
-                    if(getSocket()){
-                      console.log('可能发送了')
-                      getSocket().send(JSON.stringify({
-                        type: 'whatIp',
-                        data: { message: '192.168.4.1' }
-                      }))
-                    }
-                    resolve("connected");
-                });
+                //     clearInterval(netTimer.getTimer())
+                //     if(getSocket()){
+                //       console.log('可能发送了')
+                //       getSocket().send(JSON.stringify({
+                //         type: 'whatIp',
+                //         data: { message: '192.168.4.1' }
+                //       }))
+                //     }
+                //     resolve("connected");
+                // });
 
-                socket.on("error", () => {
-                  reject(`connect failed:`);
-                });
-                socket.on("timeout", () => {
-                  reject(`connect failed:`);
-                });
+                // socket.on("error", () => {
+                //   reject(`connect failed:`);
+                // });
+                // socket.on("timeout", () => {
+                //   reject(`connect failed:`);
+                // });
 
-                socket.connect(8082, '192.168.4.1');
+                // socket.connect(8082, '192.168.4.1');
+
+
+                currentWifi.setWifi(ssid);
+
+                clearInterval(netTimer.getTimer())
+                if(getSocket()){
+                  console.log('可能发送了')
+                  getSocket().send(JSON.stringify({
+                    type: 'whatIp',
+                    data: { message: '192.168.4.1' }
+                  }))
+                }
+                resolve("connected");
                 
               } else {
                 console.log("timeout------------")
@@ -561,11 +574,7 @@ class ConnectWindow extends AbstractWindow {
       }
     })
 
-
-
-    ipc.handle('disConn', async (event) => {
-      console.log('--------------------------')
-      // 断开当前连接的 Wi-Fi 网络
+    function disconnectWifi(){
       currentWifi.setWifi('')
       wifi.disconnect((err) => {
         if (err) {
@@ -574,6 +583,13 @@ class ConnectWindow extends AbstractWindow {
         }
         console.log('成功断开当前 Wi-Fi 网络');
       });
+    }
+
+
+    ipc.handle('disConn', async (event) => {
+      console.log('--------------------------')
+      // 断开当前连接的 Wi-Fi 网络
+     disconnectWifi()
     })
 
     ipc.handle('change-name', async (event,name) => {
@@ -1044,6 +1060,7 @@ class ConnectWindow extends AbstractWindow {
             const message = bufferData.trim();
             bufferData = '';
 
+            console.log(message)
             // 命中 ACK
             if (message.includes('[0]')) {
               if (finished) return;
@@ -1808,6 +1825,18 @@ class ConnectWindow extends AbstractWindow {
     }
   }
 
+
+  static disconnectWifi(){
+    console.log('%%%%%%%%%%')
+      currentWifi.setWifi('')
+      wifi.disconnect((err) => {
+        if (err) {
+            console.error('断开连接失败:', err);
+            return;
+        }
+        console.log('成功断开当前 Wi-Fi 网络');
+      });
+    }
 
   getDimensions () {
     return {

@@ -895,6 +895,7 @@
                         } catch (error) {
                           
                           alert(strings['connect-device.connectFailed']);
+                          await window.connect.disConn();
                         } finally {
                           document.getElementById('loading-overlay').style.display = 'none';
                           await loadWifiList(); // 成功或失败都刷新
