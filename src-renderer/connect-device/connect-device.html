@@ -2237,9 +2237,14 @@
             button.innerText =strings['connect-device.connecting']
             button.style.backgroundColor = '#ff9900';
 
-            let result = await connect.sendConnectPort(port);
+            let result
+            try{
+              result = await connect.sendConnectPort(port);
+            }catch(e){
+              console.log(e)
+            }
             console.log(result)
-            if(result.success){
+            if(result && result.success){
               const status = connect.whatPortConnect();
               console.log(status.port)
               

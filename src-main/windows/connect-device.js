@@ -1,4 +1,4 @@
-const {app, shell} = require('electron');
+const {app, shell,dialog} = require('electron');
 const AbstractWindow = require('./abstract');
 const {translate, getStrings, getLocale} = require('../l10n');
 const {APP_NAME} = require('../brand');
@@ -77,11 +77,16 @@ const {getDistance,setDistance} = require('../../utils/distance')
 const {setSocket,getSocket,getBricksSocket,getBricksMotor} = require('../../utils/socket')
 const BleConnectWindow =require('./ble-connect')
 
+const {setCurrent,getCurrent} = require('../../utils/whatConnectFun')
+const {setVersion,getVersion} = require('../../utils/currentVersion')
+const { getLatestMicrobitVersion } = require('../../utils/microbitDownloader');
 let bluetoothPinCallback
 let selectBluetoothCallback
 
 let THIS
 let isClosed
+
+let currentConnFun=''
 
 const Readline = require('@serialport/parser-readline')
 // const parser = require('@serialport/parser-readline');
@@ -232,6 +237,7 @@ detectPreferredInterface()
                   scanAbort = true; // 停止其他任务的继续执行
                   console.log(`ESP32 IP 地址: ${result}`);
                   currentEspIp.setIp(result);
+                  setCurrent('sta')
                   clearInterval(netTimer.getTimer());
 
                   if (getSocket()) {
@@ -390,6 +396,7 @@ class ConnectWindow extends AbstractWindow {
         } else if (currentWifi.getWifi() && ssid !== currentWifi.getWifi()) {
           console.log('Disconnected or connected to the wrong network');
           currentWifi.setWifi('')
+          setCurrent('')
           if(getSocket()){
             // console.log('可能发送了')
             getSocket().send(JSON.stringify({
@@ -482,6 +489,7 @@ class ConnectWindow extends AbstractWindow {
 
 
                 currentWifi.setWifi(ssid);
+                setCurrent('ap')
 
                 clearInterval(netTimer.getTimer())
                 if(getSocket()){
@@ -491,6 +499,7 @@ class ConnectWindow extends AbstractWindow {
                     data: { message: '192.168.4.1' }
                   }))
                 }
+                disconnectPortLogic()
                 resolve("connected");
                 
               } else {
@@ -576,12 +585,19 @@ class ConnectWindow extends AbstractWindow {
 
     function disconnectWifi(){
       currentWifi.setWifi('')
+      setCurrent('')
       wifi.disconnect((err) => {
         if (err) {
             console.error('断开连接失败:', err);
             return;
         }
         console.log('成功断开当前 Wi-Fi 网络');
+        if (socket.getSocket()) {
+          socket.getSocket().send(JSON.stringify({
+            type: 'wifiDisConnect',
+            data: { message: true }
+          }));
+        }
       });
     }
 
@@ -683,6 +699,7 @@ class ConnectWindow extends AbstractWindow {
     
                 
             },5000))
+            disconnectPortLogic()
           }
           
           // 返回二维码 URL 给渲染进程
@@ -887,7 +904,7 @@ class ConnectWindow extends AbstractWindow {
   
       this.window.webContents.send('what-extension', extensions.getExtension())
       setInterval(()=>{
-        console.log('sendExtension')
+        // console.log('sendExtension')
         
         this.window.webContents.send('what-extension', extensions.getExtension())
   
@@ -896,7 +913,7 @@ class ConnectWindow extends AbstractWindow {
         // 创建定时器持续检查
     const checkInterval = setInterval(() => {
       if (getBricksMotor()) {
-          console.log('成功获取BricksMotor连接');
+          // console.log('成功获取BricksMotor连接');
           clearInterval(checkInterval); // 停止检查
 
           // 添加消息监听
@@ -916,7 +933,7 @@ class ConnectWindow extends AbstractWindow {
           //     startChecking(); // 重新激活检查流程
           // });
       } else {
-          console.log('等待BricksMotor连接...');
+          // console.log('等待BricksMotor连接...');
       }
     }, 2000); // 每秒检查一次
 
@@ -926,6 +943,7 @@ class ConnectWindow extends AbstractWindow {
       console.log(connect)
       console.log('#######################')
 
+      setCurrent('')
       if(getSocket()){
         getSocket().send(JSON.stringify({
           type: 'ble',
@@ -939,12 +957,14 @@ class ConnectWindow extends AbstractWindow {
       // console.log(connect)
       console.log('$$$$$$$$$$$$$$$$$$$$$$$$$')
 
+      setCurrent('ble')
      if(getSocket()){
         getSocket().send(JSON.stringify({
             type: 'ble-connect',
             data: { message: true }
         }))
       }
+      disconnectPortLogic()
       
     })
 
@@ -983,6 +1003,11 @@ class ConnectWindow extends AbstractWindow {
           return new Promise((resolve, reject) => {
             getDeviceState().serialPort.write(command, err => {
               if (err) return reject(err);
+              setDeviceState(['currentResolve', (data) => {
+                setDeviceState(['currentResolve', null]);
+                console.log('123456789',data)
+                // resolve
+              }]);
               setTimeout(resolve, delay);
             });
           });
@@ -1245,6 +1270,7 @@ class ConnectWindow extends AbstractWindow {
             await sendSerialCommand('from ICreate import *\r',200);
             // await sendSerialCommand('from s4s import *\r',200);
             await sendSerialCommand('display.show(Image.HEART)\n\r', 200);
+            await sendSerialCommand('get_version()\n\r', 200);//用于获取当前版本号
           }else{
             await sendSerialCommand('\x03'); 
             await sendSerialCommand('\x04'); 
@@ -1395,8 +1421,13 @@ class ConnectWindow extends AbstractWindow {
 
           // PORT.on('error', err => console.error('串口错误:', err));
 
-          const result = await connectNormalSerial(port);
-          return result;
+          if(getCurrent().length<1){
+            const result = await connectNormalSerial(port);
+            return result;
+          }else{
+            return { success: false, microbit: false, error: 'error' }
+          }
+          
           
         }
   
@@ -1406,6 +1437,41 @@ class ConnectWindow extends AbstractWindow {
       })
       
 
+
+
+      function isVersionString(str) {
+        if (!str) return null;
+
+        const match = str.match(/['"]?(\d+(?:\.\d+){2,})['"]?/);
+        return match ? match[1] : null; 
+      }
+
+      /**
+       * 
+       * @param {*版本号1} v1 
+       * @param {*版本号2} v2 
+       * @returns 1:v1>v2;0:v1==v2;-1:v1<v2
+       * 
+       */
+      function compareVersion(v1, v2) {
+        if (!v1 || !v2) return 0;
+      
+        const a = v1.split('.').map(Number);
+        const b = v2.split('.').map(Number);
+      
+        const len = Math.max(a.length, b.length);
+      
+        for (let i = 0; i < len; i++) {
+          const num1 = a[i] || 0;
+          const num2 = b[i] || 0;
+      
+          if (num1 > num2) return 1;
+          if (num1 < num2) return -1;
+        }
+      
+        return 0;
+      }
+      
       // 监听断开或异常
       function setupSerialListeners() {
         // 先移除旧监听器
@@ -1413,18 +1479,57 @@ class ConnectWindow extends AbstractWindow {
           getDeviceState().parser.removeAllListeners();
         }
       
-        getDeviceState().serialPort.on('data', data => {
+        getDeviceState().serialPort.on('data', async data => {
           const buffer = getDeviceState().serialBuffer + data;
           setDeviceState(['serialBuffer',buffer])
-          //  console.log(data)
+           console.log('console::::'+getDeviceState().serialBuffer)
           if (getDeviceState().serialBuffer.includes('>>>') && getDeviceState().currentResolve) {
             const response = getDeviceState().serialBuffer;
             console.log("####",response)
+            if(response.includes("NameError: name 'get_version' isn't defined")){
+              console.log('version is too long')
+              dialog.showMessageBox({
+                type: 'warning',
+                title: translate('connect-device.microbit.title'),
+                message: translate('connect-device.microbit.message'),
+                detail: translate('connect-device.microbit.detail'),
+                buttons: [translate('connect-device.microbit.button.ok')],
+                defaultId: 0
+              });
+            }
+            if (isVersionString(response)) {
+              console.log('current version:', response);
+              setVersion(['microbit',isVersionString(response)])
+              try{
+                const res = await getLatestMicrobitVersion()
+                console.log(res)
+                
+                let result=compareVersion(isVersionString(response),res.version)
+                console.log('abcd:',result)
+                if(result==-1){
+                  dialog.showMessageBox({
+                    type: 'warning',
+                    title: translate('connect-device.microbit.title'),
+                    message: translate('connect-device.microbit.message'),
+                    detail: translate('connect-device.microbit.detail'),
+                    buttons: [translate('connect-device.microbit.button.ok')],
+                    defaultId: 0
+                  });
+                }
+              }catch(e){
+                console.log(e)
+              }
+            }
             // deviceState.serialBuffer = '';
-            setDeviceState(['serialBuffer',''])
-            getDeviceState().currentResolve(response);
-            // deviceState.currentResolve = null;
-            setDeviceState('currentResolve',null)
+            try{
+              setDeviceState(['serialBuffer',''])
+              getDeviceState().currentResolve(response);
+              // deviceState.currentResolve = null;
+              setDeviceState('currentResolve',null)
+            }catch(e){
+              console.log(e)
+            }
+           
           }
 
 
@@ -1457,6 +1562,7 @@ class ConnectWindow extends AbstractWindow {
         });
       }
       async function disconnectDevice() {
+        setVersion(['microbit',''])
         const deviceState = getDeviceState();
 
         // 关闭串口
@@ -1766,6 +1872,72 @@ class ConnectWindow extends AbstractWindow {
   }
 
   static async disconnectPortLogic() {
+    setVersion(['microbit',''])
+
+    async function closeDapLink(daplink) {
+      return new Promise(resolve => {
+        try {
+          daplink.disconnect().then(resolve).catch(err => {
+            console.error('DAPLink断开错误:', err);
+            resolve();
+          });
+        } catch (err) {
+          console.error('DAPLink断开异常:', err);
+          resolve();
+        }
+      });
+    }
+    async function disconnectDevice() {
+      const deviceState = getDeviceState();
+
+      // 关闭串口
+      if (deviceState.serialPort && deviceState.serialPort.isOpen) {
+        await new Promise((resolve, reject) => {
+          deviceState.serialPort.close((err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+      }
+
+      // 关闭 USB 设备
+      try {
+        if (deviceState.usbDevice) {
+          if (deviceState.usbDevice.interfaces?.[0]?.isKernelDriverActive?.()) {
+            deviceState.usbDevice.interfaces[0].detachKernelDriver();
+          }
+          if (deviceState.usbDevice.interfaces?.[0]?.claimed) {
+            deviceState.usbDevice.interfaces[0].release(true, () => {});
+          }
+          deviceState.usbDevice.close();
+        }
+      } catch (err) {
+        console.warn('USB 清理时异常:', err.message);
+      }
+      if(getDeviceState().daplink){
+        let daplink=getDeviceState().daplink
+        await closeDapLink(daplink)
+      }
+
+      // 清理状态
+      setDeviceState(['serialPort', null]);
+      setDeviceState(['usbDevice', null]);
+      setDeviceState(['parser', null]);
+      setDeviceState(['replActive', false]);
+      setDeviceState(['serialBuffer', '']);
+      setDeviceState(['currentResolve', null]);
+      setDeviceState(['daplink',null])
+
+      // 通知前端
+      if (socket.getSocket()) {
+        socket.getSocket().send(JSON.stringify({
+          type: 'isOpenPort',
+          data: { message: false }
+        }));
+      }
+    }
+
+    console.log('1234556')
     // 检查当前端口是否为 micro:bit
     const ports = await SerialPort.list();
     const currentPortInfo = ports.find(p => p.path === getPortCom());
@@ -1774,8 +1946,10 @@ class ConnectWindow extends AbstractWindow {
       currentPortInfo.vendorId === '0D28' &&
       ['0204', '0205'].includes(currentPortInfo.productId?.toUpperCase?.());
 
+      console.log(isMicrobit)
     try {
       if (isMicrobit) {
+
         await disconnectDevice();
 
         setPort(null);
@@ -1829,10 +2003,17 @@ class ConnectWindow extends AbstractWindow {
   static disconnectWifi(){
     console.log('%%%%%%%%%%')
       currentWifi.setWifi('')
+      setCurrent('')
       wifi.disconnect((err) => {
         if (err) {
             console.error('断开连接失败:', err);
             return;
+        }
+        if (socket.getSocket()) {
+          socket.getSocket().send(JSON.stringify({
+            type: 'wifiDisConnect',
+            data: { message: true }
+          }));
         }
         console.log('成功断开当前 Wi-Fi 网络');
       });
