@@ -1357,6 +1357,10 @@
         "connect-device.openBle": "Открыть интерфейс Bluetooth",
         "connect-device.title": "Подключение",
         "connect-device.connectFailed":"Сбой подключения",
+        "connect-device.microbit.title": "Версия прошивки слишком низкая",
+        "connect-device.microbit.message": "Текущая версия прошивки устройства слишком низкая",
+        "connect-device.microbit.detail": "Чтобы обеспечить стабильную и корректную работу, пожалуйста, сначала прошейте устройство.",
+        "connect-device.microbit.button.ok": "ОК",
         "ble-connect.bleTitle": "Подключенные Bluetooth устройства:",
         "ble-connect.clickme": "Начать сканирование",
         "ble-connect.closeBle": "Отключить Bluetooth",
@@ -1414,6 +1418,7 @@
         "download-code.startDownloadFirm": "Начало загрузки прошивки",
         "download-code.downloadFaild": "Не удалось загрузить прошивку, проверьте подключение к сети",
         "download-code.downloadSuccess": "Прошивка успешно загружена, начинается прошивка",
+        "download-code.notSupport":"Текущее устройство не поддерживает прошивку",
 
         "index.confirm": "Подтвердить",
         "index.sysTitle": "Уведомление о восстановлении системы",
@@ -1424,7 +1429,15 @@
         "connect-device.reScan":"Устройство может быть отключено или срок сканирования истёк. Пожалуйста, включите устройство или выполните повторное сканирование.",
         "connect-device.tipBle":"Пожалуйста, сначала переключите робота в режим Bluetooth",
         "connect-device.tipAp":"Пожалуйста, сначала переключите робота в режим AP",
-        "connect-device.tipSta":"Пожалуйста, сначала переключите robota w tryb STA"
+        "connect-device.tipSta":"Пожалуйста, сначала переключите robota w tryb STA",
+        "updateWindow.title":"Доступна новая версия",
+        "updateWindow.msg1":"Обнаружена новая версия",
+        "updateWindow.msg2":"Текущая версия:",
+        "updateWindow.msg3":"Перейти на официальный сайт для загрузки последней версии?",
+        "updateWindow.download":"Перейти на официальный сайт",
+        "updateWindow.cancel":"Отмена",
+        "updateWindow.noalert":"Больше не напоминать об этой версии",
+        "microbit.notConnect":"Устройство не подключено"
     },
     "sl": {
         "about": "O programu {APP_NAME}",
@@ -1894,6 +1907,7 @@
         "download-code.startDownloadFirm":"Rozpoczynanie pobierania oprogramowania",
         "download-code.downloadFaild":"Pobieranie oprogramowania nie powiodło się, sprawdź połączenie sieciowe",
         "download-code.downloadSuccess":"Pobieranie zakończone, rozpoczyna się nagrywanie oprogramowania",
+        "download-code.notSupport":"Bieżące urządzenie nie obsługuje wgrywania oprogramowania",
 
         "index.confirm":"Potwierdź",
         "index.sysTitle":"Powiadomienie o Odzyskaniu Systemu",
@@ -1905,7 +1919,19 @@
         "connect-device.reScan":"Urządzenie może być offline lub skanowanie wygasło. Włącz urządzenie lub wykonaj ponowne skanowanie.",
         "connect-device.tipBle":"Najpierw przełącz robota w tryb Bluetooth",
         "connect-device.tipAp":"Najpierw przełącz robota w tryb AP",
-        "connect-device.tipSta":"Najpierw przełącz robota w tryb STA"
+        "connect-device.tipSta":"Najpierw przełącz robota w tryb STA",
+        "connect-device.microbit.title": "Wersja oprogramowania jest zbyt niska",
+        "connect-device.microbit.message": "Aktualna wersja oprogramowania urządzenia jest zbyt niska",
+        "connect-device.microbit.detail": "Aby zapewnić stabilne i prawidłowe działanie, najpierw wgraj oprogramowanie.",
+        "connect-device.microbit.button.ok": "OK",
+        "updateWindow.title":"Dostępna nowa wersja",
+        "updateWindow.msg1":"Wykryto nową wersję",
+        "updateWindow.msg2":"Obecna wersja to",
+        "updateWindow.msg3":"Czy chcesz przejść na oficjalną stronę, aby pobrać najnowszą wersję?",
+        "updateWindow.download":"Przejdź na oficjalną stronę",
+        "updateWindow.cancel":"Anuluj",
+        "updateWindow.noalert":"Nie przypominaj ponownie o tej wersji",
+        "microbit.notConnect":"Nie podłączono urządzenia"
     },
 
     "zh-cn": {
@@ -2064,6 +2090,10 @@
         "connect-device.showToast.connectTimeout": "连接超时，请重试",
         "connect-device.showToast.disConnect": "已断开",
         "connect-device.showToast.disconnectFailed": "断开失败",
+        "connect-device.microbit.title": "固件版本过低",
+        "connect-device.microbit.message": "当前设备固件版本过低",
+        "connect-device.microbit.detail": "为保证正常稳定运行，请先烧录固件。",
+        "connect-device.microbit.button.ok": "确定",
         "please-scan-qr":"请扫描二维码连接 Wi-Fi(确保电脑热点开启)",
         "download-code.title":"固件烧录",
         "download-code.reconnect":"已重新插好设备",
@@ -2102,6 +2132,7 @@
         "download-code.startDownloadFirm":"开始下载固件",
         "download-code.downloadFaild":"固件下载失败，请检查网路",
         "download-code.downloadSuccess":"固件下载成功，即将开始烧录",
+        "download-code.notSupport":"当前设备暂不支持烧录固件",
 
         "index.confirm":"确定",
         "index.sysTitle":"系统恢复通知",
@@ -2112,7 +2143,15 @@
         "connect-device.reScan":"设备可能已掉线或扫描已过期，请开启设备或重新扫描",
         "connect-device.tipBle":"请先将机器人切换至蓝牙模式",
         "connect-device.tipAp":"请先将机器人切换至AP模式",
-        "connect-device.tipSta":"请先将机器人切换至Sta模式"
+        "connect-device.tipSta":"请先将机器人切换至Sta模式",
+        "updateWindow.title":"新版本可用",
+        "updateWindow.msg1":"检测到新版本",
+        "updateWindow.msg2":"您当前版本为",
+        "updateWindow.msg3":"是否前往官网下载最新版？",
+        "updateWindow.download":"去官网下载",
+        "updateWindow.cancel":"取消",
+        "updateWindow.noalert":"下次不再提示此版本",
+        "microbit.notConnect":"未连接设备"
     },
     "zh-tw": {
         "about": "關於 {APP_NAME}",
@@ -2274,6 +2313,10 @@
         "connect-device.openBle": "開啟藍牙連線介面",
         "connect-device.title": "連線",
         "connect-device.connectFailed": "連線失敗",
+        "connect-device.microbit.title": "韌體版本過低",
+        "connect-device.microbit.message": "目前裝置的韌體版本過低",
+        "connect-device.microbit.detail": "為確保正常且穩定的運作，請先燒錄韌體。",
+        "connect-device.microbit.button.ok": "確定",
 
         "ble-connect.bleTitle": "已連線的藍牙：",
         "ble-connect.clickme": "開始掃描",
@@ -2333,6 +2376,7 @@
         "download-code.startDownloadFirm": "開始下載韌體",
         "download-code.downloadFaild": "韌體下載失敗，請檢查網路",
         "download-code.downloadSuccess": "韌體下載成功，即將開始燒錄",
+        "download-code.notSupport":"目前裝置不支援燒錄韌體",
 
         "index.confirm": "確定",
         "index.sysTitle": "系統復原通知",
@@ -2344,7 +2388,15 @@
         "connect-device.reScan": "裝置可能已離線或掃描已過期，請開啟裝置或重新掃描",
         "connect-device.tipBle": "請先將機器人切換至藍牙模式",
         "connect-device.tipAp": "請先將機器人切換至 AP 模式",
-        "connect-device.tipSta": "請先將機器人切換至 STA 模式"
+        "connect-device.tipSta": "請先將機器人切換至 STA 模式",
+        "updateWindow.title":"有新版本可用",
+        "updateWindow.msg1":"偵測到新版本",
+        "updateWindow.msg2":"您目前的版本為",
+        "updateWindow.msg3":"是否前往官方網站下載最新版？",
+        "updateWindow.download":"前往官方網站",
+        "updateWindow.cancel":"取消",
+        "updateWindow.noalert":"下次不再提醒此版本",
+        "microbit.notConnect":"未連接裝置"
         }
 
 }

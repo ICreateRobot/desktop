@@ -771,6 +771,10 @@
     "string": "Firmware downloaded successfully. Preparing to flash.",
     "developer_comment": "download-code.downloadSuccess"
   },
+  "download-code.notSupport": {
+    "string": "The current device does not support firmware flashing",
+    "developer_comment": "download-code.notSupport"
+  },
 
 
 
@@ -817,6 +821,54 @@
   "connect-device.tipSta":{
     "string":"Please switch the robot to STA mode first",
     "developer_comment":"connect-device.tipSta"
+  },
+  "connect-device.microbit.title": {
+    "string": "Firmware version too low",
+    "developer_comment": "connect-device.microbit.title"
+  },
+  "connect-device.microbit.message": {
+    "string": "The current device firmware version is too low",
+    "developer_comment": "connect-device.microbit.message"
+  },
+  "connect-device.microbit.detail": {
+    "string": "To ensure stable and proper operation, please flash the firmware first.",
+    "developer_comment": "connect-device.microbit.detail"
+  },
+  "connect-device.microbit.button.ok": {
+    "string": "OK",
+    "developer_comment": "connect-device.microbit.button.ok"
+  },
+  "updateWindow.title":{
+    "string":"New Version Available",
+    "developer_comment":"updateWindow.title"
+  },
+  "updateWindow.msg1": {
+    "string": "A new version",
+    "developer_comment": "updateWindow.msg1"
+  },
+  "updateWindow.msg2": {
+    "string": "is available. Your current version is",
+    "developer_comment": "updateWindow.msg2"
+  },
+  "updateWindow.msg3": {
+    "string": "Would you like to visit the official website to download the latest version?",
+    "developer_comment": "updateWindow.msg3"
+  },
+  "updateWindow.download": {
+    "string": "Go to Official Website",
+    "developer_comment": "updateWindow.download"
+  },
+  "updateWindow.cancel": {
+    "string": "Ignore",
+    "developer_comment": "updateWindow.cancel"
+  },
+  "updateWindow.noalert": {
+    "string": "Do not remind me about this version again",
+    "developer_comment": "updateWindow.noalert"
+  },
+  "microbit.notConnect": {
+    "string": "Not connected to device",
+    "developer_comment": "microbit.notConnect"
   }
   
 }
