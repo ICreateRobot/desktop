@@ -428,6 +428,9 @@ function endShow(){console.log("结束识别");
     if(show_video.srcObject) show_video.srcObject = null;
     if(show_video.src) show_video.src = null
     clearInterval(showInterval);
+    const canvas = document.getElementById('show_canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     $('#showLoad').css('display', 'block');
 }
 /*使用模型*/

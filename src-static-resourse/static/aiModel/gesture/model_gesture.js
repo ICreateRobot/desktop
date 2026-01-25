@@ -435,7 +435,9 @@ function endShow(){console.log("结束识别");
     channelVideo.postMessage('close')
     if(show_video.srcObject) show_video.srcObject = null;
     if(show_video.src) show_video.src = null
-   
+    const canvas = document.getElementById('show_canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     clearInterval(showInterval);
     $('#showLoad').css('display', 'block');
 }
