@@ -655,6 +655,12 @@ body {
     /* border: 2px solid #38ceb1; */
     z-index: 50;
 }
+
+.preview_center {
+    display: flex;
+    flex-direction: column; /* 上下排列 */
+    align-items: center;    /* ⭐ 左右居中 */
+  }
 /*类展示*/
 .class_show{
     width: 310px;
