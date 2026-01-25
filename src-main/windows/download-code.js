@@ -573,6 +573,8 @@ const DAPjs = require('dapjs');
 const { DAPLink } = DAPjs;
 const usb = require('usb');
 const {BrowserWindow } = require('electron');
+const {setVersion,getVersion} = require('../../utils/currentVersion')
+const {getGiteeTooken,getGithubTooken} = require('../../tookenConfig')
 
 const ssid = 'MyHotspot'; // Wi-Fi 名称
 const password = '12345678'; // Wi-Fi 密码
@@ -624,7 +626,18 @@ class DownloadCodeWindow extends AbstractWindow {
     ipc.on('get-ports', async (event) => {
       try {
         const ports = await SerialPort.list();
-        const filteredPorts = ports.filter(p => p.vendorId && p.vendorId.toUpperCase() === '1A86');
+        // const filteredPorts = ports.filter(p => p.vendorId && p.vendorId.toUpperCase() === '1A86');
+        const filteredPorts=ports
+        .filter(p =>
+          (
+            p.vendorId === '0D28' &&
+            ['0204', '0205'].includes(p.productId)
+          ) ||
+          (
+            p.vendorId &&
+            p.vendorId.toUpperCase() === '1A86'
+          )
+        )
         const portPaths = filteredPorts.map(p => p.path);
         event.returnValue = portPaths;
       } catch (err) {
@@ -639,6 +652,11 @@ class DownloadCodeWindow extends AbstractWindow {
 
     });
 
+    ipc.on('get-version', async (event) => {
+
+      event.returnValue = getVersion();
+
+  });
 
     function downloadFirmwareToTmp(url, saveAsName = 'firmware.bin') {
       return new Promise((resolve, reject) => {
@@ -701,307 +719,581 @@ class DownloadCodeWindow extends AbstractWindow {
     const mainPy = getResourcePath('main.py')
     const icrobotPy = getResourcePath('icrobot.mpy')
 
+    /* ================= 仓库配置 ================= */
 
+    // ---- GITEE ----
+    const GITEE_OWNER = 'lgmShine';
+    const GITEE_REPO = 'bucket';
+    const GITEE_BRANCH = 'master';
+    const GITEE_TOKEN = getGiteeTooken(); // 可选
 
-    const OWNER = 'lgmShine';        // <-- 修改为你的 gitee owner
-    const REPO = 'bucket';          // <-- 修改为你的仓库名
-    const BRANCH = 'master';        // <-- 分支
-    const BASE_FOLDER = 'firmware'; // 仓库中固件的根目录，如 firmware/standard/last/...
+    // ---- GITHUB ----
+    const GITHUB_OWNER = 'ICreateRobot';
+    const GITHUB_REPO = 'bucket';
+    const GITHUB_BRANCH = 'master';
+    const GITHUB_TOKEN = getGithubTooken(); // public 仓库可留空
 
-    // 5317e371401159915e29615d4efff0ef
-    
-    // 可选 token（如果是私有仓库）
-    const GITEE_TOKEN = '39bdb0e0d25fb2d7e4b54ff21e15ec99'; // 如果需要就填
-    // ipc.handle('download-firmware', async (event, url) => {
-    //   return new Promise((resolve, reject) => {
-    //     const tmpDir = os.tmpdir();
-    //     const fileName = 'commonFirmware.bin';
-    //     const savePath = path.join(tmpDir, fileName);
+    // 固件根目录
+    const BASE_FOLDER = 'firmware';
 
-    //     const protocol = url.startsWith('https') ? https : http;
-    //     const file = fs.createWriteStream(savePath);
-    //     const request = protocol.get(url, (res) => {
-    //       if (res.statusCode !== 200) {
-    //         reject(new Error(`下载失败，状态码: ${res.statusCode}`));
-    //         return;
-    //       }
-    //       res.pipe(file);
-    //       file.on('finish', () => {
-    //         file.close(() => resolve(savePath));
-    //       });
-    //     });
-
-    //     request.on('error', (err) => {
-    //       fs.unlink(savePath, () => reject(err));
-    //     });
-    //   });
-    // });
-
-    // ipc.handle('get-common-firmware-versions', async () => {
-    //   // 这里用之前的 Gitee API 获取最近3次提交
-    //   const owner = 'lgmShine';
-    //   const repo = 'bucket';
-    //   const filePath = 'firmware.bin';
-    //   const branch = 'master';
-    //   const token = ''; // 如果公开仓库可不填
-
-    //   const url = `https://gitee.com/api/v5/repos/${owner}/${repo}/commits?path=${filePath}&sha=${branch}&per_page=3`;
-
-    //   const axios = require('axios');
-    //   const res = await axios.get(url, {
-    //     headers: token ? { Authorization: `token ${token}` } : {}
-    //   });
-
-    //   // 返回给前端，包含下载原始 URL
-    //   return res.data.map(c => ({
-    //     sha: c.sha,
-    //     message: c.commit.message,
-    //     time: c.commit.committer.date,
-    //     author: c.commit.committer.name,
-    //     url: `https://gitee.com/${owner}/${repo}/raw/${branch}/${filePath}?commit=${c.sha}`
-    //   }));
-
-    // });
-
+    const TYPE_CONFIG = {
+      standard: { ext: '.bin' },
+      xiaozhi:  { ext: '.bin' },
+      microbit:{ ext: '.hex' }
+    };
 
 
     const axios = require('axios');
-    // HELPERS
+    /* ================= URL 构造 ================= */
+
     function giteeApiUrl(pathname, params = {}) {
       const base = `https://gitee.com/api/v5${pathname}`;
       const qs = new URLSearchParams(params).toString();
       return qs ? `${base}?${qs}` : base;
     }
-    function rawUrl(repoPath, commitSha = null) {
-      // raw URL: https://gitee.com/{owner}/{repo}/raw/{branch}/{path}
-      if (commitSha) return `https://gitee.com/${OWNER}/${REPO}/raw/${commitSha}/${repoPath}`;
-      return `https://gitee.com/${OWNER}/${REPO}/raw/${BRANCH}/${repoPath}`;
+
+    function githubApiUrl(pathname, params = {}) {
+      const base = `https://api.github.com${pathname}`;
+      const qs = new URLSearchParams(params).toString();
+      return qs ? `${base}?${qs}` : base;
     }
 
+    function giteeRawUrl(repoPath, commitSha = null) {
+      if (commitSha) {
+        return `https://gitee.com/${GITEE_OWNER}/${GITEE_REPO}/raw/${commitSha}/${repoPath}`;
+      }
+      return `https://gitee.com/${GITEE_OWNER}/${GITEE_REPO}/raw/${GITEE_BRANCH}/${repoPath}`;
+    }
 
-    function withTimeout(promise, ms, timeoutMessage = 'Request timeout') {
+    function githubRawUrl(repoPath, commitSha = null) {
+      if (commitSha) {
+        return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${commitSha}/${repoPath}`;
+      }
+      return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${repoPath}`;
+    }
+
+    /* ================= 通用 Fallback 请求 ================= */
+
+    async function requestWithFallback({ gitee, github }) {
+      try {
+        return await axios.get(gitee.url, { headers: gitee.headers });
+      } catch (err) {
+        console.warn('[GITEE FAILED] → GITHUB', err.message);
+        return await axios.get(github.url, { headers: github.headers });
+      }
+    }
+
+    async function fetchRawWithFallback(repoPath) {
+      try {
+        return await axios.get(giteeRawUrl(repoPath));
+      } catch (err) {
+        console.warn('[GITEE RAW FAILED] → GITHUB', repoPath);
+        return await axios.get(githubRawUrl(repoPath));
+      }
+    }
+
+    /* ================= 超时包装 ================= */
+
+    function withTimeout(promise, ms, msg = 'Request timeout') {
       let timer;
-      const timeoutPromise = new Promise((_, reject) => {
-        timer = setTimeout(() => {
-          reject(new Error(timeoutMessage));
-        }, ms);
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(msg)), ms);
       });
-
       return Promise.race([
         promise.finally(() => clearTimeout(timer)),
-        timeoutPromise,
+        timeout
       ]);
     }
 
-    // 1) 获取固件列表：返回 standard/xiaozhi 每个子文件夹（last/middle/long）有无 bin + version.txt
-    // ipc.handle('get-firmware-list', async (event, repoSubpath = BASE_FOLDER) => {
-    //   // 返回结构 {
-    //   //   standard: [{ name:'last', version:'v1.0.0', files: [{name, path, rawUrl}] }, ...],
-    //   //   xiaozhi: [...]
-    //   // }
+    /* ======================================================
+      1️⃣ 获取固件列表
+    ====================================================== */
+
+    // ipc.handle('get-firmware-list', async () => {
     //   try {
-    //     const listForType = async (type) => {
-    //       const basePath = `${repoSubpath}/${type}`;
-    //       // 先列出 type 下的目录（last/middle/long）
-    //       const url = giteeApiUrl(`/repos/${OWNER}/${REPO}/contents/${basePath}`, { ref: BRANCH, per_page: 100 });
-    //       console.log(url)
-    //       const res = await axios.get(url, { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} });
-    //       // res.data 应为数组，元素包含 {name, path, type}
-    //       const dirs = (res.data || []).filter(i => i.type === 'dir');
-    //       const result = [];
-    //       for (const d of dirs) {
-    //         // 列出 d.path 下的文件
-    //         const listUrl = giteeApiUrl(`/repos/${OWNER}/${REPO}/contents/${d.path}`, { ref: BRANCH, per_page: 100 });
-    //         try {
-    //           const r2 = await axios.get(listUrl, { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} });
-    //           const files = r2.data || [];
-    //           // find version.txt content if exists
-    //           const vfile = files.find(f => f.name.toLowerCase() === 'version.txt');
-    //           let version = null;
-    //           if (vfile) {
-    //             const rawVerUrl = rawUrl(vfile.path);
-    //             try {
-    //               const vcontent = await axios.get(rawVerUrl);
-    //               version = String(vcontent.data).trim();
-    //             } catch(e){
-    //               version = null;
-    //             }
+    //     const task = async () => {
+
+    //       const listForType = async (type) => {
+    //         const basePath = `${BASE_FOLDER}/${type}`;
+
+    //         const res = await requestWithFallback({
+    //           gitee: {
+    //             url: giteeApiUrl(
+    //               `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${basePath}`,
+    //               { ref: GITEE_BRANCH, per_page: 100 }
+    //             ),
+    //             headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+    //           },
+    //           github: {
+    //             url: githubApiUrl(
+    //               `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${basePath}`,
+    //               { ref: GITHUB_BRANCH, per_page: 100 }
+    //             ),
+    //             headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
     //           }
-    //           // gather .bin files
-    //           const bins = files.filter(f => f.name.toLowerCase().endsWith('.bin')).map(f => ({
-    //             name: f.name,
-    //             path: f.path,
-    //             rawUrl: rawUrl(f.path)
-    //           }));
-    //           if (bins.length > 0 || version) {
-    //             result.push({
-    //               name: d.name, // last/middle/long
-    //               version: version || null,
-    //               files: bins
+    //         });
+
+    //         const dirs = (res.data || []).filter(i => i.type === 'dir');
+    //         const result = [];
+
+    //         for (const d of dirs) {
+    //           try {
+    //             const r2 = await requestWithFallback({
+    //               gitee: {
+    //                 url: giteeApiUrl(
+    //                   `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${d.path}`,
+    //                   { ref: GITEE_BRANCH, per_page: 100 }
+    //                 ),
+    //                 headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+    //               },
+    //               github: {
+    //                 url: githubApiUrl(
+    //                   `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${d.path}`,
+    //                   { ref: GITHUB_BRANCH, per_page: 100 }
+    //                 ),
+    //                 headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
+    //               }
     //             });
-    //           }
-    //         } catch (e) {
-    //           // 空目录或其它错误，跳过
-    //           continue;
+
+    //             const files = r2.data || [];
+
+    //             let version = null;
+    //             const vfile = files.find(f => f.name.toLowerCase() === 'version.txt');
+    //             if (vfile) {
+    //               try {
+    //                 const v = await fetchRawWithFallback(vfile.path);
+    //                 version = String(v.data).trim();
+    //               } catch {}
+    //             }
+
+    //             const bins = files
+    //               .filter(f => f.name.toLowerCase().endsWith('.bin'))
+    //               .map(f => ({
+    //                 name: f.name,
+    //                 path: f.path,
+    //                 rawUrl: giteeRawUrl(f.path),
+    //                 rawUrlBackup: githubRawUrl(f.path)
+    //               }));
+
+    //             if (bins.length || version) {
+    //               result.push({
+    //                 name: d.name,
+    //                 version,
+    //                 files: bins
+    //               });
+    //             }
+    //           } catch {}
     //         }
-    //       }
-    //       return result;
+    //         return result;
+    //       };
+
+    //       const [standard, xiaozhi] = await Promise.all([
+    //         listForType('standard'),
+    //         listForType('xiaozhi')
+    //       ]);
+
+    //       return { ok: true, data: { standard, xiaozhi } };
     //     };
 
-    //     const [standard, xiaozhi] = await Promise.all([listForType('standard'), listForType('xiaozhi')]);
-    //     return { ok: true, data: { standard, xiaozhi } };
+    //     return await withTimeout(task(), 12000);
+    //   } catch (err) {
+    //     return { ok: false, error: err.message };
+    //   }
+    // });
+
+    ipc.handle('get-firmware-list', async () => {
+      try {
+        const task = async () => {
+    
+          const listForType = async (type) => {
+            const typeCfg = TYPE_CONFIG[type];
+            if (!typeCfg) return [];
+    
+            const basePath = `${BASE_FOLDER}/${type}`;
+    
+            const res = await requestWithFallback({
+              gitee: {
+                url: giteeApiUrl(
+                  `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${basePath}`,
+                  { ref: GITEE_BRANCH, per_page: 100 }
+                ),
+                headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+              },
+              github: {
+                url: githubApiUrl(
+                  `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${basePath}`,
+                  { ref: GITHUB_BRANCH, per_page: 100 }
+                ),
+                headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
+              }
+            });
+    
+            const dirs = (res.data || []).filter(i => i.type === 'dir');
+            const result = [];
+    
+            for (const d of dirs) {
+              try {
+                const r2 = await requestWithFallback({
+                  gitee: {
+                    url: giteeApiUrl(
+                      `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${d.path}`,
+                      { ref: GITEE_BRANCH, per_page: 100 }
+                    ),
+                    headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+                  },
+                  github: {
+                    url: githubApiUrl(
+                      `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${d.path}`,
+                      { ref: GITHUB_BRANCH, per_page: 100 }
+                    ),
+                    headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
+                  }
+                });
+    
+                const files = r2.data || [];
+    
+                /* ===== version.txt ===== */
+                let version = null;
+                const vfile = files.find(f => f.name.toLowerCase() === 'version.txt');
+                if (vfile) {
+                  try {
+                    const v = await fetchRawWithFallback(vfile.path);
+                    version = String(v.data).trim();
+                  } catch {}
+                }
+    
+                /* ===== 固件文件（bin / hex） ===== */
+                const firmwareFiles = files
+                  .filter(f => f.name.toLowerCase().endsWith(typeCfg.ext))
+                  .map(f => ({
+                    name: f.name,
+                    path: f.path,
+                    rawUrl: giteeRawUrl(f.path),
+                    rawUrlBackup: githubRawUrl(f.path)
+                  }));
+    
+                if (firmwareFiles.length || version) {
+                  result.push({
+                    name: d.name,      // last / middle / long
+                    version,
+                    files: firmwareFiles
+                  });
+                }
+              } catch {}
+            }
+            return result;
+          };
+    
+          const [standard, xiaozhi, microbit] = await Promise.all([
+            listForType('standard'),
+            listForType('xiaozhi'),
+            listForType('microbit')
+          ]);
+    
+          return {
+            ok: true,
+            data: { standard, xiaozhi, microbit }
+          };
+        };
+    
+        return await withTimeout(task(), 12000);
+      } catch (err) {
+        return { ok: false, error: err.message };
+      }
+    });
+
+    /* ======================================================
+      2️⃣ 获取文件夹提交记录
+    ====================================================== */
+
+    ipc.handle('get-folder-commits', async (e, { type, folderName, per_page = 10 }) => {
+      try {
+        const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
+
+        const res = await requestWithFallback({
+          gitee: {
+            url: giteeApiUrl(
+              `/repos/${GITEE_OWNER}/${GITEE_REPO}/commits`,
+              { path: repoPath, sha: GITEE_BRANCH, per_page }
+            ),
+            headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+          },
+          github: {
+            url: githubApiUrl(
+              `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits`,
+              { path: repoPath, sha: GITHUB_BRANCH, per_page }
+            ),
+            headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
+          }
+        });
+
+        const commits = (res.data || []).map(c => ({
+          sha: c.sha,
+          message: c.commit?.message?.split('\n')[0] || '',
+          date: c.commit?.committer?.date || '',
+          author: c.commit?.committer?.name || ''
+        }));
+
+        return { ok: true, data: commits };
+      } catch (err) {
+        return { ok: false, error: err.message };
+      }
+    });
+
+    /* ======================================================
+      3️⃣ 下载固件（bin）
+    ====================================================== */
+
+    ipc.handle('download-firmware', async (e, { type, folderName }) => {
+      try {
+        const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
+
+        const res = await requestWithFallback({
+          gitee: {
+            url: giteeApiUrl(
+              `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${repoPath}`,
+              { ref: GITEE_BRANCH }
+            ),
+            headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+          },
+          github: {
+            url: githubApiUrl(
+              `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${repoPath}`,
+              { ref: GITHUB_BRANCH }
+            ),
+            headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
+          }
+        });
+
+        // const bins = (res.data || []).filter(f => f.name.endsWith('.bin'));
+        const ext = TYPE_CONFIG[type]?.ext;
+        if (!ext) return { ok: false, error: '未知固件类型' };
+
+        const bins = (res.data || []).filter(f => f.name.toLowerCase().endsWith(ext));
+        if (!bins.length) return { ok: false, error: '未找到 bin 文件' };
+
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'firmware-'));
+
+        const downloadOne = (urls, savePath) =>
+          new Promise((resolve, reject) => {
+            const tryNext = (i) => {
+              if (i >= urls.length) return reject(new Error('下载失败'));
+              const url = urls[i];
+              const proto = url.startsWith('https') ? https : http;
+              proto.get(url, res => {
+                if (res.statusCode !== 200) return tryNext(i + 1);
+                const ws = fs.createWriteStream(savePath);
+                res.pipe(ws);
+                ws.on('finish', () => resolve());
+              }).on('error', () => tryNext(i + 1));
+            };
+            tryNext(0);
+          });
+
+        const downloaded = [];
+        for (const b of bins) {
+          const savePath = path.join(tmpDir, b.name);
+          await downloadOne(
+            [giteeRawUrl(b.path), githubRawUrl(b.path)],
+            savePath
+          );
+          downloaded.push({ name: b.name, path: savePath });
+        }
+
+        return { ok: true, data: { downloaded, tmpDir } };
+      } catch (err) {
+        return { ok: false, error: err.message };
+      }
+    });
+
+
+
+
+    // const OWNER = 'lgmShine';        // <-- 修改为你的 gitee owner
+    // const REPO = 'bucket';          // <-- 修改为你的仓库名
+    // const BRANCH = 'master';        // <-- 分支
+    // const BASE_FOLDER = 'firmware'; // 仓库中固件的根目录，如 firmware/standard/last/...
+
+    // // 5317e371401159915e29615d4efff0ef
+    
+    // // 可选 token（如果是私有仓库）
+    // const GITEE_TOKEN = '39bdb0e0d25fb2d7e4b54ff21e15ec99'; // 如果需要就填
+
+    // const axios = require('axios');
+    // // HELPERS
+    // function giteeApiUrl(pathname, params = {}) {
+    //   const base = `https://gitee.com/api/v5${pathname}`;
+    //   const qs = new URLSearchParams(params).toString();
+    //   return qs ? `${base}?${qs}` : base;
+    // }
+    // function rawUrl(repoPath, commitSha = null) {
+    //   // raw URL: https://gitee.com/{owner}/{repo}/raw/{branch}/{path}
+    //   if (commitSha) return `https://gitee.com/${OWNER}/${REPO}/raw/${commitSha}/${repoPath}`;
+    //   return `https://gitee.com/${OWNER}/${REPO}/raw/${BRANCH}/${repoPath}`;
+    // }
+
+
+    // function withTimeout(promise, ms, timeoutMessage = 'Request timeout') {
+    //   let timer;
+    //   const timeoutPromise = new Promise((_, reject) => {
+    //     timer = setTimeout(() => {
+    //       reject(new Error(timeoutMessage));
+    //     }, ms);
+    //   });
+
+    //   return Promise.race([
+    //     promise.finally(() => clearTimeout(timer)),
+    //     timeoutPromise,
+    //   ]);
+    // }
+    // ipc.handle('get-firmware-list', async (event, repoSubpath = BASE_FOLDER) => {
+    //   try {
+    //     const task = (async () => {
+
+    //       const listForType = async (type) => {
+    //         const basePath = `${repoSubpath}/${type}`;
+    //         const url = giteeApiUrl(
+    //           `/repos/${OWNER}/${REPO}/contents/${basePath}`,
+    //           { ref: BRANCH, per_page: 100 }
+    //         );
+
+    //         const res = await axios.get(
+    //           url,
+    //           { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} }
+    //         );
+
+    //         const dirs = (res.data || []).filter(i => i.type === 'dir');
+    //         const result = [];
+
+    //         for (const d of dirs) {
+    //           const listUrl = giteeApiUrl(
+    //             `/repos/${OWNER}/${REPO}/contents/${d.path}`,
+    //             { ref: BRANCH, per_page: 100 }
+    //           );
+
+    //           try {
+    //             const r2 = await axios.get(
+    //               listUrl,
+    //               { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} }
+    //             );
+
+    //             const files = r2.data || [];
+
+    //             const vfile = files.find(f => f.name.toLowerCase() === 'version.txt');
+    //             let version = null;
+
+    //             if (vfile) {
+    //               try {
+    //                 const vcontent = await axios.get(rawUrl(vfile.path));
+    //                 version = String(vcontent.data).trim();
+    //               } catch {
+    //                 version = null;
+    //               }
+    //             }
+
+    //             const bins = files
+    //               .filter(f => f.name.toLowerCase().endsWith('.bin'))
+    //               .map(f => ({
+    //                 name: f.name,
+    //                 path: f.path,
+    //                 rawUrl: rawUrl(f.path),
+    //               }));
+
+    //             if (bins.length > 0 || version) {
+    //               result.push({
+    //                 name: d.name,
+    //                 version: version,
+    //                 files: bins,
+    //               });
+    //             }
+    //           } catch {
+    //             continue;
+    //           }
+    //         }
+
+    //         return result;
+    //       };
+
+    //       const [standard, xiaozhi] = await Promise.all([
+    //         listForType('standard'),
+    //         listForType('xiaozhi'),
+    //       ]);
+
+    //       return { ok: true, data: { standard, xiaozhi } };
+    //     })();
+
+    //     // ⭐ 8 秒超时
+    //     return await withTimeout(task, 12000, 'get-firmware-list timeout');
+
     //   } catch (err) {
     //     return { ok: false, error: err.message || String(err) };
     //   }
     // });
-    ipc.handle('get-firmware-list', async (event, repoSubpath = BASE_FOLDER) => {
-      try {
-        const task = (async () => {
 
-          const listForType = async (type) => {
-            const basePath = `${repoSubpath}/${type}`;
-            const url = giteeApiUrl(
-              `/repos/${OWNER}/${REPO}/contents/${basePath}`,
-              { ref: BRANCH, per_page: 100 }
-            );
+    // // 2) 获取某个文件夹的 commit 记录（用于显示该文件夹的提交历史）
+    // ipc.handle('get-folder-commits', async (event, { type, folderName, per_page = 10 }) => {
+    //   try {
+    //     const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
+    //     const url = giteeApiUrl(`/repos/${OWNER}/${REPO}/commits`, { path: repoPath, sha: BRANCH, per_page });
+    //     const res = await axios.get(url, { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} });
+    //     // 简化返回
+    //     const commits = (res.data || []).map(c => ({
+    //       sha: c.sha,
+    //       message: c.commit && c.commit.message ? c.commit.message.split('\n')[0] : '',
+    //       date: c.commit && c.commit.committer ? c.commit.committer.date : '',
+    //       author: c.commit && c.commit.committer ? c.commit.committer.name : ''
+    //     }));
+    //     return { ok: true, data: commits };
+    //   } catch (err) {
+    //     return { ok: false, error: err.message || String(err) };
+    //   }
+    // });
 
-            const res = await axios.get(
-              url,
-              { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} }
-            );
+    // // 3) 下载固件：下载某个 type/folder 下的所有 bin 文件到临时目录并返回本地路径数组
+    // ipc.handle('download-firmware', async (event, { type, folderName }) => {
+    //   try {
+    //     // 先列出文件（复用 get-firmware-list）
+    //     const listRes = await ipc.invoke ? await event.sender.invoke('get-firmware-list') : null;
+    //     // 上面方式可能不可行（ipcMain.invoke 不存在），直接复用 listForType 逻辑：简化处理，直接请求 gitee
+    //     const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
+    //     const contentsUrl = giteeApiUrl(`/repos/${OWNER}/${REPO}/contents/${repoPath}`, { ref: BRANCH, per_page: 100 });
+    //     const r = await axios.get(contentsUrl, { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} });
+    //     const files = r.data || [];
+    //     const bins = files.filter(f => f.name.toLowerCase().endsWith('.bin'));
+    //     if (bins.length === 0) {
+    //       return { ok: false, error: '未找到 bin 文件' };
+    //     }
+    //     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'firmware-'));
+    //     const download = (file) => new Promise((resolve, reject) => {
+    //       const url = rawUrl(file.path);
+    //       const savePath = path.join(tmpDir, file.name);
+    //       const protocol = url.startsWith('https') ? https : http;
+    //       const req = protocol.get(url, (res) => {
+    //         if (res.statusCode !== 200) {
+    //           reject(new Error(`下载 ${file.name} 失败，状态码 ${res.statusCode}`));
+    //           return;
+    //         }
+    //         const ws = fs.createWriteStream(savePath);
+    //         res.pipe(ws);
+    //         ws.on('finish', () => {
+    //           ws.close(() => resolve({ name: file.name, path: savePath }));
+    //         });
+    //         ws.on('error', (err) => reject(err));
+    //       });
+    //       req.on('error', err => reject(err));
+    //     });
 
-            const dirs = (res.data || []).filter(i => i.type === 'dir');
-            const result = [];
-
-            for (const d of dirs) {
-              const listUrl = giteeApiUrl(
-                `/repos/${OWNER}/${REPO}/contents/${d.path}`,
-                { ref: BRANCH, per_page: 100 }
-              );
-
-              try {
-                const r2 = await axios.get(
-                  listUrl,
-                  { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} }
-                );
-
-                const files = r2.data || [];
-
-                const vfile = files.find(f => f.name.toLowerCase() === 'version.txt');
-                let version = null;
-
-                if (vfile) {
-                  try {
-                    const vcontent = await axios.get(rawUrl(vfile.path));
-                    version = String(vcontent.data).trim();
-                  } catch {
-                    version = null;
-                  }
-                }
-
-                const bins = files
-                  .filter(f => f.name.toLowerCase().endsWith('.bin'))
-                  .map(f => ({
-                    name: f.name,
-                    path: f.path,
-                    rawUrl: rawUrl(f.path),
-                  }));
-
-                if (bins.length > 0 || version) {
-                  result.push({
-                    name: d.name,
-                    version: version,
-                    files: bins,
-                  });
-                }
-              } catch {
-                continue;
-              }
-            }
-
-            return result;
-          };
-
-          const [standard, xiaozhi] = await Promise.all([
-            listForType('standard'),
-            listForType('xiaozhi'),
-          ]);
-
-          return { ok: true, data: { standard, xiaozhi } };
-        })();
-
-        // ⭐ 8 秒超时
-        return await withTimeout(task, 12000, 'get-firmware-list timeout');
-
-      } catch (err) {
-        return { ok: false, error: err.message || String(err) };
-      }
-    });
-
-    // 2) 获取某个文件夹的 commit 记录（用于显示该文件夹的提交历史）
-    ipc.handle('get-folder-commits', async (event, { type, folderName, per_page = 10 }) => {
-      try {
-        const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
-        const url = giteeApiUrl(`/repos/${OWNER}/${REPO}/commits`, { path: repoPath, sha: BRANCH, per_page });
-        const res = await axios.get(url, { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} });
-        // 简化返回
-        const commits = (res.data || []).map(c => ({
-          sha: c.sha,
-          message: c.commit && c.commit.message ? c.commit.message.split('\n')[0] : '',
-          date: c.commit && c.commit.committer ? c.commit.committer.date : '',
-          author: c.commit && c.commit.committer ? c.commit.committer.name : ''
-        }));
-        return { ok: true, data: commits };
-      } catch (err) {
-        return { ok: false, error: err.message || String(err) };
-      }
-    });
-
-    // 3) 下载固件：下载某个 type/folder 下的所有 bin 文件到临时目录并返回本地路径数组
-    ipc.handle('download-firmware', async (event, { type, folderName }) => {
-      try {
-        // 先列出文件（复用 get-firmware-list）
-        const listRes = await ipc.invoke ? await event.sender.invoke('get-firmware-list') : null;
-        // 上面方式可能不可行（ipcMain.invoke 不存在），直接复用 listForType 逻辑：简化处理，直接请求 gitee
-        const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
-        const contentsUrl = giteeApiUrl(`/repos/${OWNER}/${REPO}/contents/${repoPath}`, { ref: BRANCH, per_page: 100 });
-        const r = await axios.get(contentsUrl, { headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {} });
-        const files = r.data || [];
-        const bins = files.filter(f => f.name.toLowerCase().endsWith('.bin'));
-        if (bins.length === 0) {
-          return { ok: false, error: '未找到 bin 文件' };
-        }
-        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'firmware-'));
-        const download = (file) => new Promise((resolve, reject) => {
-          const url = rawUrl(file.path);
-          const savePath = path.join(tmpDir, file.name);
-          const protocol = url.startsWith('https') ? https : http;
-          const req = protocol.get(url, (res) => {
-            if (res.statusCode !== 200) {
-              reject(new Error(`下载 ${file.name} 失败，状态码 ${res.statusCode}`));
-              return;
-            }
-            const ws = fs.createWriteStream(savePath);
-            res.pipe(ws);
-            ws.on('finish', () => {
-              ws.close(() => resolve({ name: file.name, path: savePath }));
-            });
-            ws.on('error', (err) => reject(err));
-          });
-          req.on('error', err => reject(err));
-        });
-
-        // 并行下载所有 bin
-        const downloaded = [];
-        for (const b of bins) {
-          const d = await download(b);
-          downloaded.push(d);
-        }
-        return { ok: true, data: { downloaded, tmpDir } };
-      } catch (err) {
-        return { ok: false, error: err.message || String(err) };
-      }
-    });
+    //     // 并行下载所有 bin
+    //     const downloaded = [];
+    //     for (const b of bins) {
+    //       const d = await download(b);
+    //       downloaded.push(d);
+    //     }
+    //     return { ok: true, data: { downloaded, tmpDir } };
+    //   } catch (err) {
+    //     return { ok: false, error: err.message || String(err) };
+    //   }
+    // });
 
 
     ipc.handle('send-who', async (event, {who,port,filePath}) =>{
@@ -1181,7 +1473,7 @@ class DownloadCodeWindow extends AbstractWindow {
           }
           
         });
-      }else if(who=='xiaoZhi'){
+      }else if(who=='xiaozhi'){
          console.log(firmwareFilePath);
           console.log(esptoolPath);
 
@@ -1189,7 +1481,7 @@ class DownloadCodeWindow extends AbstractWindow {
 
           let isTimeout=false
           
-          
+          console.log(filePath)
 
           // const command = `${esptoolPath} --port ${port} write_flash 0x0 ${firmwareFilePath}`;
 
@@ -1272,7 +1564,7 @@ class DownloadCodeWindow extends AbstractWindow {
             event.sender.send('esptool-log', { type: 'done', code });
           });
 
-      }else if(who=='test'){
+      }else if(who=='standard'){
          console.log(firmwareFilePath);
           console.log(esptoolPath);
 
@@ -1304,7 +1596,7 @@ class DownloadCodeWindow extends AbstractWindow {
 
           flashProcess.stdout.on('data', (data) => {
             console.log(`stdout: ${data}`);
-            if(data.includes('A serial exception error occurred:')){
+            if(data.includes('A serial exception error occurred:')||data.includes('fatal error')){
               isTimeout=true
             }
             if(getSocket()){
@@ -1363,10 +1655,248 @@ class DownloadCodeWindow extends AbstractWindow {
             event.sender.send('esptool-log', { type: 'done', code });
           });
 
+      }else if(who=='microbit'){
+        let daplink
+        let usbDevice
+        try {
+            // if (!deviceState.usbDevice) {
+            //   throw new Error('未找到连接的USB设备');
+            // }
+            console.log('aaaaaaaa')
+            // return
+
+
+            //首先连接usb
+            const ports = await SerialPort.list();
+            const targetPortInfo = ports.find(p => p.path === port);
+    
+            const isMicrobit = targetPortInfo &&
+              targetPortInfo.vendorId === '0D28' &&
+              ['0204', '0205'].includes(targetPortInfo.productId?.toUpperCase?.());
+    
+            if (isMicrobit) {
+              console.log('识别为 Micro:bit 设备，尝试初始化 USB 与串口连接');
+    
+              // 获取 USB 设备
+              usbDevice=usb.findByIds(0x0d28, parseInt(targetPortInfo.productId, 16))
+              
+              if (!usbDevice) {
+                return { success: false, error: '未找到匹配的 USB 设备' };
+              }
+    
+              try {
+                usbDevice.open();
+                // if (usbDevice.interfaces?.length > 0) {
+                //   usbDevice.interfaces[0].claim();
+                // }
+                console.log('usb connect succcess')
+              } catch (err) {
+                console.warn('USB open failed:', err.message);
+                if(getSocket()){
+                  // console.log('可能发送了')
+                  getSocket().send(JSON.stringify({
+                    type: 'burnLogs',
+                    data: { message: {
+                      flashing:false,
+                      logs:'Failed'
+                    } }
+                  }))
+                }
+                return
+              }
+            }else{
+              if(getSocket()){
+                // console.log('可能发送了')
+                getSocket().send(JSON.stringify({
+                  type: 'burnLogs',
+                  data: { message: {
+                    flashing:false,
+                    logs:'Failed'
+                  } }
+                }))
+              }
+              return
+            }    
+
+            //获取固件文件地址
+            console.log(filePath)
+            this.canClose = false;
+            let hexPath
+            if(filePath){
+              hexPath=filePath[0].path
+            }else{
+              hexPath = getResourcePath('microbit_firmware/MICROBIT(12).hex')
+            }
+            // 读取HEX文件
+            
+            console.log(hexPath)
+            const hexData = fs.readFileSync(hexPath);
+        
+            console.log('bbbbbbb')
+           // await flashHexToDevice(hexData);
+           try {
+            // 创建DAPLink传输层
+            const transport = new DAPjs.USB(usbDevice);
+            // getDeviceState().daplink = new DAPLink(transport);
+            // setDeviceState(['daplink',new DAPLink(transport)])
+            daplink=new DAPLink(transport)
+        
+            console.log('ccccc')
+            // 连接设备
+            await daplink.connect();
+        
+            let lastPercent = -1; // 用于记录上一次的进度
+            // 执行烧录
+            await new Promise((resolve, reject) => {
+              console.log('start flash firmware')
+              daplink.on(DAPjs.DAPLink.EVENT_PROGRESS, progress => {
+                const percent = Math.round(progress * 100);
+                // 只有 percent 变化时才发送
+                if (percent !== lastPercent) {
+                  lastPercent = percent   // 更新缓存
+                  if(getSocket()){
+                    // console.log('可能发送了')
+                    getSocket().send(JSON.stringify({
+                      type: 'burnLogs',
+                      data: { message: {
+                        flashing:true,
+                        logs:`${percent}`
+                      } }
+                    }))
+                  }
+                }
+                console.log(percent)
+              });
+        
+              daplink.flash(hexData)
+                .then(resolve)
+                .catch(reject);
+            });
+          } catch (err) {
+            console.log(err)
+            this.canClose = true;
+            // 确保发生错误时断开连接
+            if(getSocket()){
+              // console.log('可能发送了')
+              getSocket().send(JSON.stringify({
+                type: 'burnLogs',
+                data: { message: {
+                  flashing:false,
+                  logs:'Failed'
+                } }
+              }))
+            }
+            // if (getDeviceState().daplink) {
+            //   await getDeviceState().daplink.disconnect().catch(() => {});
+            //   setDeviceState(['daplink',null])
+            // }
+
+            if(daplink){
+              await closeDapLink(daplink)
+            }
+            try {
+              if (usbDevice) {
+                // if (usbDevice.interfaces?.[0]?.isKernelDriverActive?.()) {
+                //   usbDevice.interfaces[0].detachKernelDriver();
+                // }
+                if (usbDevice.interfaces?.[0]?.claimed) {
+                  usbDevice.interfaces[0].release(true, () => {});
+                }
+                usbDevice.close();
+              }
+            } catch (err) {
+              console.warn('USB 清理时异常:', err.message);
+            }
+            
+            
+            return { 
+              success: false, 
+              error: `烧录失败: ${err.message}`,
+              ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+            };
+          }
+        
+        
+            if(getSocket()){
+              // console.log('可能发送了')
+              getSocket().send(JSON.stringify({
+                type: 'burnLogs',
+                data: { message: {
+                  flashing:false,
+                  logs:'success'
+                } }
+              }))
+            }
+        
+            this.canClose = true;
+
+            if(daplink){
+              await closeDapLink(daplink)
+            }
+            try {
+              if (usbDevice) {
+                // if (usbDevice.interfaces?.[0]?.isKernelDriverActive?.()) {
+                //   usbDevice.interfaces[0].detachKernelDriver();
+                // }
+                if (usbDevice.interfaces?.[0]?.claimed) {
+                  usbDevice.interfaces[0].release(true, () => {});
+                }
+                usbDevice.close();
+              }
+            } catch (err) {
+              console.warn('USB 清理时异常:', err.message);
+            }
+            
+            // 完成烧录
+            //notifyRenderer('flash-status', { status: 'completed' });
+            return { success: true, message: '固件烧录完成' };
+        
+          } catch (err) {
+            // 确保发生错误时断开连接
+            if (getDeviceState().daplink) {
+              await getDeviceState().daplink.disconnect().catch(() => {});
+              setDeviceState(['daplink',null])
+            }
+            this.canClose = true;
+            if(daplink){
+              await closeDapLink(daplink)
+            }
+            try {
+              if (usbDevice) {
+                // if (usbDevice.interfaces?.[0]?.isKernelDriverActive?.()) {
+                //   usbDevice.interfaces[0].detachKernelDriver();
+                // }
+                if (usbDevice.interfaces?.[0]?.claimed) {
+                  usbDevice.interfaces[0].release(true, () => {});
+                }
+                usbDevice.close();
+              }
+            } catch (err) {
+              console.warn('USB 清理时异常:', err.message);
+            }
+            
+            return { 
+              success: false, 
+              error: `烧录失败: ${err.message}`,
+              ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+            };
+          }
       }
     })
 
-    
+    async function closeDapLink(daplink) {
+      return new Promise(resolve => {
+        try {
+          daplink.disconnect().then(resolve).catch(err => {
+            console.error('DAPLink断开错误:', err);
+            resolve();
+          });
+        } catch (err) {
+          console.error('DAPLink断开异常:', err);
+          resolve();
+        }
+      });
+    }
 
      ipc.handle('flash-firmware', async (event) =>{
       // try {

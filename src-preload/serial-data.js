@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendWho:({who,port,filePath}) => ipcRenderer.invoke('send-who', {who,port,filePath}),
 
   getExtension: () => ipcRenderer.sendSync('get-extension'),
+  getVersion: () => ipcRenderer.sendSync('get-version'),
 
   flashFirmware: () =>ipcRenderer.invoke('flash-firmware'),
    getTranslate: () => ipcRenderer.sendSync('get-translate'),

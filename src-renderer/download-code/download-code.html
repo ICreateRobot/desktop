@@ -134,6 +134,42 @@
       color: #5c5c5c;
       margin-top: 6px;
     }
+  /* 居中状态提示容器 */
+  .status-tip {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    
+    min-width: 260px;
+    max-width: 80%;
+    text-align: center;
+
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+
+    display: none; /* 默认隐藏 */
+    z-index: 1000;
+  }
+
+  /* 信息提示 */
+  .status-tip.info {
+    background: rgba(34, 163, 122, 0.1);
+    border: 1px solid rgba(34, 163, 122, 0.35);
+    color: #0f6b5a;
+  }
+
+  /* 警告提示 */
+  .status-tip.warning {
+    background: rgba(255, 180, 0, 0.12);
+    border: 1px solid rgba(255, 180, 0, 0.45);
+    color: #8a5a00;
+  }
+
+
   </style>
 </head>
 <body>
@@ -147,12 +183,18 @@
     </div>
 
     <!-- 当前固件版本显示 -->
-    <!-- <div class="field">
+    <div id="versionShow" class="field">
       <label for="currentVersion">当前固件版本：</label>
-      <input id="currentVersion" type="text" readonly placeholder="ICROBOT-V3.0" />
-    </div> -->
+      <input id="currentVersion" type="text" readonly />
+    </div>
 
-    <h2 id="firstSelectDevice">请先选择设备</h2>
+    <div id="firstSelectDevice" class="status-tip info">
+      请先选择设备
+    </div>
+    
+    <div id="notSupport" class="status-tip warning">
+      当前设备暂不支持烧录固件
+    </div>
     <!-- 两个卡片并排：标准版 & 小智版 -->
     <div class="cards-row" id="twoCardsRow">
       <div class="card" id="standardCard">
@@ -187,7 +229,7 @@
     </div>
 
     <!-- Microbit 卡片（同风格，但单独显示时占满宽度） -->
-    <div class="card single" id="microbitCard" style="display:none; margin-top:12px;">
+    <!-- <div class="card single" id="microbitCard" style="display:none; margin-top:12px;">
       <div class="title" id="microbitFirmware">Microbit 基础固件</div>
       <div class="subtitle">microbit-base-v1.0</div>
 
@@ -196,6 +238,18 @@
       </div>
 
       <button class="btn" id="burnMicrobitBtn">烧录 Microbit 固件</button>
+    </div> -->
+
+    <div class="card single" id="microbitCard" style="display:none; margin-top:12px;">
+      <div class="title" id="microbitFirmware">Microbit 基础固件：</div>
+    
+      <select id="microbitSelect" aria-label="Microbit 固件版本下拉">
+        <option disabled selected id="loading3">加载中...</option>
+      </select>
+    
+      <div class="desc" id="microbitCommit"></div>
+    
+      <button class="btn" id="upgradeMicrobit">升级</button>
     </div>
 
   </div>
@@ -219,13 +273,18 @@
         document.getElementById('upgradeStandard').textContent=t.strings['download-code.upgradeStandard']
         document.getElementById('xiaozhiFirmware').textContent=t.strings['download-code.xiaozhiFirmware']
         document.getElementById('loading2').textContent=t.strings['download-code.loading2']
+        document.getElementById('loading3').textContent=t.strings['download-code.loading2']
         document.getElementById('upgradeXiaoZhi').textContent=t.strings['download-code.upgradeXiaoZhi']
+        document.getElementById('upgradeMicrobit').textContent=t.strings['download-code.upgradeXiaoZhi']
         document.getElementById('microbitFirmware').textContent=t.strings['download-code.microbitFirmware']
-        document.getElementById('microbitDesc').textContent=t.strings['download-code.microbitDesc']
-        document.getElementById('burnMicrobitBtn').textContent=t.strings['download-code.burnMicrobitBtn']
+        //document.getElementById('microbitDesc').textContent=t.strings['download-code.microbitDesc']
+        //document.getElementById('burnMicrobitBtn').textContent=t.strings['download-code.burnMicrobitBtn']
         document.getElementById('firstSelectDevice').textContent=t.strings['download-code.title2'];
-        // document.getElementById('currentVersion').placeholder = t.strings['download-code.currentFirmware'] || '当前固件版本：';
-        // document.querySelector('label[for="currentVersion"]').textContent = t.strings['download-code.currentFirmware'] || '当前固件版本：';
+        document.getElementById('currentVersion').placeholder = t.strings['download-code.currentFirmware'] || '当前固件版本：';
+        console.log(t.strings['download-code.currentFirmware'])
+        document.querySelector('label[for="currentVersion"]').textContent = t.strings['download-code.currentFirmware'] || '当前固件版本：';
+        document.getElementById('notSupport').textContent=t.strings['download-code.notSupport'];
+        
       }
     } catch (e) { /* ignore */ }
 
@@ -238,8 +297,10 @@
         // port selector visible
         document.getElementById('portSelector').style.display = 'block';
         document.getElementById('titlePortSelect').style.display = 'block';
+        document.getElementById('versionShow').style.display = 'none';
         
         document.getElementById('firstSelectDevice').style.display = 'none';
+        document.getElementById('notSupport').style.display = 'none';
         
       } else if (extension == "3") {
         // 只显示 microbit 卡片（占满宽度）
@@ -247,17 +308,31 @@
         document.getElementById('xiaozhiCard').style.display = 'none';
         document.getElementById('microbitCard').style.display = 'flex';
         // hide port selector
-        document.getElementById('portSelector').style.display = 'none';
-        document.getElementById('titlePortSelect').style.display = 'none';
+        document.getElementById('portSelector').style.display = 'block';
+        document.getElementById('versionShow').style.display = 'block';
+        document.getElementById('titlePortSelect').style.display = 'block';
         document.getElementById('firstSelectDevice').style.display = 'none';
-      } else {
+        document.getElementById('notSupport').style.display = 'none';
+      } else if(extension == "1") {
         // 默认隐藏固件卡片，仅显示标题（或按你原逻辑）
         document.getElementById('standardCard').style.display = 'none';
         document.getElementById('xiaozhiCard').style.display = 'none';
         document.getElementById('microbitCard').style.display = 'none';
-        document.getElementById('portSelector').style.display = 'block';
-        document.getElementById('titlePortSelect').style.display = 'block';
+        document.getElementById('portSelector').style.display = 'none';
+        document.getElementById('versionShow').style.display = 'none';
+        document.getElementById('titlePortSelect').style.display = 'none';
+        document.getElementById('firstSelectDevice').style.display = 'none';
+        document.getElementById('notSupport').style.display = 'block';
+        
+      }else{
+        document.getElementById('standardCard').style.display = 'none';
+        document.getElementById('xiaozhiCard').style.display = 'none';
+        document.getElementById('microbitCard').style.display = 'none';
+        document.getElementById('portSelector').style.display = 'none';
+        document.getElementById('versionShow').style.display = 'none';
+        document.getElementById('titlePortSelect').style.display = 'none';
         document.getElementById('firstSelectDevice').style.display = 'block';
+        document.getElementById('notSupport').style.display = 'none';
       }
     }
 
@@ -372,6 +447,7 @@
     //   }
     // });
 
+    /*
     document.getElementById('burnMicrobitBtn').addEventListener('click', async () => {
       // Microbit 烧录使用你原来的 flashFirmware 接口（示例）
       try {
@@ -381,6 +457,8 @@
         console.log('Microbit 烧录失败：' + (e && e.message ? e.message : e));
       }
     });
+    */
+    
 
     const portSel = document.getElementById('portSelector');
     const standardSelect = document.getElementById('standardSelect');
@@ -391,6 +469,9 @@
     const upgradeXiaoZhiBtn = document.getElementById('upgradeXiaoZhi');
     const standCommit = document.getElementById('standCommit')
     const xiaozhiCommit = document.getElementById('xiaozhiCommit')
+
+    const microbitCommit = document.getElementById('microbitCommit');
+    const upgradeMicrobitBtn = document.getElementById('upgradeMicrobit')
 
     // helper to load ports
     // async function loadPorts() {
@@ -497,6 +578,8 @@
     //   populate(xiaozhiSelect, xiaozhi);
     // }
 
+    /**
+    
     async function loadFirmwareList() {
       let standardArr = [];
       let xiaozhiArr = [];
@@ -552,8 +635,61 @@
       populate(xiaozhiSelect, xiaozhiArr);
     }
 
+    */
+    async function loadFirmwareList() {
+      let standardArr = [];
+      let xiaozhiArr = [];
+      let microbitArr = [];
+    
+      try {
+        const res = await window.electronAPI.getFirmwareList();
+    
+        if (res && res.ok && res.data) {
+          standardArr = res.data.standard || [];
+          xiaozhiArr = res.data.xiaozhi || [];
+          microbitArr = res.data.microbit || [];
+        } else {
+          showToast(t.strings['download-code.onlyLocalFirm']);
+        }
+      } catch (err) {
+        showToast(t.strings['download-code.onlyLocalFirm']);
+      }
+    
+      function populate(selectElem, arr) {
+        selectElem.innerHTML = '';
+    
+        const localOpt = document.createElement('option');
+        localOpt.value = JSON.stringify({ local: true });
+        localOpt.textContent = t.strings['download-code.localFirmware']+'(1.0.0)';
+        selectElem.appendChild(localOpt);
+    
+        if (!arr || arr.length === 0) {
+          const o = document.createElement('option');
+          o.disabled = true;
+          o.selected = true;
+          o.textContent = '无可用版本';
+          selectElem.appendChild(o);
+          return;
+        }
+    
+        arr.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = JSON.stringify({ folder: item.name });
+          opt.textContent = item.version || item.name;
+          selectElem.appendChild(opt);
+        });
+    
+        selectElem.value = localOpt.value;
+      }
+    
+      populate(standardSelect, standardArr);
+      populate(xiaozhiSelect, xiaozhiArr);
+      populate(microbitSelect, microbitArr);
+    }
+    
 
     // 点击某个 select 时显示 commit（监听 change）
+    /*
     async function bindShowCommits(selectElem, type) {
       selectElem.addEventListener('change', async (ev) => {
         try {
@@ -593,39 +729,32 @@
           }
       });
     }
+    */
 
-    // 点击升级：先下载 -> 再烧录
-    // async function handleUpgrade(type) {
-    //   const selected = (type === 'standard' ? standardSelect.value : xiaozhiSelect.value);
-    //   if (!selected) return alert('请选择固件版本');
-    //   const meta = JSON.parse(selected);
-    //   const folder = meta.folder;
-    //   const port = portSel.value;
-    //   if (!port  || port === 'COM-请选择') return alert('请选择串口');
+    async function bindShowCommits(selectElem, type) {
+      selectElem.addEventListener('change', async (ev) => {
+        try {
+          const meta = JSON.parse(ev.target.value);
+          if (!meta.folder) return;
+    
+          const res = await window.electronAPI.getFolderCommits(type, meta.folder);
+          const msg = res?.data?.[0]?.message || '';
+    
+          if (type === 'standard') standCommit.innerText = msg;
+          else if (type === 'xiaozhi') xiaozhiCommit.innerText = msg;
+          else if (type === 'microbit') microbitCommit.innerText = msg;
+    
+        } catch {
+          if (type === 'standard') standCommit.innerText = '';
+          else if (type === 'xiaozhi') xiaozhiCommit.innerText = '';
+          else if (type === 'microbit') microbitCommit.innerText = '';
+        }
+      });
+    }
+    
+  
 
-    //   // 1. 下载
-    //   try {
-    //     // 告知 UI 下载中...
-    //     console.log('开始下载固件', type, folder);
-    //     showToast('开始下载固件，请稍后')
-    //     const dlRes = await window.electronAPI.downloadFirmware(type, folder);
-    //     if (!dlRes || !dlRes.ok) {
-    //       return alert('下载失败：' + (dlRes && dlRes.error ? dlRes.error : '未知错误'));
-    //       showToast('固件下载失败，请检测网络')
-    //     }
-    //     const downloaded = dlRes.data.downloaded; // [{name, path}]
-    //     console.log('下载完成：', downloaded);
-    //     showToast('固件下载成功，即将开始烧录')
-
-
-    //     // 调用 burn-firmware
-    //     const burnRes = await electronAPI.sendWho({who: (type === 'standard' ? 'test' : 'xiaoZhi'), port, filePath: downloaded  });
-    //   } catch (err) {
-    //     console.error('upgrade err', err);
-    //     alert('升级流程异常：' + (err && err.message ? err.message : err));
-    //   }
-    // }
-
+    /*
     async function handleUpgrade(type) {
     const selected = (type === 'standard' ? standardSelect.value : xiaozhiSelect.value);
     if (!selected) return alert(t.strings['download-code.firstSelectVersion']);
@@ -671,14 +800,73 @@
       // alert('升级流程异常：' + (err && err.message ? err.message : err));
     }
   }
+    */
+
+    async function handleUpgrade(type) {
+      const selectMap = {
+        standard: standardSelect,
+        xiaozhi: xiaozhiSelect,
+        microbit: microbitSelect
+      };
+    
+      const selected = selectMap[type]?.value;
+      if (!selected) return alert(t.strings['download-code.firstSelectVersion']);
+    
+      const meta = JSON.parse(selected);
+    
+      const port = portSel.value;
+     // if (type !== 'microbit') {
+       // if (!port || port === t.strings['download-code.defaultSelect']) {
+        //  return alert(t.strings['download-code.pleaseSelectPort']);
+       // }
+     // }
+
+      if (!port || port === t.strings['download-code.defaultSelect']) {
+        return alert(t.strings['download-code.pleaseSelectPort']);
+      }
+    
+      try {
+        if (meta.local) {
+          await electronAPI.sendWho({
+            who: type,
+            port: port,
+            filePath: null
+          });
+        } else {
+          showToast(t.strings['download-code.startDownloadFirm']);
+    
+          const dlRes = await electronAPI.downloadFirmware(type, meta.folder);
+          if (!dlRes?.ok) {
+            showToast(t.strings['download-code.downloadFaild']);
+            return;
+          }
+    
+          showToast(t.strings['download-code.downloadSuccess']);
+          await new Promise(r => setTimeout(r, 800));
+    
+          await electronAPI.sendWho({
+            who: type,
+            port:port,
+            filePath: dlRes.data.downloaded
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    
 
     // 绑定事件
     upgradeStandardBtn.addEventListener('click', async () => { await handleUpgrade('standard'); });
     upgradeXiaoZhiBtn.addEventListener('click', async () => { await handleUpgrade('xiaozhi'); });
 
+    upgradeMicrobitBtn.addEventListener('click', () => handleUpgrade('microbit'));
 
 
-    async function loadDefaultCommits() {
+
+    /*
+     async function loadDefaultCommits() {
       try {
         // Standard
         if (standardSelect.value) {
@@ -701,6 +889,39 @@
         console.error("加载默认固件 commits 失败", err);
       }
     }
+    */
+   
+    async function loadDefaultCommits() {
+      try {
+        const map = {
+          standard: {
+            select: standardSelect,
+            commitEl: standCommit
+          },
+          xiaozhi: {
+            select: xiaozhiSelect,
+            commitEl: xiaozhiCommit
+          },
+          microbit: {
+            select: microbitSelect,
+            commitEl: microbitCommit
+          }
+        };
+    
+        for (const type in map) {
+          const { select, commitEl } = map[type];
+          if (!select || !select.value) continue;
+    
+          const meta = JSON.parse(select.value);
+          if (!meta.folder) continue;
+    
+          const res = await window.electronAPI.getFolderCommits(type, meta.folder);
+          commitEl.innerText = res?.data?.[0]?.message || '';
+        }
+      } catch (err) {
+        console.error("加载默认固件 commits 失败", err);
+      }
+    }
     
 
 
@@ -713,13 +934,14 @@
       // 加载端口与固件
       loadPorts();
       // loadFirmwareLists();
-      if(ext=="2"){
+      if (ext === "2" || ext === "3") {
         await loadFirmwareList();
       }
       
       await loadDefaultCommits();
       bindShowCommits(standardSelect, 'standard');
       bindShowCommits(xiaozhiSelect, 'xiaozhi');
+      bindShowCommits(microbitSelect, 'microbit');
 
       // setInterval(async()=>{
       //    const res = await window.electronAPI.getFolderCommits('standard', 'last');
@@ -731,7 +953,21 @@
       //     }
       // },4000)
       // 每 2s 刷新端口列表（与你之前逻辑一致）
-      setInterval(loadPorts, 2000);
+      setInterval(()=>{
+        const ext = String(electronAPI.getExtension());
+        //console.log(ext)
+        updateExtensionUI(ext);
+        loadPorts()
+        const ver=electronAPI.getVersion();
+        //console.log(ver)
+        const value =
+          ver.microbit ||
+          ver.icrobot ||
+          ver.icbricks ||
+          '';
+
+        document.getElementById('currentVersion').value = value;
+      }, 2000);
     });
   </script>
 </body>
