@@ -12,6 +12,8 @@ const { dialog,app } = require('electron');
 const {BrowserWindow } = require('electron');
 const AbstractWindow = require('../src-main/windows/abstract');
 let options_mode ='full';//烧录模式---full：完整模式；incremental：增量模式
+const { downloadLatestMicrobitHex } = require('./microbitDownloader');
+const {translate} = require('../src-main/l10n');
 
 
 
@@ -451,7 +453,17 @@ async function generateV2Hex(code) {
   try{
     // 基础HEX
     // const baseHexPath = path.join(__dirname, '../utils/microbit_firmware/MICROBIT.hex');
-    const baseHexPath = getResourcePath('/microbit_firmware/MICROBIT(8).hex')
+    let baseHexPath
+
+    try{
+      const res = await downloadLatestMicrobitHex()
+      console.log(res)
+      baseHexPath = res.hexPath
+    }catch(e){
+      console.log(e)
+      baseHexPath = getResourcePath('/microbit_firmware/MICROBIT(12).hex')
+    }
+    
     const hexContent = fs.readFileSync(baseHexPath, 'utf8');
     const fsHex = new MicropythonFsHex([{
       hex: hexContent,
@@ -525,7 +537,7 @@ ipcMain.handle('usb-enter-repl', async () => {
 ipcMain.handle('usb-send-command', async (_, command) => {
   try {
     if (!getDeviceState().serialPort) {
-      return { success: false, error: "未连接设备" };
+      return { success: false, error: translate('microbit.notConnect') };
     }
     // deviceState.serialBuffer = '';// 清空上次结果
 
@@ -541,6 +553,7 @@ ipcMain.handle('usb-send-command', async (_, command) => {
 
       setDeviceState(['currentResolve', (data) => {
         setDeviceState(['currentResolve', null]);
+        // console.log('12345678',data)
         resolve(data);
       }]);
       
