@@ -9,7 +9,7 @@ const http = require('http');
 const https = require('https');
 const axios = require('axios');
 
-const {getGiteeTooken,getGithubTooken} = require('../tookenConfig')
+const {getGiteeTooken,getGithubTooken} = require('./tookenConfig')
 
 /* ================= Git 仓库配置 ================= */
 

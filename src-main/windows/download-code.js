@@ -574,7 +574,7 @@ const { DAPLink } = DAPjs;
 const usb = require('usb');
 const {BrowserWindow } = require('electron');
 const {setVersion,getVersion} = require('../../utils/currentVersion')
-const {getGiteeTooken,getGithubTooken} = require('../../tookenConfig')
+const {getGiteeTooken,getGithubTooken} = require('../../utils/tookenConfig')
 
 const ssid = 'MyHotspot'; // Wi-Fi 名称
 const password = '12345678'; // Wi-Fi 密码
