@@ -1,5 +1,8 @@
 
 const {setMode,getMode} = require('../utils/mode')
+const {setLastTime,getLastTime} = require('./portSendLastTime')
+const {safeSerialWrite} = require('./safeSerialWrite')
+const {setVersion,getVersion} = require('./currentVersion')
 let serialWriteQueue = Promise.resolve();
 
 // function safeSerialWrite(port, str) {
@@ -24,27 +27,29 @@ let serialWriteQueue = Promise.resolve();
 //   });
 // }
 
-function safeSerialWrite(port, data) {
-  serialWriteQueue = serialWriteQueue
-    .then(() => {
-      return new Promise((resolve, reject) => {
-        port.write(data, (err) => {
-          if (err) {
-            console.error('串口写入失败:', err);
-            return reject(err);
-          }
-          console.log('📤 串口发送:', data);
-          resolve();
-        });
-      });
-    })
-    .catch(err => {
-      // ⚠️ 关键：吞掉错误，保证队列继续
-      console.error('safeSerialWrite 队列错误:', err);
-    });
+// function safeSerialWrite(port, data) {
+//   serialWriteQueue = serialWriteQueue
+//     .then(() => {
+//       return new Promise((resolve, reject) => {
+//         port.write(data, (err) => {
+//           if (err) {
+//             console.error('串口写入失败:', err);
+//             return reject(err);
+//           }
+//           console.log('📤 串口发送:', data);
+//           resolve();
+//         });
+//       });
+//     })
+//     .catch(err => {
+//       // ⚠️ 关键：吞掉错误，保证队列继续
+//       console.error('safeSerialWrite 队列错误:', err);
+//     });
 
-  return serialWriteQueue;
-}
+//   return serialWriteQueue;
+// }
+
+
 function websocketConnect(setSocket,Current,getPort,setBricksSocket,setBricksMotor,WebSocket){
 const WSS = new WebSocket.Server({ port: 8081 });
   WSS.on('connection', (ws) => {
@@ -111,8 +116,9 @@ const WSS = new WebSocket.Server({ port: 8081 });
           }))
         });
       }else if(JSON.parse(message).type=='offline'){
-        // console.log('##############################################')
+        console.log('##############################################')
         Current.setWifi('')
+        setVersion(['icrobot',''])
       }else if(JSON.parse(message).type=='port'){
         let str=JSON.parse(message).data.message
         str+='\n'
@@ -142,14 +148,15 @@ const WSS = new WebSocket.Server({ port: 8081 });
         // console.log(packet);
         console.log(str)
         if(getPort()){
-          // await safeSerialWrite(getPort(), str);
-          await getPort().write(str, (err) => {
-            if (err) {
-              return reject('Error on write: ' + err.message);
-            }
+          await safeSerialWrite(getPort(), str);
+          // setLastTime(Date.now())
+          // await getPort().write(str, (err) => {
+          //   if (err) {
+          //     return reject('Error on write: ' + err.message);
+          //   }
   
-            console.log(`Data sent: ${str}`);
-          });
+          //   console.log(`Data sent: ${str}`);
+          // });
         }
         
       }else if(JSON.parse(message).type=='mode'){
