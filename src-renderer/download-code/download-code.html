@@ -297,7 +297,7 @@
         // port selector visible
         document.getElementById('portSelector').style.display = 'block';
         document.getElementById('titlePortSelect').style.display = 'block';
-        document.getElementById('versionShow').style.display = 'none';
+        document.getElementById('versionShow').style.display = 'block';
         
         document.getElementById('firstSelectDevice').style.display = 'none';
         document.getElementById('notSupport').style.display = 'none';
@@ -655,12 +655,17 @@
         showToast(t.strings['download-code.onlyLocalFirm']);
       }
     
-      function populate(selectElem, arr) {
+      function populate(selectElem, arr,type) {
         selectElem.innerHTML = '';
     
         const localOpt = document.createElement('option');
         localOpt.value = JSON.stringify({ local: true });
-        localOpt.textContent = t.strings['download-code.localFirmware']+'(1.0.0)';
+        if(type=='stand'){
+          localOpt.textContent = t.strings['download-code.localFirmware']+'(1.1.0)';
+        }else{
+          localOpt.textContent = t.strings['download-code.localFirmware']+'(1.0.0)';
+        }
+        
         selectElem.appendChild(localOpt);
     
         if (!arr || arr.length === 0) {
@@ -682,9 +687,9 @@
         selectElem.value = localOpt.value;
       }
     
-      populate(standardSelect, standardArr);
-      populate(xiaozhiSelect, xiaozhiArr);
-      populate(microbitSelect, microbitArr);
+      populate(standardSelect, standardArr,'stand');
+      populate(xiaozhiSelect, xiaozhiArr,'xiaozhi');
+      populate(microbitSelect, microbitArr,'microbit');
     }
     
 
@@ -735,9 +740,11 @@
       selectElem.addEventListener('change', async (ev) => {
         try {
           const meta = JSON.parse(ev.target.value);
-          if (!meta.folder) return;
+          let res;
+          if (meta.folder){
+            res = await window.electronAPI.getFolderCommits(type, meta.folder);
+          }
     
-          const res = await window.electronAPI.getFolderCommits(type, meta.folder);
           const msg = res?.data?.[0]?.message || '';
     
           if (type === 'standard') standCommit.innerText = msg;
@@ -933,6 +940,22 @@
 
       // 加载端口与固件
       loadPorts();
+
+      setInterval(()=>{
+        const ext = String(electronAPI.getExtension());
+        //console.log(ext)
+        updateExtensionUI(ext);
+        loadPorts()
+        const ver=electronAPI.getVersion();
+       // console.log(ver)
+        const value =
+          ver.microbit ||
+          ver.icrobot ||
+          ver.icbricks ||
+          '';
+
+        document.getElementById('currentVersion').value = value;
+      }, 2000);
       // loadFirmwareLists();
       if (ext === "2" || ext === "3") {
         await loadFirmwareList();
@@ -953,21 +976,7 @@
       //     }
       // },4000)
       // 每 2s 刷新端口列表（与你之前逻辑一致）
-      setInterval(()=>{
-        const ext = String(electronAPI.getExtension());
-        //console.log(ext)
-        updateExtensionUI(ext);
-        loadPorts()
-        const ver=electronAPI.getVersion();
-        //console.log(ver)
-        const value =
-          ver.microbit ||
-          ver.icrobot ||
-          ver.icbricks ||
-          '';
-
-        document.getElementById('currentVersion').value = value;
-      }, 2000);
+      
     });
   </script>
 </body>
