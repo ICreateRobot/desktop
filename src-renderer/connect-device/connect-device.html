@@ -1530,14 +1530,33 @@
           }
           let writeQueue = Promise.resolve();
 
-          function safeWrite(characteristic, buffer) {
+          function safeWrite(characteristic, buffer, timeoutMs = 6000) {
             // 把任务排进队列
+            /*
             writeQueue = writeQueue.then(() => {
               return characteristic.writeValue(buffer);
             }).catch(err => {
               console.error("写入失败:", err);
             });
 
+            return writeQueue;
+            */
+
+            writeQueue = writeQueue.then(async () => {
+              // 先创建一个等待响应的 Promise
+              const responsePromise = createPromiseForRobot(timeoutMs);
+          
+              // 再发送
+              await characteristic.writeValue(buffer);
+          
+              // 等待本次发送对应的返回
+              return await responsePromise;
+          
+            }).catch(err => {
+              console.error("写入或等待失败:", err);
+              //throw err;
+            });
+          
             return writeQueue;
           }
             connect.sendMotor(async (motor)=>{
