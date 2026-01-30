@@ -80,6 +80,8 @@ const BleConnectWindow =require('./ble-connect')
 const {setCurrent,getCurrent} = require('../../utils/whatConnectFun')
 const {setVersion,getVersion} = require('../../utils/currentVersion')
 const { getLatestMicrobitVersion } = require('../../utils/microbitDownloader');
+const {getLastTime,setLastTime} = require('../../utils/portSendLastTime')
+const {safeSerialWrite} = require('../../utils/safeSerialWrite')
 let bluetoothPinCallback
 let selectBluetoothCallback
 
@@ -87,6 +89,8 @@ let THIS
 let isClosed
 
 let currentConnFun=''
+let heartTime;
+let timeSpace;
 
 const Readline = require('@serialport/parser-readline')
 // const parser = require('@serialport/parser-readline');
@@ -394,6 +398,7 @@ class ConnectWindow extends AbstractWindow {
         if (err) {
           console.error('Error:', err);
         } else if (currentWifi.getWifi() && ssid !== currentWifi.getWifi()) {
+          setVersion(['icrobot',''])
           console.log('Disconnected or connected to the wrong network');
           currentWifi.setWifi('')
           setCurrent('')
@@ -586,6 +591,7 @@ class ConnectWindow extends AbstractWindow {
     function disconnectWifi(){
       currentWifi.setWifi('')
       setCurrent('')
+      setVersion(['icrobot',''])
       wifi.disconnect((err) => {
         if (err) {
             console.error('断开连接失败:', err);
@@ -894,6 +900,11 @@ class ConnectWindow extends AbstractWindow {
         if(senor.type=='senor'){
           // console.log(senor.data)
           EditorWindow.setRobotData(senor.data)
+          // console.log(senor.data)
+          if(!getVersion().icrobot && JSON.parse(senor.data)[30]){
+            setVersion(['icrobot',parseVersion(JSON.parse(senor.data)[30])])
+          }
+          
         }else if(senor.type=='state'){
           EditorWindow.dataSend(senor.data)
         }
@@ -942,7 +953,7 @@ class ConnectWindow extends AbstractWindow {
     ipc.on('ble-connect', (event, connect) => {
       console.log(connect)
       console.log('#######################')
-
+      setVersion(['icrobot',''])
       setCurrent('')
       if(getSocket()){
         getSocket().send(JSON.stringify({
@@ -1105,6 +1116,11 @@ class ConnectWindow extends AbstractWindow {
         });
       }
 
+      
+      function parseVersion(num) {
+          const str = String(num).padStart(3, '0'); // 防止出现 12 这种情况
+          return `${str[0]}.${str[1]}.${str[2]}`;
+      }
 
       function connectNormalSerial(port) {
         return new Promise((resolve) => {
@@ -1122,6 +1138,7 @@ class ConnectWindow extends AbstractWindow {
               resolve({ success: false, microbit: false, error: err.message });
               return;
             }
+            timeSpace=Date.now()
 
             console.log('串口打开成功');
 
@@ -1150,6 +1167,20 @@ class ConnectWindow extends AbstractWindow {
               console.log('recive success');
               setPort(PORT);
               setPortCom(port);
+              if(heartTime){
+                clearInterval(heartTime)
+              }
+              
+              heartTime=setInterval(async ()=>{
+                if(Date.now()-getLastTime()>5000){
+                  await safeSerialWrite(
+                    PORT,
+                    JSON.stringify({ data: '1' }) + '\n'
+                  );
+                  
+                }
+                
+              },2000)
 
               resolve({ success: true, microbit: false });
             } else {
@@ -1166,6 +1197,11 @@ class ConnectWindow extends AbstractWindow {
           PORT.on('close', () => {
             console.log('串口关闭');
             setPortCom('');
+            setVersion(['icrobot',''])
+            if(heartTime){
+              clearInterval(heartTime)
+            }
+            
             socket.getSocket()?.send(JSON.stringify({
               type: 'isOpenPort',
               data: { message: false }
@@ -1190,6 +1226,15 @@ class ConnectWindow extends AbstractWindow {
                   parsed = JSON.parse(message);
                 }
 
+                if(!getVersion().icrobot && parsed[30]){
+                  setVersion(['icrobot',parseVersion(parsed[30])])
+                }
+                
+                if(Date.now()-timeSpace>5000){
+                  console.log('qqqqqqqq')
+                  disconnectPortLogic()
+                }
+                timeSpace=Date.now()
                 socket.getSocket()?.send(JSON.stringify({
                   type: 'serialData',
                   data: { message: parsed }
@@ -1614,6 +1659,11 @@ class ConnectWindow extends AbstractWindow {
 
 
       async function disconnectPortLogic() {
+        setVersion(['icrobot',''])
+        setVersion(['microbit',''])
+        if(heartTime){
+          clearInterval(heartTime)
+        }
         // 检查当前端口是否为 micro:bit
         const ports = await SerialPort.list();
         const currentPortInfo = ports.find(p => p.path === getPortCom());
@@ -1873,6 +1923,10 @@ class ConnectWindow extends AbstractWindow {
 
   static async disconnectPortLogic() {
     setVersion(['microbit',''])
+    setVersion(['icrobot',''])
+    if(heartTime){
+      clearInterval(heartTime)
+    }
 
     async function closeDapLink(daplink) {
       return new Promise(resolve => {
