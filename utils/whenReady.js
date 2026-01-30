@@ -46,6 +46,8 @@ const {setCurrent,getCurrent} = require('./whatConnectFun')
 
 const {translate} = require('../src-main/l10n');
 
+const {getVersion,setVersion} = require('./currentVersion')
+
 
 let shouldRelaunch = true;   // 是否重启的标记（用户关闭时设为 false）
 let countdownTimer = null;   // 保存 setTimeout
@@ -372,6 +374,7 @@ async function initializeAppServices() {
         if (getSocket() && !isOnline) {
           currentEspIp.setIp('');
           setCurrent('')
+          setVersion(['icrobot',''])
           getSocket().send(JSON.stringify({
             type: 'espIpStatus',
             data: { message: true }
