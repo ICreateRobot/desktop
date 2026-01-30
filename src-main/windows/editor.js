@@ -28,6 +28,7 @@ const {getCode,setCode,getDown,setDown,setPlace,getPlace} = require('../../utils
 const {getPort} =require('../../utils/port')
 const extensions = require('../../utils/extensionWho.js')
 const socket =require('../../utils/socket')
+const {setVersion,getVersion} = require('../../utils/currentVersion')
 
 const TYPE_FILE = 'file';
 const TYPE_URL = 'url';
@@ -872,6 +873,19 @@ class EditorWindow extends ProjectRunningWindow {
       
       
     });
+
+    function parseVersion(num) {
+      const str = String(num).padStart(3, '0'); // 防止出现 12 这种情况
+      return `${str[0]}.${str[1]}.${str[2]}`;
+    }
+    this.ipc.handle('robot-version', async(event,version) => {
+      console.log(version)
+      if(!getVersion.icrobot){
+        setVersion(['icrobot',parseVersion(version)])
+      }
+      
+    })
+    
     this.ipc.handle('cancelload', () => {
       setDown(2)
 

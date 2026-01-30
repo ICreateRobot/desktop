@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld('EditorPreload', {
   download: (code,args) => ipcRenderer.invoke('download',code,args),
   SerialDownload: (code) => ipcRenderer.invoke('serial-download',code),
   cancelload: () => ipcRenderer.invoke('cancelload'),
+  robotVersion: (version) => ipcRenderer.invoke('robot-version',version),
 
 
   disConnectWifi: (isDis) => ipcRenderer.invoke('disconnect-wifi',isDis),
