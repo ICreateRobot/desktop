@@ -30,6 +30,7 @@ const {setSocket,getSocket,setBricksSocket,setBricksMotor} = require('./socket')
 const { BrowserWindow } = require('electron');
 // const wifi = require('node-wifi');
 const Current=require('./currentWifi')
+const {getWifiNode} = require('./wifiShare')
 
 const { spawn } = require('child_process');
 const {websocketConnect} = require('./websocketConnect')
@@ -332,6 +333,16 @@ async function initializeAppServices() {
       
           if (win && !win.isDestroyed()) {
             win.close();
+          }
+          if(Current.getWifi() && getWifiNode()){
+            getWifiNode().disconnect((err) => {
+              if (err) {
+                  console.error('WIFI disconnect error:', err);
+              }else{
+                console.log('wifi disconnect success');
+              }
+              
+            });
           }
         AbstractWindow.getAllWindows().forEach((win) => {
           if (!win.window.isDestroyed()) {
