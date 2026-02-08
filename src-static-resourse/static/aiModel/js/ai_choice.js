@@ -219,7 +219,8 @@ function showProjectManagement(type) {
     //     alert("敬请期待")
     //     return
     // }
-    const lang = localStorage.getItem('tw:language') === 'en' ? 'en' : 'zh-cn';
+    // const lang = localStorage.getItem('tw:language') === 'en' ? 'en' : 'zh-cn';
+    const lang = localStorage.getItem('tw:language') || 'zh-cn'
     setTimeout(() => {//增加一段延时，项目加载一会
         $('#modelSelection').css('display', 'none');
         $('#projectManagement').css('display', 'flex');
@@ -256,7 +257,8 @@ function renderProjectCards() {
 
 // 显示模型选择界面
 function showmodelSelection() {
-    const lang = localStorage.getItem('tw:language') === 'en' ? 'en' : 'zh-cn';
+    // const lang = localStorage.getItem('tw:language') === 'en' ? 'en' : 'zh-cn';
+    const lang = localStorage.getItem('tw:language') || 'zh-cn'
     currentPage = "ai_choice";
     $('#modelSelection').css('display', 'flex');
     $('#projectManagement').css('display', 'none');
