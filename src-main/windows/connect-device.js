@@ -95,6 +95,7 @@ let timeSpace;
 const Readline = require('@serialport/parser-readline')
 // const parser = require('@serialport/parser-readline');
 const socket =require('../../utils/socket')
+const {setWifiNode,getWifiNode} = require('../../utils/wifiShare')
 
 //---------------------wifi模式-------------------------
 function detectPreferredInterface() {
@@ -124,6 +125,7 @@ function detectPreferredInterface() {
 detectPreferredInterface()
   .then(iface => {
     wifi.init({ iface });  // null 会自动用默认接口
+    setWifiNode(wifi)
     console.log('📶 Using interface:', iface || '(default)');
   })
   .catch(err => {
@@ -1179,6 +1181,11 @@ class ConnectWindow extends AbstractWindow {
                   );
                   
                 }
+
+                if(Date.now()-timeSpace>5000){
+                  console.log('qqqqqqqq')
+                  disconnectPortLogic()
+                }
                 
               },2000)
 
@@ -1230,10 +1237,7 @@ class ConnectWindow extends AbstractWindow {
                   setVersion(['icrobot',parseVersion(parsed[30])])
                 }
                 
-                if(Date.now()-timeSpace>5000){
-                  console.log('qqqqqqqq')
-                  disconnectPortLogic()
-                }
+                
                 timeSpace=Date.now()
                 socket.getSocket()?.send(JSON.stringify({
                   type: 'serialData',
