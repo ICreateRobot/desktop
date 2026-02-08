@@ -472,6 +472,7 @@
       </div>
       <script>
 
+        console.log(localStorage)
         let isConnecting=false
         function translate(){
           //翻译
@@ -1116,6 +1117,7 @@
           let serverRobot
           let serviceRobot
           let characteristicWriteRobot
+          let characteristicWriteStopRobot
           let characteristicReadRobot
           let characteristicReadSensorRobot
 
@@ -1574,6 +1576,7 @@
               }else if(currentExtension==2){
 
                 let data = motor; // 假设 data 是普通数组，例如 [0x11,0x22,0x33]
+                console.log(data)
 
                 // 转成 Uint8Array
                 const raw = new Uint8Array(data);
@@ -1590,7 +1593,31 @@
 
                 // const promise1 = createPromiseForRobot();
                 // await characteristicWriteRobot.writeValue(packet.buffer)
-                await safeWrite(characteristicWriteRobot, packet.buffer);
+
+
+                // 判断是否等于 [0xCC, 0x03]
+                const isCC03 =
+                data.length === 2 &&
+                data[0] === 0xCC &&
+                data[1] === 0x03;
+
+                const hasOtherWriteChar =
+                  characteristicWriteStopRobot &&
+                  typeof characteristicWriteStopRobot.writeValue === 'function';
+
+                const writeChar =
+                  isCC03 && hasOtherWriteChar
+                    ? characteristicWriteStopRobot
+                    : characteristicWriteRobot;
+                console.log(isCC03)
+                console.log(hasOtherWriteChar)
+                console.log(writeChar)
+                if(hasOtherWriteChar && isCC03){
+                  characteristicWriteStopRobot.writeValue(packet.buffer)
+                }else{
+                  await safeWrite(characteristicWriteRobot, packet.buffer);
+                }
+                
                 // await promise1
               }
               
@@ -1950,7 +1977,18 @@
                       console.log(serverRobot.connected)
                       serviceRobot = await serverRobot.getPrimaryService('0000fff0-0000-1000-8000-00805f9b34fb');
                       console.log('-------------------')
-                      characteristicWriteRobot = await serviceRobot.getCharacteristic('0000fff1-0000-1000-8000-00805f9b34fb');
+                      try{
+                        characteristicWriteRobot = await serviceRobot.getCharacteristic('0000fff4-0000-1000-8000-00805f9b34fb');
+                      }catch(e){
+                        characteristicWriteRobot = await serviceRobot.getCharacteristic('0000fff1-0000-1000-8000-00805f9b34fb');
+                      }
+
+                      try{
+                        characteristicWriteStopRobot=await serviceRobot.getCharacteristic('0000fff5-0000-1000-8000-00805f9b34fb');
+                      }catch(e){
+                        console.log(e)
+                      }
+                      //characteristicWriteRobot = await serviceRobot.getCharacteristic('0000fff4-0000-1000-8000-00805f9b34fb');
                       characteristicReadRobot = await serviceRobot.getCharacteristic('0000fff2-0000-1000-8000-00805f9b34fb');
                       characteristicReadSensorRobot=await serviceRobot.getCharacteristic('0000fff3-0000-1000-8000-00805f9b34fb');
                       deviceRobot.addEventListener('gattserverdisconnected', onDisconnected);
