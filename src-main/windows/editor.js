@@ -881,7 +881,8 @@ class EditorWindow extends ProjectRunningWindow {
     this.ipc.handle('robot-version', async(event,version) => {
       console.log(version)
       if(!getVersion.icrobot){
-        setVersion(['icrobot',parseVersion(version)])
+        setVersion(['icrobot',parseVersion(version[0])])
+        setVersion(['icrobotHard',parseVersion(version[1])])
       }
       
     })
