@@ -1437,7 +1437,27 @@
         "updateWindow.download":"Перейти на официальный сайт",
         "updateWindow.cancel":"Отмена",
         "updateWindow.noalert":"Больше не напоминать об этой версии",
-        "microbit.notConnect":"Устройство не подключено"
+        "microbit.notConnect":"Устройство не подключено",
+        "download-code.tabDefault": "Прошивка по умолчанию",
+        "download-code.tabCustom": "Пользовательская прошивка",
+
+        "download-code.customPortLab": "Выберите порт",
+        "download-code.custombaudLab": "Скорость передачи",
+        "download-code.customplacefileLab": "Адрес прошивки и файл",
+
+        "download-code.placeInput": "Адрес прошивки",
+
+        "download-code.chooseFileBtn": "Выбрать файл",
+        "download-code.noFileSelected": "Файл не выбран",
+        "download-code.deleteRowBtn": "Удалить",
+
+        "download-code.addFileRowBtn": "+ Добавить файл",
+        "download-code.startFlashBtn": "Начать прошивку",
+        "download-code.pleaseWriteAllInfo": "Пожалуйста, заполните всю информацию для прошивки",
+        "download-code.versionInfo": "Информация о версии",
+        "download-code.firmwareVersion": "Версия прошивки",
+        "download-code.hardwareVersion": "Версия оборудования",
+        "download-code.currentHardVersion": "Текущая версия оборудования"
     },
     "sl": {
         "about": "O programu {APP_NAME}",
@@ -1931,7 +1951,27 @@
         "updateWindow.download":"Przejdź na oficjalną stronę",
         "updateWindow.cancel":"Anuluj",
         "updateWindow.noalert":"Nie przypominaj ponownie o tej wersji",
-        "microbit.notConnect":"Nie podłączono urządzenia"
+        "microbit.notConnect":"Nie podłączono urządzenia",
+        "download-code.tabDefault": "Domyślna wgranie",
+        "download-code.tabCustom": "Własna wgranie",
+
+        "download-code.customPortLab": "Wybierz port",
+        "download-code.custombaudLab": "Prędkość transmisji",
+        "download-code.customplacefileLab": "Adres i plik firmware",
+
+        "download-code.placeInput": "Adres wgrania",
+
+        "download-code.chooseFileBtn": "Wybierz plik",
+        "download-code.noFileSelected": "Nie wybrano pliku",
+        "download-code.deleteRowBtn": "Usuń",
+
+        "download-code.addFileRowBtn": "+ Dodaj plik",
+        "download-code.startFlashBtn": "Rozpocznij wgranie",
+        "download-code.pleaseWriteAllInfo": "Proszę uzupełnić wszystkie dane wgrania",
+        "download-code.versionInfo": "Informacje o wersji",
+        "download-code.firmwareVersion": "Wersja firmware",
+        "download-code.hardwareVersion": "Wersja sprzętu",
+        "download-code.currentHardVersion": "Aktualna wersja sprzętu"
     },
 
     "zh-cn": {
@@ -2151,7 +2191,27 @@
         "updateWindow.download":"去官网下载",
         "updateWindow.cancel":"取消",
         "updateWindow.noalert":"下次不再提示此版本",
-        "microbit.notConnect":"未连接设备"
+        "microbit.notConnect":"未连接设备",
+        "download-code.tabDefault": "默认烧录",
+        "download-code.tabCustom": "自定义烧录",
+      
+        "download-code.customPortLab": "选择串口",
+        "download-code.custombaudLab": "波特率",
+        "download-code.customplacefileLab": "烧录地址 & 固件文件",
+      
+        "download-code.placeInput": "烧录地址",
+      
+        "download-code.chooseFileBtn": "选择文件",
+        "download-code.noFileSelected": "未选择文件",
+        "download-code.deleteRowBtn": "删除",
+      
+        "download-code.addFileRowBtn": "+ 新增文件",
+        "download-code.startFlashBtn": "开始烧录",
+        "download-code.pleaseWriteAllInfo": "请填写完整烧录信息",
+        "download-code.versionInfo":"版本信息",
+        "download-code.firmwareVersion":"固件版本",
+        "download-code.hardwareVersion":"硬件版本",
+        "download-code.currentHardVersion":"当前硬件版本"
     },
     "zh-tw": {
         "about": "關於 {APP_NAME}",
@@ -2396,7 +2456,27 @@
         "updateWindow.download":"前往官方網站",
         "updateWindow.cancel":"取消",
         "updateWindow.noalert":"下次不再提醒此版本",
-        "microbit.notConnect":"未連接裝置"
+        "microbit.notConnect":"未連接裝置",
+        "download-code.tabDefault": "預設燒錄",
+        "download-code.tabCustom": "自訂燒錄",
+
+        "download-code.customPortLab": "選擇串列埠",
+        "download-code.custombaudLab": "鮑率",
+        "download-code.customplacefileLab": "燒錄位址 & 韌體檔案",
+
+        "download-code.placeInput": "燒錄位址",
+
+        "download-code.chooseFileBtn": "選擇檔案",
+        "download-code.noFileSelected": "尚未選擇檔案",
+        "download-code.deleteRowBtn": "刪除",
+
+        "download-code.addFileRowBtn": "+ 新增檔案",
+        "download-code.startFlashBtn": "開始燒錄",
+        "download-code.pleaseWriteAllInfo": "請填寫完整燒錄資訊",
+        "download-code.versionInfo": "版本資訊",
+        "download-code.firmwareVersion": "韌體版本",
+        "download-code.hardwareVersion": "硬體版本",
+        "download-code.currentHardVersion": "當前硬體版本"
         }
 
 }

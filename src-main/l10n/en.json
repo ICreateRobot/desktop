@@ -869,6 +869,74 @@
   "microbit.notConnect": {
     "string": "Not connected to device",
     "developer_comment": "microbit.notConnect"
+  },
+  "download-code.tabDefault": {
+    "string": "Default Flash",
+    "developer_comment": "download-code.tabDefault"
+  },
+  "download-code.tabCustom": {
+    "string": "Custom Flash",
+    "developer_comment": "download-code.tabCustom"
+  },
+
+  "download-code.customPortLab": {
+    "string": "Select Port",
+    "developer_comment": "download-code.customPortLab"
+  },
+  "download-code.custombaudLab": {
+    "string": "Baud Rate",
+    "developer_comment": "download-code.custombaudLab"
+  },
+  "download-code.customplacefileLab": {
+    "string": "Flash Address & Firmware File",
+    "developer_comment": "download-code.customplacefileLab"
+  },
+
+  "download-code.placeInput": {
+    "string": "Flash Address",
+    "developer_comment": "download-code.placeInput"
+  },
+
+  "download-code.chooseFileBtn": {
+    "string": "Choose File",
+    "developer_comment": "download-code.chooseFileBtn"
+  },
+  "download-code.noFileSelected": {
+    "string": "No file selected",
+    "developer_comment": "download-code.noFileSelected"
+  },
+  "download-code.deleteRowBtn": {
+    "string": "Delete",
+    "developer_comment": "download-code.deleteRowBtn"
+  },
+
+  "download-code.addFileRowBtn": {
+    "string": "Add File",
+    "developer_comment": "download-code.addFileRowBtn"
+  },
+  "download-code.startFlashBtn": {
+    "string": "Start Flash",
+    "developer_comment": "download-code.startFlashBtn"
+  },
+  "download-code.pleaseWriteAllInfo": {
+    "string": "Please fill in all flash information",
+    "developer_comment": "download-code.pleaseWriteAllInfo"
+  },
+  "download-code.versionInfo": {
+    "string": "Version Info",
+    "developer_comment": "download-code.versionInfo"
+  },
+  "download-code.firmwareVersion": {
+    "string": "Firmware Version",
+    "developer_comment": "download-code.firmwareVersion"
+  },
+  "download-code.hardwareVersion": {
+    "string": "Hardware Version",
+    "developer_comment": "download-code.hardwareVersion"
+  },
+  "download-code.currentHardVersion": {
+    "string": "Current Hardware Version",
+    "developer_comment": "download-code.currentHardVersion"
   }
   
 }
