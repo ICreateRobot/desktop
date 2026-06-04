@@ -51,7 +51,7 @@ let serialWriteQueue = Promise.resolve();
 
 
 function websocketConnect(setSocket,Current,getPort,setBricksSocket,setBricksMotor,WebSocket){
-const WSS = new WebSocket.Server({ port: 8081 });
+const WSS = new WebSocket.Server({ port: 39147 });
   WSS.on('connection', (ws) => {
 
     ws.isAlive = true;
@@ -119,6 +119,7 @@ const WSS = new WebSocket.Server({ port: 8081 });
         console.log('##############################################')
         Current.setWifi('')
         setVersion(['icrobot',''])
+        setVersion(['icrobotHard',''])
       }else if(JSON.parse(message).type=='port'){
         let str=JSON.parse(message).data.message
         str+='\n'
@@ -165,7 +166,7 @@ const WSS = new WebSocket.Server({ port: 8081 });
       
   });
   })
-  const wss = new WebSocket.Server({ port: 8082 });
+  const wss = new WebSocket.Server({ port: 48219 });
   // setWss(wss)
   let previousDistance = null;  // 保存上一次的距离数据
   wss.on('connection', (ws) => {
@@ -194,7 +195,7 @@ const WSS = new WebSocket.Server({ port: 8081 });
 
 
 
-  const w = new WebSocket.Server({ port: 8084 });
+  const w = new WebSocket.Server({ port: 52731 });
 
   w.on('connection', (ws) => {
     setBricksMotor(ws)
