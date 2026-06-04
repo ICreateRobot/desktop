@@ -13,7 +13,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   isPosted: () => ipcRenderer.sendSync('is-posted'),
 
 
-  sendWho:({who,port,filePath}) => ipcRenderer.invoke('send-who', {who,port,filePath}),
+  sendWho:({who,port,filePath,place}) => ipcRenderer.invoke('send-who', {who,port,filePath,place}),
 
   getExtension: () => ipcRenderer.sendSync('get-extension'),
   getVersion: () => ipcRenderer.sendSync('get-version'),
@@ -37,4 +37,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const res = await ipcRenderer.invoke('download-firmware', { type, folderName });
     return res;
   },
+  selectFile:async () => {
+    const res = await ipcRenderer.invoke('select-file');
+    return res;
+  },
+  flashCustom: (port,baudRate,files) => ipcRenderer.invoke('flash-custom', port,baudRate,files),
 });
