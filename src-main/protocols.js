@@ -120,6 +120,8 @@ MIME_TYPES.set('.css', 'text/css');
 MIME_TYPES.set('', 'application/octet-stream');
 MIME_TYPES.set('.tflite', 'application/octet-stream');
 MIME_TYPES.set('.sb3', 'application/octet-stream');
+MIME_TYPES.set('.data', 'application/octet-stream');
+MIME_TYPES.set('.binarypb', 'application/octet-stream');
 
 protocol.registerSchemesAsPrivileged(Object.entries(FILE_SCHEMES).map(([scheme, metadata]) => ({
   scheme,
