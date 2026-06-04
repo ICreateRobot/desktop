@@ -49,6 +49,8 @@ const {translate} = require('../src-main/l10n');
 
 const {getVersion,setVersion} = require('./currentVersion')
 
+const blocklySystemPrompt = require('./prompts.js')
+
 
 let shouldRelaunch = true;   // 是否重启的标记（用户关闭时设为 false）
 let countdownTimer = null;   // 保存 setTimeout
@@ -294,7 +296,7 @@ async function initializeAppServices() {
   } else {
     getICreateCodeVersionsFromGithub()
     console.log('location forign');
-    DOWNLOAD_URL = 'https://www.icreaterobot.com/pages/software';
+    DOWNLOAD_URL = 'https://drive.google.com/drive/folders/1BelSOfzXOhKQjtSsvhnTnV4FC-a3zJ6A';
     // 国外逻辑
   }
   
@@ -306,6 +308,352 @@ async function initializeAppServices() {
 
   // 启动后台服务
   startServer(express, Bottleneck, path, fs, bodyParser, cors, app, timeout);
+
+
+  const serverAi = express();
+  const PORT = 3001;
+
+// 🎨 控制台颜色代码
+const colors = {
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  reset: '\x1b[0m'
+};
+
+// 📊 打印带时间的日志
+const log = (emoji, message, color = 'white') => {
+  const timestamp = new Date().toLocaleTimeString();
+  console.log(`${colors[color]}${emoji} [${timestamp}] ${message}${colors.reset}`);
+};
+
+serverAi.use(cors());
+serverAi.use(bodyParser.json());
+
+// 🔧 记录所有请求的中间件
+serverAi.use((req, res, next) => {
+  log("🔍", `收到 ${req.method} 请求: ${req.path}`, "cyan");
+  if (req.method === 'POST' && req.body) {
+    log("📦", `请求数据: ${JSON.stringify(req.body).substring(0, 100)}...`, "cyan");
+  }
+  next();
+});
+
+// 🤖 后端代理 DeepSeek 聊天
+serverAi.post("/api/chat", async (req, res) => {
+  const { description } = req.body;
+  
+  log("🚀", "=== 开始处理 AI 聊天请求 ===", "magenta");
+  log("📝", `用户消息: "${description}"`, "yellow");
+  
+  if (!description) {
+    log("❌", "错误: description 为空", "red");
+    return res.status(400).json({ error: "description 不能为空" });
+  }
+
+  try {
+    log("🔄", "准备调用 DeepSeek API...", "blue");
+    log("🔌", "请求 URL: https://api.deepseek.com/chat/completions", "blue");
+    
+    // 打印请求数据
+    const requestData = {
+      model: "deepseek-chat",
+      messages: [
+        { role: "system", content: "你是一个友好、礼貌的聊天助手。" },
+        { role: "user", content: description }
+      ]
+    };
+    log("📨", `发送给 DeepSeek 的数据: ${JSON.stringify(requestData)}`, "blue");
+    
+    const startTime = Date.now(); // 记录开始时间
+    
+    const response = await axios.post(
+      "https://api.deepseek.com/chat/completions",
+      requestData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer sk-200b049525cc4ab29094340e824e7434"
+        },
+        timeout: 30000 // 30秒超时
+      }
+    );
+
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    log("✅", `DeepSeek API 调用成功！耗时: ${duration}ms`, "green");
+    log("📄", `DeepSeek 返回状态: ${response.status}`, "green");
+    
+    // 打印完整的响应结构
+    log("🔍", "完整的 API 响应结构:", "white");
+    console.log(JSON.stringify(response.data, null, 2));
+    
+    const aiText = response.data.choices?.[0]?.message?.content ?? "";
+    
+    if (aiText) {
+      log("💬", `AI 回复内容: ${aiText.substring(0, 100)}...`, "green");
+    } else {
+      log("⚠️", "警告: AI 回复内容为空", "yellow");
+    }
+    
+    // 发送响应给前端
+    res.json({ 
+      content: aiText,
+      duration: duration,
+      timestamp: new Date().toISOString()
+    });
+    
+    log("🎉", "=== 请求处理完成 ===", "magenta");
+
+  } catch (err) {
+    const errorTime = Date.now();
+    log("❌", "=== API 调用失败 ===", "red");
+    
+    if (err.response) {
+      // 服务器返回了错误状态码
+      log("📡", `错误状态码: ${err.response.status}`, "red");
+      log("📄", `错误响应数据: ${JSON.stringify(err.response.data)}`, "red");
+      log("🔧", `响应头: ${JSON.stringify(err.response.headers)}`, "red");
+      
+      if (err.response.status === 401) {
+        log("🔐", "认证失败: API Key 可能无效或过期", "red");
+      } else if (err.response.status === 429) {
+        log("⏰", "请求过于频繁，请稍后再试", "red");
+      }
+    } else if (err.request) {
+      // 请求已发送但没有收到响应
+      log("📡", "网络错误: 请求已发送但未收到响应", "red");
+      log("🌐", `请求详情: ${JSON.stringify(err.request._options)}`, "red");
+    } else {
+      // 其他错误
+      log("💥", `请求配置错误: ${err.message}`, "red");
+    }
+    
+    log("⚡", `错误详情: ${err.message}`, "red");
+    
+    res.status(500).json({ 
+      error: "AI 请求失败",
+      details: err.message,
+      timestamp: new Date().toISOString()
+    });
+    
+    log("🔄", "=== 错误处理完成 ===", "red");
+  }
+});
+
+
+
+// 🤖 专门生成 Blockly XML 的接口
+serverAi.post("/api/blockly", async (req, res) => {
+  const { description } = req.body;
+  
+  log("🚀", "=== 开始处理 Blockly 生成请求 ===", "magenta");
+  log("📝", `用户需求描述: "${description}"`, "yellow");
+  
+  if (!description) {
+    log("❌", "错误: description 为空", "red");
+    return res.status(400).json({ error: "需求描述不能为空" });
+  }
+
+  try {
+    log("🔄", "准备调用 DeepSeek API 生成 Blockly 代码...", "blue");
+    
+    const requestData = {
+      model: "deepseek-chat",
+      messages: [
+        { 
+          role: "system", 
+          content: blocklySystemPrompt
+        },
+        { 
+          role: "user", 
+          content: `请生成实现以下功能的 Blockly XML 代码：${description}`
+        }
+      ],
+      temperature: 0.3,  // 降低随机性，让输出更稳定
+      max_tokens: 2000
+    };
+    // // 🧩 拼接最终 prompt
+    // let finalPrompt = promptSections.base;
+
+    // // 默认一定加 control（避免结构错误）
+    // if (!usedModules.includes("control")) {
+    //   usedModules.push("control");
+    // }
+
+    // usedModules.forEach(m => {
+    //   if (promptSections[m]) {
+    //     finalPrompt += "\n" + promptSections[m];
+    //   }
+    // });
+
+    // // fallback（防识别失败）
+    // if (usedModules.length === 0) {
+    //   log("⚠️", "未识别模块，使用完整 prompt", "yellow");
+    //   finalPrompt = blocklySystemPrompt;
+    // }
+
+    // log("📦", `最终 prompt 长度: ${finalPrompt.length}`, "blue");
+    // const requestData = {
+    //   model: "deepseek-chat",
+    //   messages: [
+    //     { role: "system", content: finalPrompt },
+    //     { role: "user", content: `请生成实现以下功能的 Blockly XML 代码：${description}` }
+    //   ],
+    //   temperature: 0.3,
+    //   max_tokens: 2000
+    // };
+    
+    const startTime = Date.now();
+    
+    const response = await axios.post(
+      "https://api.deepseek.com/chat/completions",
+      requestData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer sk-200b049525cc4ab29094340e824e7434"
+        },
+        timeout: 30000
+      }
+    );
+
+    const duration = Date.now() - startTime;
+    
+    log("✅", `Blockly 代码生成成功！耗时: ${duration}ms`, "green");
+    
+    let aiText = response.data.choices?.[0]?.message?.content ?? "";
+    
+    // 清理 AI 输出，确保是纯 XML
+    aiText = aiText.trim();
+    
+    // 移除可能的代码块标记
+    if (aiText.startsWith('```xml')) {
+      aiText = aiText.substring(6);
+    }
+    if (aiText.startsWith('```')) {
+      aiText = aiText.substring(3);
+    }
+    if (aiText.endsWith('```')) {
+      aiText = aiText.substring(0, aiText.length - 3);
+    }
+    
+    // 确保有 <xml> 标签
+    if (!aiText.includes('<xml>')) {
+      aiText = `<xml>\n${aiText}\n</xml>`;
+    }
+    
+    log("📄", `生成的 Blockly XML (长度: ${aiText.length}):`, "green");
+    console.log(aiText);
+    
+    res.json({ 
+      success: true,
+      blocklyXml: aiText,
+      duration: duration,
+      timestamp: new Date().toISOString()
+    });
+    
+    log("🎉", "=== Blockly 生成完成 ===", "magenta");
+
+  } catch (err) {
+    log("❌", "=== Blockly 生成失败 ===", "red");
+    console.error("详细错误:", err.response?.data || err.message);
+    
+    res.status(500).json({ 
+      success: false,
+      error: "生成 Blockly 代码失败",
+      details: err.message
+    });
+  }
+});
+
+
+
+
+
+
+// 🏥 健康检查端点
+serverAi.get("/api/health", (req, res) => {
+  log("❤️", "收到健康检查请求", "green");
+  res.json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// ℹ️ 服务器信息端点
+serverAi.get("/api/info", (req, res) => {
+  log("📊", "收到服务器信息请求", "cyan");
+  res.json({
+    server: "AI Chat Proxy",
+    version: "1.0.0",
+    endpoints: [
+      "POST /api/chat - AI聊天",
+      "GET /api/health - 健康检查",
+      "GET /api/info - 服务器信息"
+    ],
+    memory: process.memoryUsage(),
+    node: process.version
+  });
+});
+
+// 🔍 根路径
+serverAi.get("/", (req, res) => {
+  log("🏠", "访问根路径", "cyan");
+  res.send(`
+    <html>
+      <head><title>AI 聊天代理服务器</title></head>
+      <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <h1>🤖 AI 聊天代理服务器运行中</h1>
+        <p>服务器已启动，当前时间: ${new Date().toLocaleString()}</p>
+        <h3>可用端点:</h3>
+        <ul>
+          <li><a href="/api/chat">POST /api/chat</a> - AI聊天（需要POST请求）</li>
+          <li><a href="/api/health">GET /api/health</a> - 健康检查</li>
+          <li><a href="/api/info">GET /api/info</a> - 服务器信息</li>
+        </ul>
+        <h3>测试聊天:</h3>
+        <button onclick="testChat()">测试聊天</button>
+        <div id="result"></div>
+        <script>
+          async function testChat() {
+            const response = await fetch('/api/chat', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({message: '你好，介绍一下你自己'})
+            });
+            const data = await response.json();
+            document.getElementById('result').innerHTML = 
+              '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+          }
+        </script>
+      </body>
+    </html>
+  `);
+});
+
+// 🚀 启动服务器
+serverAi.listen(PORT, () => {
+  console.log("\n" + "=".repeat(50));
+  log("🚀", `后端代理启动成功！`, "green");
+  log("🌐", `访问地址: http://localhost:${PORT}`, "cyan");
+  log("📡", `API 端点: http://localhost:${PORT}/api/chat`, "cyan");
+  log("❤️", `健康检查: http://localhost:${PORT}/api/health`, "cyan");
+  log("📊", `服务器信息: http://localhost:${PORT}/api/info`, "cyan");
+  console.log("=".repeat(50) + "\n");
+});
+
+// 🎯 添加启动后的提示
+process.on('SIGINT', () => {
+  log("🛑", "正在关闭服务器...", "yellow");
+  process.exit(0);
+});
 
   // 摄像头权限
   await checkAndApplyCameraAccess();
@@ -386,6 +734,7 @@ async function initializeAppServices() {
           currentEspIp.setIp('');
           setCurrent('')
           setVersion(['icrobot',''])
+          setVersion(['icrobotHard',''])
           getSocket().send(JSON.stringify({
             type: 'espIpStatus',
             data: { message: true }
