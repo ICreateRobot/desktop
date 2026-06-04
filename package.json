@@ -1,7 +1,7 @@
 {
   "name": "turbowarp-desktop",
   "description": "AI Coding Companion for kids.",
-  "version": "0.2.9",
+  "version": "0.2.19",
   "license": "GPL-3.0",
   "author": {
     "email": "contact@turbowarp.org",
@@ -23,7 +23,9 @@
     "connect-timeout": "^1.9.1",
     "cors": "^2.8.5",
     "dapjs": "^2.3.0",
+    "electron-store": "^11.0.2",
     "electron-updater": "^6.6.2",
+    "express": "4.21.2",
     "iconv-lite": "^0.6.3",
     "intel-hex": "^0.2.0",
     "net": "^1.0.2",
@@ -34,8 +36,7 @@
     "sudo-prompt": "^9.2.1",
     "systeminformation": "^5.27.7",
     "usb": "^2.16.0",
-    "ws": "^8.18.3",
-    "express":"4.21.2"
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
