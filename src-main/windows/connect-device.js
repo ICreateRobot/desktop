@@ -401,6 +401,7 @@ class ConnectWindow extends AbstractWindow {
           console.error('Error:', err);
         } else if (currentWifi.getWifi() && ssid !== currentWifi.getWifi()) {
           setVersion(['icrobot',''])
+          setVersion(['icrobotHard',''])
           console.log('Disconnected or connected to the wrong network');
           currentWifi.setWifi('')
           setCurrent('')
@@ -594,6 +595,7 @@ class ConnectWindow extends AbstractWindow {
       currentWifi.setWifi('')
       setCurrent('')
       setVersion(['icrobot',''])
+      setVersion(['icrobotHard',''])
       wifi.disconnect((err) => {
         if (err) {
             console.error('断开连接失败:', err);
@@ -872,7 +874,7 @@ class ConnectWindow extends AbstractWindow {
 
     ipc.handle('send-code-prosser', async (event, state) =>{
 
-      console.log(state)
+      console.log('$$$$$$$$$$$$$$$$$$$',state)
       if(getSocket()){
         getSocket().send(JSON.stringify({
           type: 'bricks',
@@ -905,6 +907,7 @@ class ConnectWindow extends AbstractWindow {
           // console.log(senor.data)
           if(!getVersion().icrobot && JSON.parse(senor.data)[30]){
             setVersion(['icrobot',parseVersion(JSON.parse(senor.data)[30])])
+            setVersion(['icrobotHard',parseVersion(JSON.parse(senor.data)[31])])
           }
           
         }else if(senor.type=='state'){
@@ -956,6 +959,7 @@ class ConnectWindow extends AbstractWindow {
       console.log(connect)
       console.log('#######################')
       setVersion(['icrobot',''])
+      setVersion(['icrobotHard',''])
       setCurrent('')
       if(getSocket()){
         getSocket().send(JSON.stringify({
@@ -1182,6 +1186,8 @@ class ConnectWindow extends AbstractWindow {
                   
                 }
 
+                console.log(timeSpace)
+                console.log(Date.now()-timeSpace)
                 if(Date.now()-timeSpace>5000){
                   console.log('qqqqqqqq')
                   disconnectPortLogic()
@@ -1205,6 +1211,7 @@ class ConnectWindow extends AbstractWindow {
             console.log('串口关闭');
             setPortCom('');
             setVersion(['icrobot',''])
+            setVersion(['icrobotHard',''])
             if(heartTime){
               clearInterval(heartTime)
             }
@@ -1222,8 +1229,9 @@ class ConnectWindow extends AbstractWindow {
             if (bufferData.endsWith('\r\n')) {
               const message = bufferData.trim();
               bufferData = '';
-              // console.log('222222222222222222222222',message)
+              console.log('222222222222222222222222',message)
 
+              timeSpace=Date.now()
               try {
                 let parsed;
                 if (/^\{\[.*\]\}$/.test(message)) {
@@ -1235,10 +1243,11 @@ class ConnectWindow extends AbstractWindow {
 
                 if(!getVersion().icrobot && parsed[30]){
                   setVersion(['icrobot',parseVersion(parsed[30])])
+                  setVersion(['icrobotHard',parseVersion(parsed[31])])
                 }
                 
                 
-                timeSpace=Date.now()
+                
                 socket.getSocket()?.send(JSON.stringify({
                   type: 'serialData',
                   data: { message: parsed }
@@ -1303,7 +1312,7 @@ class ConnectWindow extends AbstractWindow {
           setPortCom(port)
 
           // const parserInstance = serial.pipe(new ReadlineParser({ delimiter: '\r\n' }));
-          setDeviceState(['parser',getDeviceState().serialPort.pipe(new ReadlineParser({ delimiter: '\r\n' }))])
+          // setDeviceState(['parser',getDeviceState().serialPort.pipe(new ReadlineParser({ delimiter: '\r\n' }))])
 
           
 
@@ -1664,6 +1673,7 @@ class ConnectWindow extends AbstractWindow {
 
       async function disconnectPortLogic() {
         setVersion(['icrobot',''])
+        setVersion(['icrobotHard',''])
         setVersion(['microbit',''])
         if(heartTime){
           clearInterval(heartTime)
@@ -1928,6 +1938,7 @@ class ConnectWindow extends AbstractWindow {
   static async disconnectPortLogic() {
     setVersion(['microbit',''])
     setVersion(['icrobot',''])
+    setVersion(['icrobotHard',''])
     if(heartTime){
       clearInterval(heartTime)
     }
