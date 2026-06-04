@@ -1,7 +1,8 @@
 let masterVersion={
     icbricks:'',
     icrobot:'',
-    microbit:''
+    microbit:'',
+    icrobotHard:''
 }
 
 
