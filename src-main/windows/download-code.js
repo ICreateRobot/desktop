@@ -1,545 +1,3 @@
-// const {app, shell} = require('electron');
-// const AbstractWindow = require('./abstract');
-// const {translate, getStrings, getLocale} = require('../l10n');
-// const {APP_NAME} = require('../brand');
-// const settings = require('../settings');
-// const {isUpdateCheckerAllowed} = require('../update-checker');
-// const RichPresence = require('../rich-presence');
-
-// const { SerialPort } = require('serialport');
-// const { exec } = require('child_process');
-// const path = require('path');
-// // const {setCode,getCode} = require('../../utils/global');
-// // import {setCode,getCode} from '../../utils/global';
-// // const parser = require('@serialport/parser-readline');
-// const {getPort} =require('../../utils/port')
-// // const {code}= require('../../utils/bridge')
-// // require('../../utils/global')
-
-
-
-// let CODE=''
-// let Place=''
-// let Name=''
-// function stringToBinary(str) {
-//   const encoder = new TextEncoder();
-//   const uint8Array = encoder.encode(str);
-//   return uint8Array;
-// }
-
-// function startMsg(){
-//   let msg=[0xAF,0x04,0x96,0x00,0x01,0x4a]
-//   return msg;
-// }
-
-// function nameMsg(){
-//   let msg=[0xAF,0x1C,0x00,0x06]
-//   return msg;
-// }
-
-// function timeMsg(){
-//   let msg=[0xAF,0x1C,0x01,0x06]
-//   return msg;
-// }
-
-// function codeMsg(){
-//   let msg=[0xAF,0x1C,0x02,0x06];
-//   return msg;
-// }
-
-// function endMsg(){
-//   let msg=[0xAF,0x04,0x96,0x00,0x00,0x49]
-//   return msg;
-// }
-
-// function binToByteArray(binaryString) {
-//   // 确保二进制字符串的长度为 16 位
-//   if (binaryString.length !== 16) {
-//       binaryString = binaryString.padStart(16, '0');
-//   }
-
-//   const byte1 = parseInt(binaryString.substring(0, 8), 2);
-//   const byte2 = parseInt(binaryString.substring(8, 16), 2);
-
-//   return new Uint8Array([byte1, byte2]);
-// }
-
-// function codeSlice(start,end,code){
-//   return code.slice(start,end);
-// }
-// let isContinue='0'
-
-// class DownloadCodeWindow extends AbstractWindow {
-//   constructor () {
-//     super();
-
-//     this.window.setTitle(`代码下载 - ${APP_NAME}`);
-//     this.window.setMinimizable(false);
-//     this.window.setMaximizable(false);
-
-//     let PORT = getPort();
-//     // PORT.on('data', (data) => {
-//     //     console.log('Received data:', data.toString()); // 将 Buffer 转换为字符串
-//     //     isContinue=data.toString()
-//     // });
-    
-//     // 发送数据并等待接收特定数据后再继续
-//     async function sendDataAndWait(dataToSend) {
-//       return new Promise(async (resolve, reject) => {
-//         // 发送数据
-//         await PORT.write(dataToSend, (err) => {
-//           if (err) {
-//             return reject('Error on write: ' + err.message);
-//           }
-
-//           console.log(`Data sent: ${dataToSend}`);
-//         });
-
-//         // 等待接收到的数据
-//         // await PORT.on('data', (data) => {
-//         //   console.log('Data received:', data.toString());
-//         //   console.log(typeof(data.toString()))
-
-//         //   // 检查是否是我们想要的响应（例如，'0'）
-//         //   if (data.toString().includes('71')) {
-//         //     console.log('Received 71, continuing...');
-//         //     PORT.removeListener('data');
-//         //     resolve(); // 继续执行
-//         //   }
-//         // });
-//         const onDataReceived = (data) => {
-//           console.log('Data received:', data.toString());
-//           console.log(typeof (data.toString()));
-        
-//           // 检查是否是我们想要的响应（例如，'0'）
-//           if(data.toString().includes('74')){
-//             console.log('Received 74, completed');
-//             PORT.removeListener('data', onDataReceived); // 使用 removeListener 停止监听
-//             resolve(); // 继续执行
-//           }else if (data.toString().includes('71')) {
-//             console.log('Received 71, continuing...');
-//             PORT.removeListener('data', onDataReceived); // 使用 removeListener 停止监听
-//             resolve(); // 继续执行
-//           }
-//         };
-        
-//         PORT.on('data', onDataReceived); // 添加 data 事件的监听器
-
-//         // 可选：添加一个超时机制，防止长时间等待
-//         setTimeout(() => {
-//           reject('Timeout: No response received in time.');
-//         }, 5000); // 5秒超时
-//       });
-//     }
-
-//     const ipc = this.window.webContents.ipc;
-
-//     ipc.on('get-code', (event) => {
-//       event.returnValue = {
-//         CODE
-//       }
-//     });
-
-//     const execFile=path.resolve(__dirname, '../../utils', 'syntax_checker.exe');
-
-//     function checkPythonSyntax(code) {
-//       return new Promise((resolve, reject) => {
-//         const child = exec(execFile, (error, stdout, stderr) => {
-//           if (error) {
-//             reject(error);
-//             return;
-//           }
-//           try {
-//             const errors = JSON.parse(stdout);
-//             resolve(errors);
-//           } catch (e) {
-//             reject(e);
-//           }
-    
-//         });
-//         child.stdin.write(code);
-//         child.stdin.end()
-//       });
-//     }
-//     ipc.handle('send-code',(event,code)=>{
-//       // exec(`${execFile} ${code}`, (error, stdout, stderr) => {
-//       //   if (error) {
-//       //       console.error('Error:', error);
-//       //       return;
-//       //   }
-
-//       //   const result = JSON.parse(stdout);
-//       //   console.log(result)
-//       // });
-
-//       checkPythonSyntax(code)
-//       .then(errors => {
-//         console.log(errors);
-//       })
-//       .catch(error => {
-//         console.error(error);
-//       });
-//     })
-
-//     ipc.handle('send-place-name', async (event, place,name) =>{
-
-//       const encoder = new TextEncoder();
-//       const data1 = encoder.encode('Lua:').buffer;
-//       const data2=encoder.encode('aaaaaaa').buffer
-//       let code=`while(true)
-// do
-//   L1(0,255,0,0)
-//   D1(1)
-//   L1(0,0,29,255)
-//   D1(1)
-
-// end`
-//       sendDataAndWait('Lua:').then(() => {
-//         sendDataAndWait(code).then(() => {
-//           sendDataAndWait('endLua')
-//         })
-//       })
-
-//       // console.log(place);
-//       // console.log(name);
-//       // Place=place
-//       // Name=name
-
-//       // let NAME=Place+'_'+Name+'.py'
-//       // const data1 = new Uint8Array(startMsg());
-
-//       // //名称请求信息（固定不变）
-//       // let nameM = nameMsg();
-//       // let Nam = stringToBinary(NAME);
-//       // let j = 0;
-//       // for (let i = 4; i < 29; i++) {
-//       //   if (j < Nam.length) {
-//       //     nameM.push(Nam[j]);
-//       //     j++;
-//       //   } else {
-//       //     nameM.push(0);
-//       //   }
-//       // }
-//       // let perfi = 0;
-//       // for (let s = 0; s < nameM.length; s++) {
-//       //   perfi = perfi + nameM[s];
-//       // }
-//       // nameM.push(perfi)
-//       // const data2 = new Uint8Array(nameM);
-//       // // console.log(data2)
-
-//       // //结束请求信息（固定不变）
-//       // const data4 = new Uint8Array(endMsg());
-
-//       // const now = new Date()
-//       // let year=now.getFullYear()
-//       // let month=now.getMonth()+1
-//       // let date=now.getDate()
-//       // let hours=now.getHours()
-//       // let minutes=now.getMinutes()
-//       // let seconds=now.getSeconds()
-//       // console.log(year)
-//       // console.log(month)
-//       // console.log(date)
-//       // console.log(hours)
-//       // console.log(minutes)
-//       // console.log(seconds)
-
-//       // let yearBin=(year-1980).toString(2)
-//       // let first=(year-1980)*Math.pow(2,9)+month*32+date
-//       // let second=hours*2048+minutes*32+seconds/2
-
-//       // let firstArray=binToByteArray(first.toString(2))
-//       // let secondArray=binToByteArray(second.toString(2))
-//       // let timeM=timeMsg()
-//       // for (let p=0;p<firstArray.length;p++){
-//       //   timeM.push(firstArray[p])
-//       // }
-//       // for (let q=0;q<secondArray.length;q++){
-//       //   timeM.push(secondArray[q])
-//       // }
-//       // for (let k=8;k<29;k++){
-//       //   timeM.push(0)
-//       // }
-//       // let totalTime = 0;
-//       // for (let x = 0; x < timeM.length; x++) {
-//       //   totalTime = totalTime + timeM[x];
-//       // }
-//       // timeM.push(totalTime)
-//       // console.log(timeM)
-//       // const data5=new Uint8Array(timeM)
-//       // sendDataAndWait(data1).then(() => {
-//       //   sendDataAndWait(data5).then(() => {
-//       //     sendDataAndWait(data2).then(async () => {
-//       //       console.log(CODE)
-//       //       if (stringToBinary(CODE).length > 25) {//如果代码长度大于25则需要切片
-//       //         let start = 0;
-//       //         let end = 24
-//       //         let flag = false;
-//       //         while (true) {
-//       //           if (flag) {
-//       //             let dataCode = codeSlice(start, end, stringToBinary(CODE));
-//       //             let codeM = codeMsg();
-//       //             codeM.push(end - start);
-//       //             for (let i = 0; i < dataCode.length; i++) {
-//       //               codeM.push(dataCode[i]);
-//       //             }
-//       //             let len0 = 25 - end + start - 1;
-//       //             for (let j = 0; j < len0; j++) {
-//       //               codeM.push(0);
-//       //             }
-//       //             if (codeM.length>30){
-//       //               codeM=codeM.slice(0,-1)
-//       //             }
-//       //             let m = 0;
-//       //             for (let k = 0; k < codeM.length; k++) {
-//       //               m = m + codeM[k];
-//       //             }
-//       //             codeM.push(m)
-//       //             const data3 = new Uint8Array(codeM);
-//       //             console.log(data3)
-//       //             sendDataAndWait(data3).then(() => {
-//       //               sendDataAndWait(data4).then(() => {
-//       //                 console.log("下载完成")
-//       //                 ipc.on('is-posted', (event) => {
-//       //                   event.returnValue = {
-//       //                     flag: true
-//       //                   }
-//       //                 });
-//       //               })
-//       //             })
-      
-      
-//       //             break;
-//       //           }
-//       //           let dataCode = codeSlice(start, end, stringToBinary(CODE));
-//       //           let codeM = codeMsg();
-//       //           codeM.push(end - start);
-//       //           for (let i = 0; i < dataCode.length; i++) {
-//       //             codeM.push(dataCode[i]);
-//       //           }
-//       //           let m = 0;
-//       //           for (let k = 0; k < codeM.length; k++) {
-//       //             m = m + codeM[k];
-//       //           }
-//       //           codeM.push(m)
-//       //           const data3 = new Uint8Array(codeM);
-//       //           start = end;
-//       //           end = end + 24;
-//       //           if (end > stringToBinary(CODE).length) {
-//       //             end = stringToBinary(CODE).length - 1
-//       //             flag = true
-//       //           }
-//       //           // await writer.write(data3)
-//       //           console.log(data3)
-//       //           await sendDataAndWait(data3)
-      
-      
-//       //         }
-//       //       } else {
-//       //         console.log("执行了")
-//       //         let codeM = codeMsg();
-//       //         codeM.push(stringToBinary(CODE).length);
-//       //         for (let i = 0; i < stringToBinary(CODE).length; i++) {
-//       //           codeM.push(stringToBinary(CODE)[i]);
-//       //         }
-//       //         let len0 = 24 - stringToBinary(CODE).length
-//       //         for (let j = 0; j < len0; j++) {
-//       //           codeM.push(0)
-//       //         }
-//       //         let m = 0;
-//       //         for (let k = 0; k < codeM.length; k++) {
-//       //           m = m + codeM[k]
-//       //         }
-      
-//       //         codeM.push(m);
-//       //         const data3 = new Uint8Array(codeM);
-//       //         console.log(data3)
-//       //         // await writer.write(data3)
-//       //         sendDataAndWait(data3).then(() => {
-//       //           sendDataAndWait(data4).then(() => {
-//       //             console.log("下载完成")
-//       //             ipc.on('is-posted', (event) => {
-//       //               event.returnValue = {
-//       //                 flag: true
-//       //               }
-//       //             });
-//       //           })
-//       //         })
-    
-      
-//       //       }
-//       //     })
-//       //   })
-//       // })
-      
-      
-
-      
-
-
-
-//       // await PORT.write(data1);
-//       // if(isContinue=='0'){
-//       //   console.log('start')
-//       //   await PORT.write(data5);
-//       //   if(isContinue=='0'){
-//       //     console.log('time')
-//       //     await PORT.write(data2);
-//       //     if(isContinue=='0'){
-//       //       console.log('name')
-//       //       if (stringToBinary(CODE).length > 25) {//如果代码长度大于25则需要切片
-//       //         let start = 0;
-//       //         let end = 24
-//       //         let flag = false;
-//       //         while (true) {
-//       //           if (flag) {
-//       //             let dataCode = codeSlice(start, end, stringToBinary(CODE));
-//       //             let codeM = codeMsg();
-//       //             codeM.push(end - start);
-//       //             for (let i = 0; i < dataCode.length; i++) {
-//       //               codeM.push(dataCode[i]);
-//       //             }
-//       //             let len0 = 25 - end + start - 1;
-//       //             for (let j = 0; j < len0; j++) {
-//       //               codeM.push(0);
-//       //             }
-//       //             if (codeM.length>30){
-//       //               codeM=codeM.slice(0,-1)
-//       //             }
-//       //             let m = 0;
-//       //             for (let k = 0; k < codeM.length; k++) {
-//       //               m = m + codeM[k];
-//       //             }
-//       //             codeM.push(m)
-//       //             const data3 = new Uint8Array(codeM);
-//       //             await PORT.write(data3)
-//       //             if(isContinue=='0'){
-//       //               await PORT.write(data4);
-//       //               if(isContinue=='0'){
-//       //                 console.log("下载完成")
-//       //               }else{
-//       //                 console.log("结束异常")
-//       //               }
-//       //             }
-
-//       //             break;
-//       //           }
-//       //           let dataCode = codeSlice(start, end, stringToBinary(CODE));
-//       //           let codeM = codeMsg();
-//       //           codeM.push(end - start);
-//       //           for (let i = 0; i < dataCode.length; i++) {
-//       //             codeM.push(dataCode[i]);
-//       //           }
-//       //           let m = 0;
-//       //           for (let k = 0; k < codeM.length; k++) {
-//       //             m = m + codeM[k];
-//       //           }
-//       //           codeM.push(m)
-//       //           const data3 = new Uint8Array(codeM);
-//       //           start = end;
-//       //           end = end + 24;
-//       //           if (end > stringToBinary(CODE).length) {
-//       //             end = stringToBinary(CODE).length - 1
-//       //             flag = true
-//       //           }
-//       //           await PORT.write(data3)
-
-//       //           if(isContinue=='0'){
-//       //             console.log('代码发送结束')
-//       //           }
-
-//       //         }
-//       //       } else {
-//       //         console.log("执行了")
-//       //         let codeM = codeMsg();
-//       //         codeM.push(stringToBinary(CODE).length);
-//       //         for (let i = 0; i < stringToBinary(CODE).length; i++) {
-//       //           codeM.push(stringToBinary(CODE)[i]);
-//       //         }
-//       //         let len0 = 24 - stringToBinary(CODE).length
-//       //         for (let j = 0; j < len0; j++) {
-//       //           codeM.push(0)
-//       //         }
-//       //         let m = 0;
-//       //         for (let k = 0; k < codeM.length; k++) {
-//       //           m = m + codeM[k]
-//       //         }
-
-//       //         codeM.push(m);
-//       //         const data3 = new Uint8Array(codeM);
-//       //         console.log(data3)
-//       //         await PORT.write(data3)
-//       //         console.log("write执行了")
-
-//       //         if(isContinue=='0'){
-//       //           console.log('代码发送结束')
-//       //           await PORT.write(data4);
-//       //           if(isContinue=='0'){
-//       //             console.log('发送结束')
-//       //             console.log("下载完成")
-//       //           }else{
-//       //             console.log("结束异常")
-//       //           }
-//       //         }
-//       //       }
-//       //     }
-//       //   }
-//       // }
-
-//     })
-
- 
-//     // try {
-//     //     let startMsg=[0xAF,0x04,0x96,0x00,0x01,0x4a]
-//     //     const data1 = new Uint8Array(startMsg);
-//     //     PORT.write(data1);
-//     // }
-//     // catch (err) {
-//     //     console.log('发送数据失败: ' + err.message+'\n');
-//     // }
-//     console.log(getPort());
-//     console.log('Code:'+CODE);
-    
-    
-//     this.loadURL('download-code://./download-code.html');
-//   }
-
-//   getDimensions () {
-//     return {
-//       width: 550,
-//       height: 500
-//     };
-//   }
-
-//   getPreload () {
-//     return 'serial-data';
-//   }
-
-//   isPopup () {
-//     return true;
-//   }
-
-//   static show (code) {
-//     try{
-//       CODE=code
-//       const window = AbstractWindow.singleton(DownloadCodeWindow);
-//       window.show();
-//     }catch (err) {
-//       console.log(err);
-//     }
-    
-//   }
-// }
-
-// module.exports = DownloadCodeWindow;
-
-
-
-
-
-
-
 const {app, shell} = require('electron');
 const AbstractWindow = require('./abstract');
 const {translate, getStrings, getLocale} = require('../l10n');
@@ -721,20 +179,21 @@ class DownloadCodeWindow extends AbstractWindow {
 
     /* ================= 仓库配置 ================= */
 
-    // ---- GITEE ----
-    const GITEE_OWNER = 'lgmShine';
-    const GITEE_REPO = 'bucket';
-    const GITEE_BRANCH = 'master';
-    const GITEE_TOKEN = getGiteeTooken(); // 可选
+    // // ---- GITEE ----
+    // const GITEE_OWNER = 'lgmShine';
+    // const GITEE_REPO = 'bucket';
+    // const GITEE_BRANCH = 'master';
+    // const GITEE_TOKEN = getGiteeTooken(); // 可选
 
-    // ---- GITHUB ----
-    const GITHUB_OWNER = 'ICreateRobot';
-    const GITHUB_REPO = 'bucket';
-    const GITHUB_BRANCH = 'master';
-    const GITHUB_TOKEN = getGithubTooken(); // public 仓库可留空
+    // // ---- GITHUB ----
+    // const GITHUB_OWNER = 'ICreateRobot';
+    // const GITHUB_REPO = 'bucket';
+    // const GITHUB_BRANCH = 'master';
+    // const GITHUB_TOKEN = getGithubTooken(); // public 仓库可留空
 
     // 固件根目录
     const BASE_FOLDER = 'firmware';
+    const OSS_BASE_URL = 'https://arkt-advert.oss-cn-beijing.aliyuncs.com';
 
     const TYPE_CONFIG = {
       standard: { ext: '.bin' },
@@ -746,51 +205,51 @@ class DownloadCodeWindow extends AbstractWindow {
     const axios = require('axios');
     /* ================= URL 构造 ================= */
 
-    function giteeApiUrl(pathname, params = {}) {
-      const base = `https://gitee.com/api/v5${pathname}`;
-      const qs = new URLSearchParams(params).toString();
-      return qs ? `${base}?${qs}` : base;
-    }
+    // function giteeApiUrl(pathname, params = {}) {
+    //   const base = `https://gitee.com/api/v5${pathname}`;
+    //   const qs = new URLSearchParams(params).toString();
+    //   return qs ? `${base}?${qs}` : base;
+    // }
 
-    function githubApiUrl(pathname, params = {}) {
-      const base = `https://api.github.com${pathname}`;
-      const qs = new URLSearchParams(params).toString();
-      return qs ? `${base}?${qs}` : base;
-    }
+    // function githubApiUrl(pathname, params = {}) {
+    //   const base = `https://api.github.com${pathname}`;
+    //   const qs = new URLSearchParams(params).toString();
+    //   return qs ? `${base}?${qs}` : base;
+    // }
 
-    function giteeRawUrl(repoPath, commitSha = null) {
-      if (commitSha) {
-        return `https://gitee.com/${GITEE_OWNER}/${GITEE_REPO}/raw/${commitSha}/${repoPath}`;
-      }
-      return `https://gitee.com/${GITEE_OWNER}/${GITEE_REPO}/raw/${GITEE_BRANCH}/${repoPath}`;
-    }
+    // function giteeRawUrl(repoPath, commitSha = null) {
+    //   if (commitSha) {
+    //     return `https://gitee.com/${GITEE_OWNER}/${GITEE_REPO}/raw/${commitSha}/${repoPath}`;
+    //   }
+    //   return `https://gitee.com/${GITEE_OWNER}/${GITEE_REPO}/raw/${GITEE_BRANCH}/${repoPath}`;
+    // }
 
-    function githubRawUrl(repoPath, commitSha = null) {
-      if (commitSha) {
-        return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${commitSha}/${repoPath}`;
-      }
-      return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${repoPath}`;
-    }
+    // function githubRawUrl(repoPath, commitSha = null) {
+    //   if (commitSha) {
+    //     return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${commitSha}/${repoPath}`;
+    //   }
+    //   return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${repoPath}`;
+    // }
 
     /* ================= 通用 Fallback 请求 ================= */
 
-    async function requestWithFallback({ gitee, github }) {
-      try {
-        return await axios.get(gitee.url, { headers: gitee.headers });
-      } catch (err) {
-        console.warn('[GITEE FAILED] → GITHUB', err.message);
-        return await axios.get(github.url, { headers: github.headers });
-      }
-    }
+    // async function requestWithFallback({ gitee, github }) {
+    //   try {
+    //     return await axios.get(gitee.url, { headers: gitee.headers });
+    //   } catch (err) {
+    //     console.warn('[GITEE FAILED] → GITHUB', err.message);
+    //     return await axios.get(github.url, { headers: github.headers });
+    //   }
+    // }
 
-    async function fetchRawWithFallback(repoPath) {
-      try {
-        return await axios.get(giteeRawUrl(repoPath));
-      } catch (err) {
-        console.warn('[GITEE RAW FAILED] → GITHUB', repoPath);
-        return await axios.get(githubRawUrl(repoPath));
-      }
-    }
+    // async function fetchRawWithFallback(repoPath) {
+    //   try {
+    //     return await axios.get(giteeRawUrl(repoPath));
+    //   } catch (err) {
+    //     console.warn('[GITEE RAW FAILED] → GITHUB', repoPath);
+    //     return await axios.get(githubRawUrl(repoPath));
+    //   }
+    // }
 
     /* ================= 超时包装 ================= */
 
@@ -901,104 +360,205 @@ class DownloadCodeWindow extends AbstractWindow {
     //   }
     // });
 
+    // ipc.handle('get-firmware-list', async () => {
+    //   try {
+    //     const task = async () => {
+    
+    //       const listForType = async (type) => {
+    //         const typeCfg = TYPE_CONFIG[type];
+    //         if (!typeCfg) return [];
+    
+    //         const basePath = `${BASE_FOLDER}/${type}`;
+    
+    //         const res = await requestWithFallback({
+    //           gitee: {
+    //             url: giteeApiUrl(
+    //               `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${basePath}`,
+    //               { ref: GITEE_BRANCH, per_page: 100 }
+    //             ),
+    //             headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+    //           },
+    //           github: {
+    //             url: githubApiUrl(
+    //               `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${basePath}`,
+    //               { ref: GITHUB_BRANCH, per_page: 100 }
+    //             ),
+    //             headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
+    //           }
+    //         });
+    
+    //         const dirs = (res.data || []).filter(i => i.type === 'dir');
+    //         const result = [];
+    
+    //         for (const d of dirs) {
+    //           try {
+    //             const r2 = await requestWithFallback({
+    //               gitee: {
+    //                 url: giteeApiUrl(
+    //                   `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${d.path}`,
+    //                   { ref: GITEE_BRANCH, per_page: 100 }
+    //                 ),
+    //                 headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+    //               },
+    //               github: {
+    //                 url: githubApiUrl(
+    //                   `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${d.path}`,
+    //                   { ref: GITHUB_BRANCH, per_page: 100 }
+    //                 ),
+    //                 headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
+    //               }
+    //             });
+    
+    //             const files = r2.data || [];
+    
+    //             /* ===== version.txt ===== */
+    //             let version = null;
+    //             const vfile = files.find(f => f.name.toLowerCase() === 'version.txt');
+    //             if (vfile) {
+    //               try {
+    //                 const v = await fetchRawWithFallback(vfile.path);
+    //                 version = String(v.data).trim();
+    //               } catch {}
+    //             }
+    
+    //             /* ===== 固件文件（bin / hex） ===== */
+    //             const firmwareFiles = files
+    //               .filter(f => f.name.toLowerCase().endsWith(typeCfg.ext))
+    //               .map(f => ({
+    //                 name: f.name,
+    //                 path: f.path,
+    //                 rawUrl: giteeRawUrl(f.path),
+    //                 rawUrlBackup: githubRawUrl(f.path)
+    //               }));
+    
+    //             if (firmwareFiles.length || version) {
+    //               result.push({
+    //                 name: d.name,      // last / middle / long
+    //                 version,
+    //                 files: firmwareFiles
+    //               });
+    //             }
+    //           } catch {}
+    //         }
+    //         return result;
+    //       };
+    
+    //       const [standard, xiaozhi, microbit] = await Promise.all([
+    //         listForType('standard'),
+    //         listForType('xiaozhi'),
+    //         listForType('microbit')
+    //       ]);
+    
+    //       return {
+    //         ok: true,
+    //         data: { standard, xiaozhi, microbit }
+    //       };
+    //     };
+    
+    //     return await withTimeout(task(), 12000);
+    //   } catch (err) {
+    //     return { ok: false, error: err.message };
+    //   }
+    // });
     ipc.handle('get-firmware-list', async () => {
       try {
-        const task = async () => {
     
-          const listForType = async (type) => {
-            const typeCfg = TYPE_CONFIG[type];
-            if (!typeCfg) return [];
+        const TYPES = ['standard', 'xiaozhi', 'microbit'];
+        const LEVELS = ['last', 'middle', 'long'];
     
-            const basePath = `${BASE_FOLDER}/${type}`;
+        const result = {};
     
-            const res = await requestWithFallback({
-              gitee: {
-                url: giteeApiUrl(
-                  `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${basePath}`,
-                  { ref: GITEE_BRANCH, per_page: 100 }
-                ),
-                headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
-              },
-              github: {
-                url: githubApiUrl(
-                  `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${basePath}`,
-                  { ref: GITHUB_BRANCH, per_page: 100 }
-                ),
-                headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
-              }
-            });
+        for (const type of TYPES) {
     
-            const dirs = (res.data || []).filter(i => i.type === 'dir');
-            const result = [];
+          const ext = TYPE_CONFIG[type].ext;
     
-            for (const d of dirs) {
-              try {
-                const r2 = await requestWithFallback({
-                  gitee: {
-                    url: giteeApiUrl(
-                      `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${d.path}`,
-                      { ref: GITEE_BRANCH, per_page: 100 }
-                    ),
-                    headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
-                  },
-                  github: {
-                    url: githubApiUrl(
-                      `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${d.path}`,
-                      { ref: GITHUB_BRANCH, per_page: 100 }
-                    ),
-                    headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
-                  }
+          result[type] = [];
+    
+          for (const level of LEVELS) {
+    
+            try {
+    
+              const infoUrl =
+              `${OSS_BASE_URL}/firmware/${type}/${level}/info.json`;
+            
+              const infoRes = await axios.get(infoUrl, {
+                timeout: 5000
+              });
+              
+              const firmwareInfo = infoRes.data || {};
+              console.log('firmwareInfo',firmwareInfo.version)
+              
+              const version = firmwareInfo.version || '0.0.0';
+              
+              const description = firmwareInfo.description || {
+                zh: '',
+                en: ''
+              };
+    
+              let files = [];
+    
+              if (type === 'microbit') {
+    
+                files.push({
+                  name: 'MICROBIT.hex',
+                  path: `firmware/${type}/${level}/MICROBIT.hex`,
+                  rawUrl:
+                    `${OSS_BASE_URL}/firmware/${type}/${level}/MICROBIT.hex`
                 });
     
-                const files = r2.data || [];
+              } else if(type ==="standard") {
     
-                /* ===== version.txt ===== */
-                let version = null;
-                const vfile = files.find(f => f.name.toLowerCase() === 'version.txt');
-                if (vfile) {
-                  try {
-                    const v = await fetchRawWithFallback(vfile.path);
-                    version = String(v.data).trim();
-                  } catch {}
-                }
+                files.push({
+                  name: 'firmware.bin',
+                  path: `firmware/${type}/${level}/firmware.bin`,
+                  rawUrl:
+                    `${OSS_BASE_URL}/firmware/${type}/${level}/firmware.bin`
+                });
     
-                /* ===== 固件文件（bin / hex） ===== */
-                const firmwareFiles = files
-                  .filter(f => f.name.toLowerCase().endsWith(typeCfg.ext))
-                  .map(f => ({
-                    name: f.name,
-                    path: f.path,
-                    rawUrl: giteeRawUrl(f.path),
-                    rawUrlBackup: githubRawUrl(f.path)
-                  }));
+                files.push({
+                  name: 'vfs.bin',
+                  path: `firmware/${type}/${level}/vfs.bin`,
+                  rawUrl:
+                    `${OSS_BASE_URL}/firmware/${type}/${level}/vfs.bin`
+                });
+              }else{
+                files.push({
+                  name: 'combined.bin',
+                  path: `firmware/${type}/${level}/combined.bin`,
+                  rawUrl:
+                    `${OSS_BASE_URL}/firmware/${type}/${level}/combined.bin`
+                });
     
-                if (firmwareFiles.length || version) {
-                  result.push({
-                    name: d.name,      // last / middle / long
-                    version,
-                    files: firmwareFiles
-                  });
-                }
-              } catch {}
+              }
+    
+              result[type].push({
+                name: level,
+                version,
+                description,
+                files
+              });
+    
+            } catch (err) {
+    
+              console.warn(
+                `[OSS] skip ${type}/${level}`,
+                err.message
+              );
             }
-            return result;
-          };
+          }
+        }
     
-          const [standard, xiaozhi, microbit] = await Promise.all([
-            listForType('standard'),
-            listForType('xiaozhi'),
-            listForType('microbit')
-          ]);
-    
-          return {
-            ok: true,
-            data: { standard, xiaozhi, microbit }
-          };
+        return {
+          ok: true,
+          data: result
         };
     
-        return await withTimeout(task(), 12000);
       } catch (err) {
-        return { ok: false, error: err.message };
+    
+        return {
+          ok: false,
+          error: err.message
+        };
       }
     });
 
@@ -1006,37 +566,76 @@ class DownloadCodeWindow extends AbstractWindow {
       2️⃣ 获取文件夹提交记录
     ====================================================== */
 
-    ipc.handle('get-folder-commits', async (e, { type, folderName, per_page = 10 }) => {
+    // ipc.handle('get-folder-commits', async (e, { type, folderName, per_page = 10 }) => {
+    //   try {
+    //     const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
+
+    //     const res = await requestWithFallback({
+    //       gitee: {
+    //         url: giteeApiUrl(
+    //           `/repos/${GITEE_OWNER}/${GITEE_REPO}/commits`,
+    //           { path: repoPath, sha: GITEE_BRANCH, per_page }
+    //         ),
+    //         headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+    //       },
+    //       github: {
+    //         url: githubApiUrl(
+    //           `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits`,
+    //           { path: repoPath, sha: GITHUB_BRANCH, per_page }
+    //         ),
+    //         headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
+    //       }
+    //     });
+
+    //     const commits = (res.data || []).map(c => ({
+    //       sha: c.sha,
+    //       message: c.commit?.message?.split('\n')[0] || '',
+    //       date: c.commit?.committer?.date || '',
+    //       author: c.commit?.committer?.name || ''
+    //     }));
+
+    //     return { ok: true, data: commits };
+    //   } catch (err) {
+    //     return { ok: false, error: err.message };
+    //   }
+    // });
+    ipc.handle('get-folder-commits', async (e, {
+      type,
+      folderName
+    }) => {
+    
       try {
-        const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
-
-        const res = await requestWithFallback({
-          gitee: {
-            url: giteeApiUrl(
-              `/repos/${GITEE_OWNER}/${GITEE_REPO}/commits`,
-              { path: repoPath, sha: GITEE_BRANCH, per_page }
-            ),
-            headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
-          },
-          github: {
-            url: githubApiUrl(
-              `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits`,
-              { path: repoPath, sha: GITHUB_BRANCH, per_page }
-            ),
-            headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
-          }
+    
+        const infoUrl =
+          `${OSS_BASE_URL}/firmware/${type}/${folderName}/info.json`;
+    
+        const res = await axios.get(infoUrl, {
+          timeout: 5000
         });
-
-        const commits = (res.data || []).map(c => ({
-          sha: c.sha,
-          message: c.commit?.message?.split('\n')[0] || '',
-          date: c.commit?.committer?.date || '',
-          author: c.commit?.committer?.name || ''
-        }));
-
-        return { ok: true, data: commits };
+    
+        const firmwareInfo = res.data || {};
+    
+        return {
+          ok: true,
+          data: [
+            {
+              version: firmwareInfo.version || '0.0.0',
+    
+              description:
+                firmwareInfo.description || {
+                  zh: '',
+                  en: ''
+                }
+            }
+          ]
+        };
+    
       } catch (err) {
-        return { ok: false, error: err.message };
+    
+        return {
+          ok: false,
+          error: err.message
+        };
       }
     });
 
@@ -1044,65 +643,349 @@ class DownloadCodeWindow extends AbstractWindow {
       3️⃣ 下载固件（bin）
     ====================================================== */
 
-    ipc.handle('download-firmware', async (e, { type, folderName }) => {
-      try {
-        const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
+    // ipc.handle('download-firmware', async (e, { type, folderName }) => {
+    //   try {
+    //     const repoPath = `${BASE_FOLDER}/${type}/${folderName}`;
 
-        const res = await requestWithFallback({
-          gitee: {
-            url: giteeApiUrl(
-              `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${repoPath}`,
-              { ref: GITEE_BRANCH }
-            ),
-            headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
-          },
-          github: {
-            url: githubApiUrl(
-              `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${repoPath}`,
-              { ref: GITHUB_BRANCH }
-            ),
-            headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
-          }
+    //     const res = await requestWithFallback({
+    //       gitee: {
+    //         url: giteeApiUrl(
+    //           `/repos/${GITEE_OWNER}/${GITEE_REPO}/contents/${repoPath}`,
+    //           { ref: GITEE_BRANCH }
+    //         ),
+    //         headers: GITEE_TOKEN ? { Authorization: `token ${GITEE_TOKEN}` } : {}
+    //       },
+    //       github: {
+    //         url: githubApiUrl(
+    //           `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${repoPath}`,
+    //           { ref: GITHUB_BRANCH }
+    //         ),
+    //         headers: GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {}
+    //       }
+    //     });
+    //     console.log(res)
+
+    //     // const bins = (res.data || []).filter(f => f.name.endsWith('.bin'));
+    //     const ext = TYPE_CONFIG[type]?.ext;
+    //     if (!ext) return { ok: false, error: '未知固件类型' };
+
+    //     const bins = (res.data || []).filter(f => f.name.toLowerCase().endsWith(ext));
+    //     if (!bins.length) return { ok: false, error: '未找到 bin 文件' };
+
+    //     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'firmware-'));
+
+    //     // const downloadOne = (urls, savePath) =>
+    //     //   new Promise((resolve, reject) => {
+    //     //     console.log('aaaaaa')
+    //     //     const tryNext = (i) => {
+    //     //       console.log(urls)
+    //     //       console.log(urls.length)
+    //     //       if (i >= urls.length) return reject(new Error('下载失败'));
+    //     //       const url = urls[i];
+    //     //       const proto = url.startsWith('https') ? https : http;
+    //     //       console.log(url)
+    //     //       proto.get(url, res => {
+    //     //         console.log('-----------------------')
+    //     //         console.log(res.statusCode)
+    //     //         if (res.statusCode !== 200) return tryNext(i + 1);
+    //     //         const ws = fs.createWriteStream(savePath);
+    //     //         res.pipe(ws);
+    //     //         ws.on('finish', () => resolve());
+    //     //       }).on('error', () => tryNext(i + 1));
+    //     //     };
+    //     //     tryNext(0);
+    //     //   });
+    //     const downloadOne = async (urls, savePath) => {
+    //       for (const url of urls) {
+    //         try {
+    //           const response = await axios.get(url, { responseType: 'stream', maxRedirects: 5 });
+    //           const ws = fs.createWriteStream(savePath);
+    //           response.data.pipe(ws);
+    //           await new Promise((resolve, reject) => {
+    //             ws.on('finish', resolve);
+    //             ws.on('error', reject);
+    //           });
+    //           return; // 下载成功，退出
+    //         } catch (err) {
+    //           console.warn(`[DOWNLOAD FAILED] ${url} → ${err.message}`);
+    //         }
+    //       }
+    //       throw new Error('下载失败');
+    //     };
+
+    //     const downloaded = [];
+    //     for (const b of bins) {
+    //       const savePath = path.join(tmpDir, b.name);
+    //       await downloadOne(
+    //         [giteeRawUrl(b.path), githubRawUrl(b.path)],
+    //         savePath
+    //       );
+    //       downloaded.push({ name: b.name, path: savePath });
+    //     }
+
+    //     return { ok: true, data: { downloaded, tmpDir } };
+    //   } catch (err) {
+    //     return { ok: false, error: err.message };
+    //   }
+    // });
+    // ipc.handle('download-firmware', async (e, { type, folderName }) => {
+
+    //   try {
+    
+    //     const tmpDir = fs.mkdtempSync(
+    //       path.join(os.tmpdir(), 'firmware-')
+    //     );
+    
+    //     const downloaded = [];
+    
+    //     const downloadOne = async (url, savePath) => {
+    
+    //       const response = await axios.get(url, {
+    //         responseType: 'stream',
+    //         timeout: 10000
+    //       });
+    
+    //       const ws = fs.createWriteStream(savePath);
+    
+    //       response.data.pipe(ws);
+    
+    //       await new Promise((resolve, reject) => {
+    //         ws.on('finish', resolve);
+    //         ws.on('error', reject);
+    //       });
+    //     };
+    
+    //     if (type === 'microbit') {
+    
+    //       const fileName = 'firmware.hex';
+    
+    //       const url =
+    //         `${OSS_BASE_URL}/firmware/${type}/${folderName}/${fileName}`;
+    
+    //       const savePath = path.join(tmpDir, fileName);
+    
+    //       await downloadOne(url, savePath);
+    
+    //       downloaded.push({
+    //         name: fileName,
+    //         path: savePath
+    //       });
+    
+    //     } else {
+    
+    //       const files = ['firmware.bin', 'vfs.bin'];
+    
+    //       for (const fileName of files) {
+    
+    //         const url =
+    //           `${OSS_BASE_URL}/firmware/${type}/${folderName}/${fileName}`;
+    
+    //         const savePath = path.join(tmpDir, fileName);
+    
+    //         await downloadOne(url, savePath);
+    
+    //         downloaded.push({
+    //           name: fileName,
+    //           path: savePath
+    //         });
+    //       }
+    //     }
+    
+    //     return {
+    //       ok: true,
+    //       data: {
+    //         downloaded,
+    //         tmpDir
+    //       }
+    //     };
+    
+    //   } catch (err) {
+    
+    //     return {
+    //       ok: false,
+    //       error: err.message
+    //     };
+    //   }
+    // });
+    ipc.handle('download-firmware', async (e, { type, folderName }) => {
+
+      try {
+    
+        /* =========================
+          1. 获取版本号
+        ========================= */
+    
+        const infoUrl =
+          `${OSS_BASE_URL}/firmware/${type}/${folderName}/info.json`;
+
+        const infoRes = await axios.get(infoUrl, {
+          timeout: 5000
         });
 
-        // const bins = (res.data || []).filter(f => f.name.endsWith('.bin'));
-        const ext = TYPE_CONFIG[type]?.ext;
-        if (!ext) return { ok: false, error: '未知固件类型' };
+        const firmwareInfo = infoRes.data || {};
 
-        const bins = (res.data || []).filter(f => f.name.toLowerCase().endsWith(ext));
-        if (!bins.length) return { ok: false, error: '未找到 bin 文件' };
+        const version = firmwareInfo.version || '0.0.0';
 
-        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'firmware-'));
-
-        const downloadOne = (urls, savePath) =>
-          new Promise((resolve, reject) => {
-            const tryNext = (i) => {
-              if (i >= urls.length) return reject(new Error('下载失败'));
-              const url = urls[i];
-              const proto = url.startsWith('https') ? https : http;
-              proto.get(url, res => {
-                if (res.statusCode !== 200) return tryNext(i + 1);
-                const ws = fs.createWriteStream(savePath);
-                res.pipe(ws);
-                ws.on('finish', () => resolve());
-              }).on('error', () => tryNext(i + 1));
-            };
-            tryNext(0);
-          });
-
-        const downloaded = [];
-        for (const b of bins) {
-          const savePath = path.join(tmpDir, b.name);
-          await downloadOne(
-            [giteeRawUrl(b.path), githubRawUrl(b.path)],
-            savePath
-          );
-          downloaded.push({ name: b.name, path: savePath });
+        const description = firmwareInfo.description || {
+          zh: '',
+          en: ''
+        };
+        const place = firmwareInfo.place
+        console.log('download place:',place.first)
+    
+        /* =========================
+          2. 构建缓存目录
+        ========================= */
+    
+        // firmware-standard-last-1.1.1
+        const cacheDirName =
+          `firmware-${type}-${version}`;
+    
+        const tmpDir = path.join(
+          os.tmpdir(),
+          cacheDirName
+        );
+    
+        /* =========================
+          3. 如果不存在则创建
+        ========================= */
+    
+        if (!fs.existsSync(tmpDir)) {
+          fs.mkdirSync(tmpDir, { recursive: true });
         }
-
-        return { ok: true, data: { downloaded, tmpDir } };
+    
+        /* =========================
+          4. 需要的文件列表
+        ========================= */
+    
+        let fileList = [];
+    
+        if (type === 'microbit') {
+    
+          fileList = [
+            'MICROBIT.hex'
+          ];
+    
+        } else if (type ==="standard") {
+    
+          fileList = [
+            'firmware.bin',
+            'vfs.bin'
+          ];
+        }else{
+          fileList = [
+            "combined.bin"
+          ];
+        }
+    
+        /* =========================
+          5. 检查是否已经缓存
+        ========================= */
+    
+        const allExists = fileList.every(fileName => {
+    
+          const fullPath = path.join(tmpDir, fileName);
+    
+          return (
+            fs.existsSync(fullPath) &&
+            fs.statSync(fullPath).size > 0
+          );
+        });
+    
+        /* =========================
+          6. 已存在 -> 直接返回
+        ========================= */
+    
+        if (allExists) {
+    
+          console.log(
+            `[CACHE HIT] use local catch: ${tmpDir}`
+          );
+    
+          return {
+            ok: true,
+            cached: true,
+            data: {
+              downloaded: fileList.map(fileName => ({
+                name: fileName,
+                path: path.join(tmpDir, fileName)
+              })),
+              tmpDir,
+              version,
+              description,
+              place
+            }
+          };
+        }
+    
+        /* =========================
+          7. 下载函数
+        ========================= */
+    
+        const downloadOne = async (url, savePath) => {
+    
+          const response = await axios.get(url, {
+            responseType: 'stream',
+            timeout: 15000
+          });
+    
+          const ws = fs.createWriteStream(savePath);
+    
+          response.data.pipe(ws);
+    
+          await new Promise((resolve, reject) => {
+            ws.on('finish', resolve);
+            ws.on('error', reject);
+          });
+        };
+    
+        /* =========================
+          8. 开始下载
+        ========================= */
+    
+        const downloaded = [];
+    
+        for (const fileName of fileList) {
+    
+          const url =
+            `${OSS_BASE_URL}/firmware/${type}/${folderName}/${fileName}`;
+    
+          const savePath = path.join(tmpDir, fileName);
+    
+          console.log(
+            `[DOWNLOAD] ${url}`
+          );
+    
+          await downloadOne(url, savePath);
+    
+          downloaded.push({
+            name: fileName,
+            path: savePath
+          });
+        }
+    
+        /* =========================
+          9. 返回
+        ========================= */
+    
+        return {
+          ok: true,
+          cached: false,
+          data: {
+            downloaded,
+            tmpDir,
+            version,
+            description,
+            place
+          }
+        };
+    
       } catch (err) {
-        return { ok: false, error: err.message };
+    
+        return {
+          ok: false,
+          error: err.message
+        };
       }
     });
 
@@ -1295,9 +1178,172 @@ class DownloadCodeWindow extends AbstractWindow {
     //   }
     // });
 
+    ipc.handle('select-file', async () => {
+      const result = await dialog.showOpenDialog({
+        title: '选择固件文件',
+        properties: ['openFile'],
+        filters: [
+          { name: '固件文件', extensions: ['bin'] },
+          // { name: '所有文件', extensions: ['*'] }
+        ]
+      });
+  
+      if (result.canceled) return null;
+      return result.filePaths[0];
 
-    ipc.handle('send-who', async (event, {who,port,filePath}) =>{
+    })
+    //自定义烧录逻辑
+    ipc.handle('flash-custom', async (event, port,baudRate,files) =>{
+      console.log('--------------------')
+      console.log(port)
+      console.log(baudRate)
+      console.log(files)
+      console.log('--------------------')
+      const ConnectDevice=require('./connect-device')
+      // console.log(ConnectDevice.disconnectPortLogic)
+      if(port==getPortCom()){
+        await ConnectDevice.disconnectPortLogic()
+      }
+      this.window.setAlwaysOnTop(false); 
+      this.window.blur(); // 让出焦点，主窗口会浮上来
 
+      let isError=false
+
+      let isTimeout=false
+      
+
+      this.canClose = false;
+      getSocket().send(JSON.stringify({
+          type: 'burnLogs',
+          data: {
+              message: {
+                  flashing: true,
+                  logs: '__MODE_SINGLE__'
+              }
+          }
+      }));
+
+      // const args = [
+      //     '--chip', 'esp32s3',
+      //     '--port', port,
+      //     '--baud', '1152000',
+      //     '--before', 'default_reset',
+      //     '--after', 'hard_reset',
+      //     'write_flash',
+      //     '--flash_mode', 'dio',
+      //     '--flash_size', '32MB',
+      //     '--flash_freq', '80m',
+
+      //     // 你的两个固件（保持你说的地址）
+      //     place? place.first:'0x0', 
+      //     filePath? filePath[0].path:commonFilePath,          // 第一个固件
+      //     place? place.second:'0x1420000', 
+      //     filePath? filePath[1].path:testFirmwareVfs,    // 第二个固件
+      //   ];
+      const baseArgs = [
+        '--chip', 'esp32s3',
+        '--port', port,
+        '--baud', String(baudRate),
+        '--before', 'default_reset',
+        '--after', 'hard_reset',
+        'write_flash',
+        '--flash_mode', 'dio',
+        '--flash_size', '32MB',
+        '--flash_freq', '80m'
+      ];
+    
+      const flashArgs = files.flatMap(f => [f.address, f.path]);
+    
+      const args = [...baseArgs, ...flashArgs];
+    
+      console.log('esptool args:', args);
+      const flashProcess = spawn(esptoolPath, args, { encoding: 'utf8' });
+
+      flashProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+        if(data.includes('A serial exception error occurred:')||data.includes('fatal error')){
+          isTimeout=true
+          // flashProcess.kill('SIGKILL');
+        }
+        if(getSocket()){
+          // console.log('可能发送了')
+          getSocket().send(JSON.stringify({
+            type: 'burnLogs',
+            data: { message: {
+              flashing:true,
+              logs:`stdout: ${data}`
+            } }
+          }))
+        }
+        event.sender.send('esptool-log', { type: 'stdout', message: data.toString() });
+      });
+
+      flashProcess.stderr.on('data', async(data) => {
+        console.error(`stderr: ${data}`);
+        // if (data.includes('Detected overlap at address')) {
+        //   if(getSocket()){
+        //     getSocket().send(JSON.stringify({
+        //       type: 'burnLogs',
+        //       data: { message: {
+        //         flashing:true,
+        //         logs:`stdout: ${data}`
+        //       } }
+        //     }))
+        //   }
+        // }
+        // await new Promise(resolve => setTimeout(resolve, 100));
+        isError=true
+        if(getSocket()){
+          // console.log('可能发送了')
+          getSocket().send(JSON.stringify({
+            type: 'burnLogs',
+            data: { message: {
+              flashing:false,
+              logs:'Failed'
+            } }
+          }))
+        }
+        this.canClose = true;
+        event.sender.send('esptool-log', { type: 'stderr', message: data.toString() });
+      });
+
+      flashProcess.on('close', (code) => {
+        console.log(`Child process exited with code ${code}`);
+        if(!isError && getSocket()){
+          // console.log('可能发送了')
+          if(isTimeout){
+            getSocket().send(JSON.stringify({
+              type: 'burnLogs',
+              data: { message: {
+                flashing:false,
+                logs:''
+              } }
+            }))
+          }else{
+              getSocket().send(JSON.stringify({
+              type: 'burnLogs',
+              data: { message: {
+                flashing:false,
+                logs:'success'
+              } }
+            }))
+          }
+          
+        }
+        this.canClose = true; // ✅ 允许关闭窗口
+        event.sender.send('esptool-log', { type: 'done', code });
+      });
+    })
+
+    //默认烧录逻辑
+    ipc.handle('send-who', async (event, {who,port,filePath,place}) =>{
+
+      if(place){
+        console.log(place.first)
+      }
+      if(place){
+        console.log(place.second)
+      }
       if(!this.canClose){
         return
       }
@@ -1483,24 +1529,18 @@ class DownloadCodeWindow extends AbstractWindow {
           
           console.log(filePath)
 
-          // const command = `${esptoolPath} --port ${port} write_flash 0x0 ${firmwareFilePath}`;
-
-          // const options = { encoding: 'utf8' }; // 明确指定编码
-
-          // exec(command,options, (error, stdout, stderr) => {
-          //   if (error) {
-          //     console.error(`Error executing esptool: ${error}`);
-          //     event.sender.send('esptool-result', { error: error.message });
-          //     return;
-          //   }
-          //   console.log(`stdout: ${stdout}`);
-          //   console.error(`stderr: ${stderr}`);
-          //   event.sender.send('esptool-result', { stdout, stderr });
-          // });
-
           this.canClose = false;
+          getSocket().send(JSON.stringify({
+              type: 'burnLogs',
+              data: {
+                  message: {
+                      flashing: true,
+                      logs: '__MODE_SINGLE__'
+                  }
+              }
+          }));
 
-          const args = ['--port', port,"--baud", "1152000", 'write_flash', '0x0', filePath? filePath[0].path:firmwareFilePath];
+          const args = ['--port', port,"--baud", "1152000", 'write_flash', place? place.first:'0x0', filePath? filePath[0].path:firmwareFilePath];
           const flashProcess = spawn(esptoolPath, args, { encoding: 'utf8' });
 
           flashProcess.stdout.on('data', (data) => {
@@ -1565,95 +1605,306 @@ class DownloadCodeWindow extends AbstractWindow {
           });
 
       }else if(who=='standard'){
-         console.log(firmwareFilePath);
-          console.log(esptoolPath);
+        //  console.log(firmwareFilePath);
+        //   console.log(esptoolPath);
 
-          let isError=false
+        //   let isError=false
 
-          let isTimeout=false
+        //   let isTimeout=false
           
 
-          this.canClose = false;
+        //   this.canClose = false;
 
-          // const args = ['--port', port,"--baud", "1152000", 'write_flash', '0x0', testFirmware];
+        //   // const args = ['--port', port,"--baud", "1152000", 'write_flash', '0x0', testFirmware];
 
-          const args = [
-              '--chip', 'esp32s3',
-              '--port', port,
-              '--baud', '1152000',
-              '--before', 'default_reset',
-              '--after', 'hard_reset',
-              'write_flash',
-              '--flash_mode', 'dio',
-              '--flash_size', '32MB',
-              '--flash_freq', '80m',
+        //   const args = [
+        //       '--chip', 'esp32s3',
+        //       '--port', port,
+        //       '--baud', '1152000',
+        //       '--before', 'default_reset',
+        //       '--after', 'hard_reset',
+        //       'write_flash',
+        //       '--flash_mode', 'dio',
+        //       '--flash_size', '32MB',
+        //       '--flash_freq', '80m',
 
-              // 你的两个固件（保持你说的地址）
-              '0x0', filePath? filePath[0].path:commonFilePath,          // 第一个固件
-              '0x1420000', filePath? filePath[1].path:testFirmwareVfs,    // 第二个固件
-            ];
-          const flashProcess = spawn(esptoolPath, args, { encoding: 'utf8' });
+        //       // 你的两个固件（保持你说的地址）
+        //       place? place.first:'0x0', 
+        //       filePath? filePath[0].path:commonFilePath,          // 第一个固件
+        //       place? place.second:'0x1420000', 
+        //       filePath? filePath[1].path:testFirmwareVfs,    // 第二个固件
+        //     ];
+        //   const flashProcess = spawn(esptoolPath, args, { encoding: 'utf8' });
 
-          flashProcess.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
-            if(data.includes('A serial exception error occurred:')||data.includes('fatal error')){
-              isTimeout=true
-            }
-            if(getSocket()){
-              // console.log('可能发送了')
-              getSocket().send(JSON.stringify({
-                type: 'burnLogs',
-                data: { message: {
-                  flashing:true,
-                  logs:`stdout: ${data}`
-                } }
-              }))
-            }
-            event.sender.send('esptool-log', { type: 'stdout', message: data.toString() });
-          });
+        //   flashProcess.stdout.on('data', (data) => {
+        //     console.log(`stdout: ${data}`);
+        //     if(data.includes('A serial exception error occurred:')||data.includes('fatal error')){
+        //       isTimeout=true
+        //     }
+        //     if(getSocket()){
+        //       // console.log('可能发送了')
+        //       getSocket().send(JSON.stringify({
+        //         type: 'burnLogs',
+        //         data: { message: {
+        //           flashing:true,
+        //           logs:`stdout: ${data}`
+        //         } }
+        //       }))
+        //     }
+        //     event.sender.send('esptool-log', { type: 'stdout', message: data.toString() });
+        //   });
 
-          flashProcess.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
-            isError=true
-            if(getSocket()){
-              // console.log('可能发送了')
-              getSocket().send(JSON.stringify({
-                type: 'burnLogs',
-                data: { message: {
-                  flashing:false,
-                  logs:'Failed'
-                } }
-              }))
-            }
-            event.sender.send('esptool-log', { type: 'stderr', message: data.toString() });
-          });
+        //   flashProcess.stderr.on('data', (data) => {
+        //     console.error(`stderr: ${data}`);
+        //     isError=true
+        //     if(getSocket()){
+        //       // console.log('可能发送了')
+        //       getSocket().send(JSON.stringify({
+        //         type: 'burnLogs',
+        //         data: { message: {
+        //           flashing:false,
+        //           logs:'Failed'
+        //         } }
+        //       }))
+        //     }
+        //     event.sender.send('esptool-log', { type: 'stderr', message: data.toString() });
+        //   });
 
-          flashProcess.on('close', (code) => {
-            console.log(`Child process exited with code ${code}`);
-            if(!isError && getSocket()){
-              // console.log('可能发送了')
-              if(isTimeout){
-                getSocket().send(JSON.stringify({
-                  type: 'burnLogs',
-                  data: { message: {
-                    flashing:false,
-                    logs:''
-                  } }
-                }))
-              }else{
-                 getSocket().send(JSON.stringify({
-                  type: 'burnLogs',
-                  data: { message: {
-                    flashing:false,
-                    logs:'success'
-                  } }
-                }))
-              }
+        //   flashProcess.on('close', (code) => {
+        //     console.log(`Child process exited with code ${code}`);
+        //     if(!isError && getSocket()){
+        //       // console.log('可能发送了')
+        //       if(isTimeout){
+        //         getSocket().send(JSON.stringify({
+        //           type: 'burnLogs',
+        //           data: { message: {
+        //             flashing:false,
+        //             logs:''
+        //           } }
+        //         }))
+        //       }else{
+        //          getSocket().send(JSON.stringify({
+        //           type: 'burnLogs',
+        //           data: { message: {
+        //             flashing:false,
+        //             logs:'success'
+        //           } }
+        //         }))
+        //       }
              
+        //     }
+        //     this.canClose = true; // ✅ 允许关闭窗口
+        //     event.sender.send('esptool-log', { type: 'done', code });
+        //   });
+        console.log(firmwareFilePath);
+        console.log(esptoolPath);
+    
+        let isError = false;
+        let isTimeout = false;
+    
+        this.canClose = false;
+        getSocket().send(JSON.stringify({
+          type: 'burnLogs',
+          data: {
+              message: {
+                  flashing: true,
+                  logs: '__MODE_DUAL__'
+              }
+          }
+      }));
+        // =========================
+        // 第一个固件
+        // =========================
+        const args1 = [
+            '--chip', 'esp32s3',
+            '--port', port,
+            '--baud', '1152000',
+            '--before', 'default_reset',
+            '--after', 'hard_reset',
+    
+            'write_flash',
+    
+            '--flash_mode', 'dio',
+            '--flash_size', '32MB',
+            '--flash_freq', '80m',
+    
+            place ? place.first : '0x0',
+            filePath ? filePath[0].path : commonFilePath,
+        ];
+    
+        // =========================
+        // 第二个固件
+        // =========================
+        const args2 = [
+            '--chip', 'esp32s3',
+            '--port', port,
+            '--baud', '1152000',
+            '--before', 'default_reset',
+            '--after', 'hard_reset',
+    
+            'write_flash',
+    
+            '--flash_mode', 'dio',
+            '--flash_size', '32MB',
+            '--flash_freq', '80m',
+    
+            place ? place.second : '0x1420000',
+            filePath ? filePath[1].path : testFirmwareVfs,
+        ];
+    
+        // =========================
+        // 公共日志处理
+        // =========================
+        const bindProcessEvents = (flashProcess, isLastProcess = false) => {
+    
+            flashProcess.stdout.on('data', (data) => {
+    
+                console.log(`stdout: ${data}`);
+    
+                if (
+                    data.includes('A serial exception error occurred:') ||
+                    data.includes('fatal error')
+                ) {
+                    isTimeout = true;
+                }
+    
+                if (getSocket()) {
+                    getSocket().send(JSON.stringify({
+                        type: 'burnLogs',
+                        data: {
+                            message: {
+                                flashing: true,
+                                logs: `stdout: ${data}`
+                            }
+                        }
+                    }));
+                }
+    
+                event.sender.send('esptool-log', {
+                    type: 'stdout',
+                    message: data.toString()
+                });
+            });
+    
+            flashProcess.stderr.on('data', (data) => {
+    
+                console.error(`stderr: ${data}`);
+    
+                isError = true;
+    
+                if (getSocket()) {
+                    getSocket().send(JSON.stringify({
+                        type: 'burnLogs',
+                        data: {
+                            message: {
+                                flashing: false,
+                                logs: 'Failed'
+                            }
+                        }
+                    }));
+                }
+    
+                event.sender.send('esptool-log', {
+                    type: 'stderr',
+                    message: data.toString()
+                });
+            });
+    
+            flashProcess.on('close', (code) => {
+    
+                console.log(`Child process exited with code ${code}`);
+    
+                // 第一段失败直接结束
+                if (code !== 0) {
+    
+                    this.canClose = true;
+    
+                    event.sender.send('esptool-log', {
+                        type: 'done',
+                        code
+                    });
+    
+                    return;
+                }
+    
+                // 最后一个烧录完成
+                if (isLastProcess) {
+    
+                    if (!isError && getSocket()) {
+    
+                        if (isTimeout) {
+    
+                            getSocket().send(JSON.stringify({
+                                type: 'burnLogs',
+                                data: {
+                                    message: {
+                                        flashing: false,
+                                        logs: ''
+                                    }
+                                }
+                            }));
+    
+                        } else {
+    
+                            getSocket().send(JSON.stringify({
+                                type: 'burnLogs',
+                                data: {
+                                    message: {
+                                        flashing: false,
+                                        logs: 'success'
+                                    }
+                                }
+                            }));
+                        }
+                    }
+    
+                    this.canClose = true;
+    
+                    event.sender.send('esptool-log', {
+                        type: 'done',
+                        code
+                    });
+                }
+            });
+        };
+    
+        // =========================
+        // 开始第一次烧录
+        // =========================
+        const flashProcess1 = spawn(esptoolPath, args1, {
+            encoding: 'utf8'
+        });
+    
+        bindProcessEvents(flashProcess1, false);
+    
+        // =========================
+        // 第一次完成后开始第二次
+        // =========================
+        flashProcess1.on('close', (code) => {
+    
+            if (code !== 0) {
+                return;
             }
-            this.canClose = true; // ✅ 允许关闭窗口
-            event.sender.send('esptool-log', { type: 'done', code });
-          });
+    
+            console.log('First firmware flash success, start second...');
+            if (getSocket()) {
+                getSocket().send(JSON.stringify({
+                    type: 'burnLogs',
+                    data: {
+                        message: {
+                            flashing: true,
+                            logs: '__STAGE_2__'
+                        }
+                    }
+                }));
+            }
+    
+            const flashProcess2 = spawn(esptoolPath, args2, {
+                encoding: 'utf8'
+            });
+    
+            bindProcessEvents(flashProcess2, true);
+        });
 
       }else if(who=='microbit'){
         let daplink
@@ -1734,6 +1985,15 @@ class DownloadCodeWindow extends AbstractWindow {
         
             console.log('bbbbbbb')
            // await flashHexToDevice(hexData);
+           getSocket().send(JSON.stringify({
+              type: 'burnLogs',
+              data: {
+                  message: {
+                      flashing: true,
+                      logs: '__MODE_MICROBIT__'
+                  }
+              }
+          }));
            try {
             // 创建DAPLink传输层
             const transport = new DAPjs.USB(usbDevice);

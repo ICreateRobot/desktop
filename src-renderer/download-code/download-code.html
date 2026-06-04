@@ -29,7 +29,7 @@
 
     /* 顶部串口选择 & 当前版本显示 */
     .field {
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     label {
       display: block;
@@ -168,88 +168,301 @@
     border: 1px solid rgba(255, 180, 0, 0.45);
     color: #8a5a00;
   }
+  .tab-bar {
+    display: flex;
+    /*padding-left: 20px;*/
+    border-bottom: 2px solid #00bfa5;
+    margin-bottom: 10px;
+  }
+  
+  /* tab 基础样式 */
+  .tab {
+    padding: 10px 25px 10px 20px;
+    background-color: white;
+    color: #00bfa5;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid #00bfa5;
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    z-index: 0;
+  }
+  
+  /* 选中状态 */
+  .tab.active {
+    background-color: #00bfa5;
+    color: rgb(18, 17, 17);
+    z-index: 1;
+  }
+  
+  /* hover（可选） */
+  .tab:hover {
+    background-color: #e6fffb;
+  }
+  
+  /* 禁用状态（保留你WiFi页能力） */
+  .tab.disabled {
+    color: gray;
+    border-color: lightgray;
+    background-color: #f4f4f4;
+    cursor: not-allowed;
+  }
+  
+  .tab.disabled:hover {
+    background-color: #f4f4f4;
+  }
+  /* 自定义文件行样式 */
+.file-row input.file-name {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #cddfd6;
+  font-size: 13px;
+  background: transparent;
+}
 
+/* 文件选择按钮 */
+.choose-file-btn {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  background: #22a37a;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.choose-file-btn:active {
+  transform: translateY(1px);
+}
+
+.file-name-text {
+  white-space: nowrap;
+  max-width: 130px;          /* ✅ 固定宽度 */
+  overflow-x: auto;           /* ✅ 横向滚动 */
+}
+.flash-url {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #cddfd6;
+  font-size: 13px;
+  background: transparent;
+}
+.delete-row-btn:active {
+  transform: translateY(1px);
+}
+.customCard{
+  max-height: 72vh;      /* 最多占视口高度的 70% */
+  overflow-y: auto;      /* 超出时纵向滚动 */
+}
 
   </style>
 </head>
 <body>
   <div class="panel">
-    <!-- 串口选择 -->
-    <div class="field">
-      <label for="portSelector" id="titlePortSelect">选择串口：</label>
-      <select id="portSelector">
-        <option disabled selected id="defaultSelect">COM-请选择</option>
-      </select>
+    <!-- Tab 切换 -->
+    <div class="tab-bar" style="display:flex; gap:2px; margin-bottom:12px;">
+      <button id="tabDefault" class="tab active">默认烧录</button>
+      <button id="tabCustom" class="tab">自定义烧录</button>
     </div>
-
-    <!-- 当前固件版本显示 -->
-    <div id="versionShow" class="field">
-      <label for="currentVersion">当前固件版本：</label>
-      <input id="currentVersion" type="text" readonly />
-    </div>
-
-    <div id="firstSelectDevice" class="status-tip info">
-      请先选择设备
-    </div>
-    
-    <div id="notSupport" class="status-tip warning">
-      当前设备暂不支持烧录固件
-    </div>
-    <!-- 两个卡片并排：标准版 & 小智版 -->
-    <div class="cards-row" id="twoCardsRow">
-      <div class="card" id="standardCard">
-        <div class="title" id="standardFirmware">标准版本固件：</div>
-        <!-- <div class="subtitle" id="standardVersionLabel">ICROBOT-V3.0 ▾</div> -->
-
-        <select id="standardSelect" aria-label="标准固件版本下拉">
-          <option disabled selected id="loading">加载中...</option>
+    <!-- 默认烧录区域 -->
+    <div id="defaultFlashArea">
+      <!-- 串口选择 -->
+      <div class="field">
+        <label for="portSelector" id="titlePortSelect">选择串口：</label>
+        <select id="portSelector">
+          <option disabled selected id="defaultSelect">COM-请选择</option>
         </select>
+      </div>
 
-        <div class="desc" id="standCommit">
+      <!-- 当前固件版本显示 -->
+      <!-- <div id="versionShow" class="field">
+        <label for="currentVersion">当前固件版本：</label>
+        <input id="currentVersion" type="text" readonly />
+
+        <label for="currentHardVersion">当前硬件版本：</label>
+        <input id="currentHardVersion" type="text" readonly />
+      </div> -->
+      <div id="versionShow" class="field">
+        <label style="margin-bottom: 6px;" id="versionInfo">版本信息</label>
+      
+        <div style="
+          display: flex;
+          gap: 12px;
+        ">
+          <!-- 固件版本（左） -->
+          <div style="flex: 1;">
+            <div style="font-size: 12px; color: #0b7c68; margin-bottom: 4px;" id="firmwareVersion">
+              固件版本
+            </div>
+            <input
+              id="currentVersion"
+              type="text"
+              readonly
+              placeholder="未读取"
+              style="width: 100%;"
+            />
+          </div>
+      
+          <!-- 硬件版本（右） -->
+          <div style="flex: 1;">
+            <div style="font-size: 12px; color: #0b7c68; margin-bottom: 4px;" id="hardwareVersion">
+              硬件版本
+            </div>
+            <input
+              id="currentHardVersion"
+              type="text"
+              readonly
+              placeholder="未读取"
+              style="width: 100%;"
+            />
+          </div>
+        </div>
+      </div>
+
+
+      <div id="firstSelectDevice" class="status-tip info">
+        请先选择设备
+      </div>
+      
+      <div id="notSupport" class="status-tip warning">
+        当前设备暂不支持烧录固件
+      </div>
+      <!-- 两个卡片并排：标准版 & 小智版 -->
+      <div class="cards-row" id="twoCardsRow">
+        <div class="card" id="standardCard">
+          <div class="title" id="standardFirmware">标准版本固件：</div>
+          <!-- <div class="subtitle" id="standardVersionLabel">ICROBOT-V3.0 ▾</div> -->
+
+          <select id="standardSelect" aria-label="标准固件版本下拉">
+            <option disabled selected id="loading">加载中...</option>
+          </select>
+
+          <div class="desc" id="standCommit">
+
+          </div>
+
+          <button class="btn" id="upgradeStandard">升级</button>
+        </div>
+
+        <div class="card" id="xiaozhiCard">
+          <div class="title" id="xiaozhiFirmware">小智版本固件：</div>
+          <!-- <div class="subtitle" id="xiaozhiVersionLabel">ICRobot-xiaozhi-V3.0 ▾</div> -->
+
+          <select id="xiaozhiSelect" aria-label="小智固件版本下拉">
+            <option disabled selected id="loading2">加载中...</option>
+          </select>
+
+          <div class="desc" id="xiaozhiCommit">
+
+          </div>
+
+          <button class="btn" id="upgradeXiaoZhi">升级</button>
+        </div>
+      </div>
+
+
+      <!-- Microbit 卡片（同风格，但单独显示时占满宽度） -->
+      <!-- <div class="card single" id="microbitCard" style="display:none; margin-top:12px;">
+        <div class="title" id="microbitFirmware">Microbit 基础固件</div>
+        <div class="subtitle">microbit-base-v1.0</div>
+
+        <div class="desc" style="margin-top:8px;" id="microbitDesc">
+  适配此软件的基础固件。
+        </div>
+
+        <button class="btn" id="burnMicrobitBtn">烧录 Microbit 固件</button>
+      </div> -->
+
+      <div class="card single" id="microbitCard" style="display:none; margin-top:12px;">
+        <div class="title" id="microbitFirmware">Microbit 基础固件：</div>
+      
+        <select id="microbitSelect" aria-label="Microbit 固件版本下拉">
+          <option disabled selected id="loading3">加载中...</option>
+        </select>
+      
+        <div class="desc" id="microbitCommit"></div>
+      
+        <button class="btn" id="upgradeMicrobit">升级</button>
+      </div>
+    </div>
+
+    <!-- 自定义烧录（优化版 + 波特率） -->
+    <div id="customFlashArea" style="display:none; padding: 10px 0;">
+
+      <div class="card single customCard">
+
+        <!-- 串口选择 -->
+        <div class="field">
+          <label id="customPortLab">选择串口</label>
+          <select id="customPortSelect">
+            <option disabled selected>请选择串口</option>
+          </select>
+        </div>
+
+        <!-- 波特率选择（新增） -->
+        <div class="field">
+          <label id="custombaudLab">波特率</label>
+          <select id="baudRateSelect">
+            <option value="9600">9600</option>
+            <option value="57600">57600</option>
+            <option value="115200">115200</option>
+            <option value="230400">230400</option>
+            <option value="921600">921600</option>
+            <option value="921600" selected>1152000</option>
+          </select>
+        </div>
+
+        <!-- 烧录地址 + 文件选择 -->
+        <div class="field">
+          <label id="customplacefileLab">烧录地址 & 固件文件</label>
+
+          <div id="fileList" style="display:flex; flex-direction:column; gap:10px;">
+
+            <div class="file-row" style="display:flex; align-items:center; gap:12px;">
+          
+              <input type="text"
+                     placeholder="烧录地址"
+                     class="flash-url"
+                     style="flex:1;" />
+          
+              <button class="choose-file-btn">选择文件</button>
+          
+              <span class="file-name-text"
+                    style="min-width:120px; color:#0f6b5a; font-size:12px;">
+                未选择文件
+              </span>
+              <input type="hidden" class="file-path" />
+          
+              <!--  删除按钮（新增） -->
+              <button class="delete-row-btn"
+                      style="background:#ff5c5c; color:#fff; border:none;
+                             border-radius:6px; padding:6px 10px; cursor:pointer;">
+                删除
+              </button>
+          
+            </div>
+          
+          </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div style="display:flex; gap:10px; margin-top:12px;">
+
+          <button id="addFileRowBtn" class="btn" style="flex:1; background:#1f8a6b;">
+            + 新增文件
+          </button>
+
+          <button id="customFlashBtn" class="btn" style="flex:1;">
+            开始烧录
+          </button>
 
         </div>
 
-        <button class="btn" id="upgradeStandard">升级</button>
       </div>
-
-      <div class="card" id="xiaozhiCard">
-        <div class="title" id="xiaozhiFirmware">小智版本固件：</div>
-        <!-- <div class="subtitle" id="xiaozhiVersionLabel">ICRobot-xiaozhi-V3.0 ▾</div> -->
-
-        <select id="xiaozhiSelect" aria-label="小智固件版本下拉">
-          <option disabled selected id="loading2">加载中...</option>
-        </select>
-
-        <div class="desc" id="xiaozhiCommit">
-
-        </div>
-
-        <button class="btn" id="upgradeXiaoZhi">升级</button>
-      </div>
-    </div>
-
-    <!-- Microbit 卡片（同风格，但单独显示时占满宽度） -->
-    <!-- <div class="card single" id="microbitCard" style="display:none; margin-top:12px;">
-      <div class="title" id="microbitFirmware">Microbit 基础固件</div>
-      <div class="subtitle">microbit-base-v1.0</div>
-
-      <div class="desc" style="margin-top:8px;" id="microbitDesc">
-适配此软件的基础固件。
-      </div>
-
-      <button class="btn" id="burnMicrobitBtn">烧录 Microbit 固件</button>
-    </div> -->
-
-    <div class="card single" id="microbitCard" style="display:none; margin-top:12px;">
-      <div class="title" id="microbitFirmware">Microbit 基础固件：</div>
-    
-      <select id="microbitSelect" aria-label="Microbit 固件版本下拉">
-        <option disabled selected id="loading3">加载中...</option>
-      </select>
-    
-      <div class="desc" id="microbitCommit"></div>
-    
-      <button class="btn" id="upgradeMicrobit">升级</button>
     </div>
 
   </div>
@@ -282,12 +495,77 @@
         document.getElementById('firstSelectDevice').textContent=t.strings['download-code.title2'];
         document.getElementById('currentVersion').placeholder = t.strings['download-code.currentFirmware'] || '当前固件版本：';
         console.log(t.strings['download-code.currentFirmware'])
-        document.querySelector('label[for="currentVersion"]').textContent = t.strings['download-code.currentFirmware'] || '当前固件版本：';
+        //document.querySelector('label[for="currentVersion"]').textContent = t.strings['download-code.currentFirmware'] || '当前固件版本：';
         document.getElementById('notSupport').textContent=t.strings['download-code.notSupport'];
+        console.log(t.strings)
+        console.log(t.strings['download-code.versionInfo'])
+        document.getElementById('versionInfo').textContent=t.strings['download-code.versionInfo'];
+        document.getElementById('firmwareVersion').textContent=t.strings['download-code.firmwareVersion'];
+        document.getElementById('hardwareVersion').textContent=t.strings['download-code.hardwareVersion'];
+        document.getElementById('currentHardVersion').placeholder = t.strings['download-code.currentHardVersion'] || '当前硬件版本：';
         
+        const s = t.strings;
+        document.getElementById('tabDefault').textContent =
+          s['download-code.tabDefault'] || '默认烧录';
+        document.getElementById('tabCustom').textContent =
+          s['download-code.tabCustom'] || '自定义烧录';
+
+        document.getElementById('customPortLab').textContent =
+          s['download-code.customPortLab'] || '选择串口';
+        
+        document.getElementById('custombaudLab').textContent =
+          s['download-code.custombaudLab'] || '波特率';
+        
+        document.getElementById('customplacefileLab').textContent =
+          s['download-code.customplacefileLab'] || '烧录地址 & 固件文件';
+      
+        document.querySelector('.flash-url').placeholder =
+          s['download-code.placeInput'] || '烧录地址';
+      
+        document.querySelectorAll('.choose-file-btn').forEach(btn =>
+          btn.textContent = s['download-code.chooseFileBtn'] || '选择文件'
+        );
+      
+        document.querySelectorAll('.file-name-text').forEach(span =>
+          span.textContent = s['download-code.noFileSelected'] || '未选择文件'
+        );
+      
+        document.querySelectorAll('.delete-row-btn').forEach(btn =>
+          btn.textContent = s['download-code.deleteRowBtn'] || '删除'
+        );
+      
+        document.getElementById('addFileRowBtn').textContent =
+          s['download-code.addFileRowBtn'] || '+ 新增文件';
+        document.getElementById('customFlashBtn').textContent =
+          s['download-code.startFlashBtn'] || '开始烧录';
       }
     } catch (e) { /* ignore */ }
 
+    const tabDefault = document.getElementById('tabDefault');
+    const tabCustom = document.getElementById('tabCustom');
+
+    const defaultArea = document.getElementById('defaultFlashArea');
+    const customArea = document.getElementById('customFlashArea');
+
+    function switchTab(type) {
+      if (type === 'default') {
+        defaultArea.style.display = 'block';
+        customArea.style.display = 'none';
+
+        tabDefault.classList.add('active');
+        tabCustom.classList.remove('active');
+      } else {
+        defaultArea.style.display = 'none';
+        customArea.style.display = 'block';
+
+        tabDefault.classList.remove('active');
+        tabCustom.classList.add('active');
+      }
+    }
+
+    tabDefault.addEventListener('click', () => switchTab('default'));
+    tabCustom.addEventListener('click', () => switchTab('custom'));
+    switchTab('default');
     /* 显示/隐藏逻辑（使用你原来的 getExtension()） */
     function updateExtensionUI(extension) {
       if (extension == "2") {
@@ -336,7 +614,140 @@
       }
     }
 
+   // 初始化绑定
+document.querySelectorAll(".file-row").forEach(bindRowEvents);
+
+// 绑定行事件
+function bindRowEvents(row) {
+  const btn = row.querySelector(".choose-file-btn");
+  const nameText = row.querySelector(".file-name-text");
+  const delBtn = row.querySelector(".delete-row-btn");
+  const filePathDom = row.querySelector(".file-path")
+
+  // 文件选择
+  btn.addEventListener("click", async () => {
+    //const fileName = await fakePickFile();
+    //if (fileName) nameText.textContent = fileName;
+    const filePath = await electronAPI.selectFile();
+
+    if (!filePath) return;
+
+    filePathDom.value=filePath
+    nameText.textContent = filePath.split(/[/\\]/).pop();
+  });
+
+  // 删除行
+  delBtn.addEventListener("click", () => {
+    const allRows = document.querySelectorAll(".file-row");
+
+    // 🚨 至少保留一行
+    if (allRows.length <= 1) {
+      alert("至少保留一个文件选择项");
+      return;
+    }
+
+    row.remove();
+    updateDeleteState();
+  });
+
+  updateDeleteState();
+}
+
+// 新增行
+document.getElementById("addFileRowBtn").addEventListener("click", () => {
+  const row = document.createElement("div");
+  row.className = "file-row";
+  row.style.cssText = "display:flex; align-items:center; gap:12px; margin-top:10px;";
+
+  row.innerHTML = `
+    <input type="text" placeholder="烧录地址" class="flash-url" style="flex:1;" />
+    <button class="choose-file-btn">选择文件</button>
+    <span class="file-name-text" style="min-width:120px; color:#0f6b5a; font-size:12px;">
+      未选择文件
+    </span>
+    <input type="hidden" class="file-path" />
+    <button class="delete-row-btn"
+            style="background:#ff5c5c; color:#fff; border:none;
+                   border-radius:6px; padding:6px 10px; cursor:pointer;">
+      删除
+    </button>
+  `;
+
+    
+  document.getElementById("fileList").appendChild(row);
+  applyRowTranslation(row);
+  bindRowEvents(row);
+  // 自动滚动到底部
+  const card = document.querySelector('#customFlashArea .card.single');
+  card.scrollTop = card.scrollHeight;
+});
+
+function applyRowTranslation(row) {
+  const s = t.strings;
+
+  row.querySelector('.choose-file-btn').textContent =
+    s['download-code.chooseFileBtn'] || '选择文件';
+
+  row.querySelector('.file-name-text').textContent =
+    s['download-code.noFileSelected'] || '未选择文件';
+
+  row.querySelector('.delete-row-btn').textContent =
+    s['download-code.deleteRowBtn'] || '删除';
+
+  row.querySelector('.flash-url').placeholder =
+    s['download-code.placeInput'] || '烧录地址';
+}
+// 更新删除按钮状态（只剩一个时禁用/隐藏）
+function updateDeleteState() {
+  const rows = document.querySelectorAll(".file-row");
+
+  rows.forEach(row => {
+    const delBtn = row.querySelector(".delete-row-btn");
+
+    if (rows.length <= 1) {
+      delBtn.style.display = "none"; // 或 disabled
+    } else {
+      delBtn.style.display = "inline-block";
+    }
+  });
+}
+
+// 模拟选文件
+function fakePickFile() {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve("firmware_" + Math.floor(Math.random() * 1000) + ".bin");
+    }, 200);
+  });
+}
+
+document.getElementById('customFlashBtn').onclick = async () => {
+  const port = document.getElementById('customPortSelect').value;
+  const baudRate = Number(document.getElementById('baudRateSelect').value);
+
+  const files = [...document.querySelectorAll('.file-row')].map(row => ({
+    address: row.querySelector('.flash-url').value,
+    path: row.querySelector('.file-path').value
+  }));
+
+  if (!port || files.some(f => !f.address || !f.path)) {
+    showToast(t.strings['download-code.pleaseWriteAllInfo']);
+    return;
+  }
+  if(!port || port === t.strings['download-code.defaultSelect']){
+    showToast(t.strings['download-code.pleaseSelectPort'])
+    return
+  }
+
+  await electronAPI.flashCustom(
+    port,
+    baudRate,
+    files
+  );
+};
+
     /* 加载端口列表（同步/异步兼容） */
+    /*
     function loadPorts() {
       try {
         const ports = electronAPI.getPorts(); // 你原来的 API
@@ -373,7 +784,60 @@
           })();
         }
       }
-    }
+    }*/
+    /**
+      * 填充串口下拉框
+      * @param {HTMLSelectElement} selectEl
+      * @param {string[]} ports
+      */
+      function fillPortSelect(selectEl, ports) {
+        if (!selectEl) return;
+
+        const current = selectEl.value;
+
+        selectEl.innerHTML = `
+          <option disabled selected>
+            
+            ${t.strings['download-code.defaultSelect']}
+          </option>
+        `;
+
+        (ports || []).forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p;
+          opt.textContent = p;
+          if (p === current) opt.selected = true;
+          selectEl.appendChild(opt);
+        });
+      }
+      function loadPorts() {
+        try {
+          const ports = electronAPI.getPorts();
+      
+          fillPortSelect(
+            document.getElementById('portSelector'),
+            ports
+          );
+      
+          fillPortSelect(
+            document.getElementById('customPortSelect'),
+            ports
+          );
+      
+        } catch (err) {
+          if (err instanceof Promise) {
+            // ignore
+          } else {
+            (async () => {
+              try {
+                const ports = await electronAPI.getPorts();
+                fillPortSelect(document.getElementById('portSelector'), ports);
+                fillPortSelect(document.getElementById('customPortSelect'), ports);
+              } catch (_) {}
+            })();
+          }
+        }
+      }
 
     // /* 填充版本下拉：传入 select 元素 id 和版本数组（[{sha,message,time,author,url}]） */
     // function fillVersionSelect(selectId, versions) {
@@ -661,7 +1125,7 @@
         const localOpt = document.createElement('option');
         localOpt.value = JSON.stringify({ local: true });
         if(type=='stand'){
-          localOpt.textContent = t.strings['download-code.localFirmware']+'(1.1.0)';
+          localOpt.textContent = t.strings['download-code.localFirmware']+'(1.1.1)';
         }else{
           localOpt.textContent = t.strings['download-code.localFirmware']+'(1.0.0)';
         }
@@ -744,12 +1208,33 @@
           if (meta.folder){
             res = await window.electronAPI.getFolderCommits(type, meta.folder);
           }
+          const lang =
+          t.locale.startsWith('zh') ? 'zh' : 'en';
+          const info = res?.data?.[0];
     
-          const msg = res?.data?.[0]?.message || '';
+          console.log(info)
+          if (!info) {
+            
+            if (type === 'standard') standCommit.innerText = '';
+            else if (type === 'xiaozhi') xiaozhiCommit.innerText = '';
+            else if (type === 'microbit') microbitCommit.innerText = '';
+            return;
+          }
     
-          if (type === 'standard') standCommit.innerText = msg;
-          else if (type === 'xiaozhi') xiaozhiCommit.innerText = msg;
-          else if (type === 'microbit') microbitCommit.innerText = msg;
+          const version =
+            info.version || '';
+    
+          const description =
+            info.description?.[lang] ||
+            info.description?.zh ||
+            info.description?.en ||
+            '';
+    
+          //const msg = res?.data?.[0]?.message || '';
+    
+          if (type === 'standard') standCommit.innerText = description;
+          else if (type === 'xiaozhi') xiaozhiCommit.innerText = description;
+          else if (type === 'microbit') microbitCommit.innerText = description;
     
         } catch {
           if (type === 'standard') standCommit.innerText = '';
@@ -820,7 +1305,7 @@
       if (!selected) return alert(t.strings['download-code.firstSelectVersion']);
     
       const meta = JSON.parse(selected);
-    
+      console.log(meta)
       const port = portSel.value;
      // if (type !== 'microbit') {
        // if (!port || port === t.strings['download-code.defaultSelect']) {
@@ -837,12 +1322,13 @@
           await electronAPI.sendWho({
             who: type,
             port: port,
-            filePath: null
+            filePath: null,
           });
         } else {
           showToast(t.strings['download-code.startDownloadFirm']);
     
           const dlRes = await electronAPI.downloadFirmware(type, meta.folder);
+          console.log(dlRes)
           if (!dlRes?.ok) {
             showToast(t.strings['download-code.downloadFaild']);
             return;
@@ -854,7 +1340,8 @@
           await electronAPI.sendWho({
             who: type,
             port:port,
-            filePath: dlRes.data.downloaded
+            filePath: dlRes.data.downloaded,
+            place:dlRes.data.place
           });
         }
       } catch (err) {
@@ -897,7 +1384,7 @@
       }
     }
     */
-   
+   /*
     async function loadDefaultCommits() {
       try {
         const map = {
@@ -929,6 +1416,83 @@
         console.error("加载默认固件 commits 失败", err);
       }
     }
+    */
+    async function loadDefaultCommits() {
+
+      try {
+    
+        const map = {
+          standard: {
+            select: standardSelect,
+            commitEl: standCommit
+          },
+          xiaozhi: {
+            select: xiaozhiSelect,
+            commitEl: xiaozhiCommit
+          },
+          microbit: {
+            select: microbitSelect,
+            commitEl: microbitCommit
+          }
+        };
+    
+        // 当前语言
+    
+        const lang =
+          t.locale.startsWith('zh') ? 'zh' : 'en';
+    
+        for (const type in map) {
+    
+          const {
+            select,
+            commitEl
+          } = map[type];
+    
+          if (!select || !select.value) {
+            continue;
+          }
+    
+          const meta = JSON.parse(select.value);
+    
+          if (!meta.folder) {
+            continue;
+          }
+    
+          const res =
+            await window.electronAPI.getFolderCommits(
+              type,
+              meta.folder
+            );
+    
+          const info = res?.data?.[0];
+    
+          console.log(info)
+          if (!info) {
+            commitEl.innerText = '';
+            continue;
+          }
+    
+          const version =
+            info.version || '';
+    
+          const description =
+            info.description?.[lang] ||
+            info.description?.zh ||
+            info.description?.en ||
+            '';
+    
+          commitEl.innerText =
+            `v${version}\n${description}`;
+        }
+    
+      } catch (err) {
+    
+        console.error(
+          '加载默认固件更新说明失败',
+          err
+        );
+      }
+    }
     
 
 
@@ -953,8 +1517,11 @@
           ver.icrobot ||
           ver.icbricks ||
           '';
+        const hardValue=ver.icrobotHard || ''
 
         document.getElementById('currentVersion').value = value;
+        document.getElementById('currentHardVersion').value = hardValue;
+        
       }, 2000);
       // loadFirmwareLists();
       if (ext === "2" || ext === "3") {
