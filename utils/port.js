@@ -1,6 +1,6 @@
 let port='';
 
-
+let usingPort = ''
 
 let deviceState = {
   usbDevice: null,
@@ -36,5 +36,12 @@ function setPortCom(a){
 function getPortCom(){
   return portCom
 }
+
+function setUsingPort(a){
+  usingPort=a
+}
+function getUsingPort(){
+  return usingPort
+}
 // export { getPort, setPort };
-module.exports = { getPort, setPort, getDeviceState, setDeviceState ,setPortCom,getPortCom};
+module.exports = { getPort, setPort, getDeviceState, setDeviceState ,setPortCom,getPortCom,setUsingPort,getUsingPort};
