@@ -103,6 +103,13 @@
         padding-top: 20px;
         object-fit: contain;
       }
+      #img4{
+        border-radius: 10px 10px 0 0;
+        height: 50%;
+        width: 80%;
+        padding-top: 20px;
+        object-fit: contain;
+      }
       .cell-content p {
           margin: 0;
           padding: 10px;
@@ -189,13 +196,38 @@
                         
                     </div>
                 </td>
+                
+            </tr>
+            <tr>
+              <td>
+                  <div id="content4" onclick="select(4)" class="cell-content">
+                      <p id="p_master">Arduino UNO</p>
+                      <div class="overlay" id="overlay4"></div>
+                      <div id="close4" class="close-btn" onclick="closeButton(4,event)">-</div>
+                      <img id="img4" draggable="false" src="./images/uno.png" alt="图片4" width="100%">
+                      
+                  </div>
+              </td>
+
+              <td>
+                  <div id="content5" onclick="select(5)" class="cell-content">
+                      <p id="p_master">PY32</p>
+                      <div class="overlay" id="overlay5"></div>
+                      <div id="close5" class="close-btn" onclick="closeButton(5,event)">-</div>
+                      <img id="img5" draggable="false" src="./images/py32.png" alt="图片5" width="100%">
+                      
+                  </div>
+              </td>
             </tr>
         </table>
         
       </div>
       <script>
+
+        let locale=master.getTranslate().locale
+        let strings=master.getTranslate().strings
         
-        let closeBn=[false,false,false]
+        let closeBn=[false,false,false,false,false]
 
         let getClose=master.getCloseBn()
         console.log(getClose.close)
@@ -232,14 +264,19 @@
 
         function closeButton(num,event) {
           event.stopPropagation();
-          const closeBtn = document.getElementById("close" + num);
-          closeBtn.style.display = "none"; // 隐藏叉号按钮
-          document.getElementById("overlay" + num).style.display = "none";
+          let result = confirm(
+            strings['master.clearworkspace']
+          );
+          if (result) {
+            const closeBtn = document.getElementById("close" + num);
+            closeBtn.style.display = "none"; // 隐藏叉号按钮
+            document.getElementById("overlay" + num).style.display = "none";
 
-          closeBn[num-1]=false
-          master.sendCloseBn(closeBn)
-          // channel.postMessage(closeBn)
-          getClose=master.getCloseBn()
+            closeBn[num-1]=false
+            master.sendCloseBn(closeBn)
+            // channel.postMessage(closeBn)
+            getClose=master.getCloseBn()
+          }
         }
        
       </script>

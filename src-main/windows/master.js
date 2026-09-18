@@ -34,6 +34,13 @@ class MasterWindow extends AbstractWindow {
 
     const ipc = this.window.webContents.ipc;
 
+    ipc.on('get-translate', (event) => {
+      event.returnValue = {
+        locale: getLocale(),
+        strings: getStrings()
+      }
+    });
+
     ipc.on('get-close', (event) => {
       console.log('--------------')
       console.log(getCloseBn())
@@ -59,7 +66,7 @@ class MasterWindow extends AbstractWindow {
     ipc.handle('send-master', async (event, num) =>{
      
       // 发送数据到服务器的函数
-      fetch('http://localhost:3000/set-extension', {
+      fetch('http://localhost:38127/set-extension', {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain'
