@@ -56,116 +56,121 @@ let typeP=[]
 //   });
 
 const language = {
-  "zh-cn": {
-    "back": "返回",
-    "topBar_tilt": "训练模型",
-    "back_less": "分类",
-    "recognize1": "图像识别",
-    "recognize2": "手势识别",
-    "recognize3": "姿态识别",
-    "recognize4": "语音识别",
-    "newProject": "新建项目",
-    "importProject": "导入项目",
-    "manageProject": "项目管理",
-
-    "title": "选择模型训练界面",
-    "image_alt": "图像识别",
-    "gesture_alt": "手势识别",
-    "posture_alt": "姿态识别",
-    "sound_alt": "语音识别",
-    "createImg_alt": "新建项目",
-    "importImg_alt": "导入项目"
-  },
-
-  "en": {
-    "back": "Back",
-    "topBar_tilt": "Training Model",
-    "back_less": "Classification",
-    "recognize1": "Image Recognition",
-    "recognize2": "Gesture Recognition",
-    "recognize3": "Pose Recognition",
-    "recognize4": "Speech Recognition",
-    "newProject": "New Project",
-    "importProject": "Import Project",
-    "manageProject": "Project Management",
-
-    "title": "Model Training Selection Interface",
-    "image_alt": "Image Recognition",
-    "gesture_alt": "Gesture Recognition",
-    "posture_alt": "Pose Recognition",
-    "sound_alt": "Speech Recognition",
-    "createImg_alt": "New Project",
-    "importImg_alt": "Import Project"
-  },
-
-  "pl": {
-    "back": "Wstecz",
-    "topBar_tilt": "Trenowanie modelu",
-    "back_less": "Klasyfikacja",
-    "recognize1": "Rozpoznawanie obrazu",
-    "recognize2": "Rozpoznawanie gestów",
-    "recognize3": "Rozpoznawanie pozy",
-    "recognize4": "Rozpoznawanie mowy",
-    "newProject": "Nowy projekt",
-    "importProject": "Importuj projekt",
-    "manageProject": "Zarządzanie projektami",
-
-    "title": "Interfejs wyboru trenowania modelu",
-    "image_alt": "Rozpoznawanie obrazu",
-    "gesture_alt": "Rozpoznawanie gestów",
-    "posture_alt": "Rozpoznawanie pozy",
-    "sound_alt": "Rozpoznawanie mowy",
-    "createImg_alt": "Nowy projekt",
-    "importImg_alt": "Importuj projekt"
-  },
-
-  "ru": {
-    "back": "назад",
-    "topBar_tilt": "обучение модели",
-    "back_less": "классификация",
-    "recognize1": "распознавание изображений",
-    "recognize2": "распознавание жестов",
-    "recognize3": "распознавание поз",
-    "recognize4": "распознавание речи",
-    "newProject": "новый проект",
-    "importProject": "импорт проекта",
-    "manageProject": "управление проектами",
-
-    "title": "интерфейс выбора обучения модели",
-    "image_alt": "распознавание изображений",
-    "gesture_alt": "распознавание жестов",
-    "posture_alt": "распознавание поз",
-    "sound_alt": "распознавание речи",
-    "createImg_alt": "новый проект",
-    "importImg_alt": "импорт проекта"
-  },
-  "zh-tw": {
-    "back": "返回",
-    "topBar_tilt": "訓練模型",
-    "back_less": "分類",
-    "recognize1": "影像辨識",
-    "recognize2": "手勢辨識",
-    "recognize3": "姿態辨識",
-    "recognize4": "語音辨識",
-    "newProject": "新建專案",
-    "importProject": "匯入專案",
-    "manageProject": "專案管理",
-
-    "title": "選擇模型訓練介面",
-    "image_alt": "影像辨識",
-    "gesture_alt": "手勢辨識",
-    "posture_alt": "姿態辨識",
-    "sound_alt": "語音辨識",
-    "createImg_alt": "新建專案",
-    "importImg_alt": "匯入專案"
-    }
-}
+    "zh-cn": {
+      "back": "返回",
+      "topBar_tilt": "训练模型",
+      "back_less": "分类",
+      "recognize1": "图像识别",
+      "recognize2": "手势识别",
+      "recognize3": "姿态识别",
+      "recognize4": "语音识别",
+      "newProject": "新建项目",
+      "importProject": "导入项目",
+      "manageProject": "项目管理",
+  
+      "title": "选择模型训练界面",
+      "image_alt": "图像识别",
+      "gesture_alt": "手势识别",
+      "posture_alt": "姿态识别",
+      "sound_alt": "语音识别",
+      "createImg_alt": "新建项目",
+      "importImg_alt": "导入项目",
+      "fileNotSuport":"文件内容格式错误！"
+    },
+  
+    "en": {
+      "back": "Back",
+      "topBar_tilt": "Training Model",
+      "back_less": "Classification",
+      "recognize1": "Image Recognition",
+      "recognize2": "Gesture Recognition",
+      "recognize3": "Pose Recognition",
+      "recognize4": "Speech Recognition",
+      "newProject": "New Project",
+      "importProject": "Import Project",
+      "manageProject": "Project Management",
+  
+      "title": "Model Training Selection Interface",
+      "image_alt": "Image Recognition",
+      "gesture_alt": "Gesture Recognition",
+      "posture_alt": "Pose Recognition",
+      "sound_alt": "Speech Recognition",
+      "createImg_alt": "New Project",
+      "importImg_alt": "Import Project",
+      "fileNotSuport":"File content format error!"
+    },
+  
+    "pl": {
+      "back": "Wstecz",
+      "topBar_tilt": "Trenowanie modelu",
+      "back_less": "Klasyfikacja",
+      "recognize1": "Rozpoznawanie obrazu",
+      "recognize2": "Rozpoznawanie gestów",
+      "recognize3": "Rozpoznawanie pozy",
+      "recognize4": "Rozpoznawanie mowy",
+      "newProject": "Nowy projekt",
+      "importProject": "Importuj projekt",
+      "manageProject": "Zarządzanie projektami",
+  
+      "title": "Interfejs wyboru trenowania modelu",
+      "image_alt": "Rozpoznawanie obrazu",
+      "gesture_alt": "Rozpoznawanie gestów",
+      "posture_alt": "Rozpoznawanie pozy",
+      "sound_alt": "Rozpoznawanie mowy",
+      "createImg_alt": "Nowy projekt",
+      "importImg_alt": "Importuj projekt",
+      "fileNotSuport":"Błąd formatu zawartości pliku!"
+    },
+  
+    "ru": {
+      "back": "назад",
+      "topBar_tilt": "обучение модели",
+      "back_less": "классификация",
+      "recognize1": "распознавание изображений",
+      "recognize2": "распознавание жестов",
+      "recognize3": "распознавание поз",
+      "recognize4": "распознавание речи",
+      "newProject": "новый проект",
+      "importProject": "импорт проекта",
+      "manageProject": "управление проектами",
+  
+      "title": "интерфейс выбора обучения модели",
+      "image_alt": "распознавание изображений",
+      "gesture_alt": "распознавание жестов",
+      "posture_alt": "распознавание поз",
+      "sound_alt": "распознавание речи",
+      "createImg_alt": "новый проект",
+      "importImg_alt": "импорт проекта",
+      "fileNotSuport":"Ошибка формата содержимого файла!"
+    },
+    "zh-tw": {
+      "back": "返回",
+      "topBar_tilt": "訓練模型",
+      "back_less": "分類",
+      "recognize1": "影像辨識",
+      "recognize2": "手勢辨識",
+      "recognize3": "姿態辨識",
+      "recognize4": "語音辨識",
+      "newProject": "新建專案",
+      "importProject": "匯入專案",
+      "manageProject": "專案管理",
+  
+      "title": "選擇模型訓練介面",
+      "image_alt": "影像辨識",
+      "gesture_alt": "手勢辨識",
+      "posture_alt": "姿態辨識",
+      "sound_alt": "語音辨識",
+      "createImg_alt": "新建專案",
+      "importImg_alt": "匯入專案",
+      "fileNotSuport":"檔案內容格式錯誤！"
+      }
+  }
 
 
 function changeLanguageChoice(){
     const lang = localStorage.getItem('tw:language') || 'zh-cn'
     document.getElementById('topBar_tilt').textContent = language[lang]['topBar_tilt'];
-    document.getElementById('back_less').textContent = language[lang]['back_less'];
+    // document.getElementById('back_less').textContent = language[lang]['back_less'];
     document.getElementById('recognize1').textContent = language[lang]['recognize1'];
     document.getElementById('recognize2').textContent = language[lang]['recognize2'];
     document.getElementById('recognize3').textContent = language[lang]['recognize3'];
@@ -225,7 +230,7 @@ function showProjectManagement(type) {
         $('#modelSelection').css('display', 'none');
         $('#projectManagement').css('display', 'flex');
         $('#topBar_tilt').text(language[lang]['manageProject']);//'项 目 管 理'
-        $('#back_less').text(language[lang]['importProject']);
+        // $('#back_less').text(language[lang]['importProject']);
 
         // 渲染当前类型项目
         // renderProjectCards();
@@ -263,7 +268,7 @@ function showmodelSelection() {
     $('#modelSelection').css('display', 'flex');
     $('#projectManagement').css('display', 'none');
     $('#topBar_tilt').text(language[lang]['topBar_tilt']);//'训 练 模 型'
-    $('#back_less').text(language[lang]['back_less']);
+    // $('#back_less').text(language[lang]['back_less']);
 }
 
 /*新建项目*/
@@ -276,14 +281,137 @@ $('#newProject').click(function() {
 
 
 /*上传项目*/
-$('#uploadingProject').click(function() {
+// $('#uploadingProject').click(function() {
 
-    goLearn(-1,true);
-    // alert("敬请期待")
+//     // goLearn(-1,true);
+//     // alert("敬请期待")
+
+//     var input = document.createElement("input");
+//     input.type = "file";
+//     input.accept = ".json";
+
+//     input.addEventListener("change", function(event) {
+//         var file = event.target.files[0];
+//         if (!file) return;
+
+//         var reader = new FileReader();
+
+//         reader.onload = function(e) {
+//             try {
+//                 var jsonData = JSON.parse(e.target.result);
+
+//                 // ✅ 存到 localStorage（关键）
+//                 localStorage.setItem("importProjectJson", JSON.stringify(jsonData));
+
+//                 // ✅ 再跳转
+//                 goLearn(-1, true);
+
+//             } catch (error) {
+//                 alert("文件内容格式错误！");
+//             }
+//         };
+
+//         reader.readAsText(file);
+//     });
+
+//     input.click(); // ✅ 这里是用户点击触发，合法
    
 
 
-});
+// });
+const waitLoad = document.getElementById('waitLoad');
+
+$('#uploadingProject').click(function() { 
+ 
+    // goLearn(-1,true); 
+    // alert("敬请期待") 
+    // console.log(waitLoad)
+    waitLoad.classList.remove('hidden'); // 显示加载动画
+ 
+    var input = document.createElement("input"); 
+    input.type = "file"; 
+    input.accept = ".json"; 
+ 
+    input.addEventListener("cancel", function() {
+        waitLoad.classList.add('hidden');
+    });
+    input.addEventListener("change", function(event) { 
+        var file = event.target.files[0]; 
+        if (!file) return; 
+ 
+        var reader = new FileReader(); 
+ 
+        reader.onload = async function(e) { 
+            try { 
+                var jsonData = JSON.parse(e.target.result); 
+ 
+                
+                // ✅ 使用 IndexedDB 保存
+                const db = await new Promise((resolve, reject) => {
+                    const request = indexedDB.open("ProjectDB", 1);
+
+                    request.onupgradeneeded = function(event) {
+                        const db = event.target.result;
+
+                        if (!db.objectStoreNames.contains("projects")) {
+                            db.createObjectStore("projects");
+                        }
+                    };
+
+                    request.onsuccess = function(event) {
+                        resolve(event.target.result);
+                    };
+
+                    request.onerror = function(event) {
+                        reject(event.target.error);
+                    };
+                });
+
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(
+                        "projects",
+                        "readwrite"
+                    );
+
+                    const store = transaction.objectStore("projects");
+
+                    const request = store.put(
+                        jsonData,
+                        "importProjectJson"
+                    );
+
+                    request.onsuccess = function() {
+                        resolve();
+                    };
+
+                    request.onerror = function(event) {
+                        reject(event.target.error);
+                    };
+                });
+
+                db.close();
+
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                waitLoad.classList.add('hidden');
+                // ✅ 再跳转
+                goLearn(-1, true); 
+ 
+            } catch (error) { 
+                console.log(error) 
+                waitLoad.classList.add('hidden');
+                const lang = localStorage.getItem('tw:language') || 'zh-cn'
+                showToast(language[lang]['fileNotSuport']); 
+            } 
+        }; 
+ 
+        reader.readAsText(file); 
+    }); 
+ 
+    input.click(); // ✅ 这里是用户点击触发，合法 
+    
+ 
+ 
+}); 
 
 
 

@@ -12,7 +12,7 @@
 
     <div class="topBar_back" id="back"></div>
     <div class="topBar_tilt" id="topBar_tilt">训 练 模 型</div>
-    <div class="topBar_back_less" id="back_less">分 类</div>
+    <!-- <div class="topBar_back_less" id="back_less">分 类</div> -->
 
 
     <div class="mainBody_modelClass" id="modelSelection">
@@ -49,7 +49,7 @@
           </div>
           <div id='uploadingProject'>
             <img id="importImg" src="../../img/AI/importProject.png" alt="导入项目">
-            <h4 id="importProject">导入项目</h4>
+            <h4 style="text-align:center;" id="importProject">导入项目</h4>
           </div>
       </div>
 
@@ -67,6 +67,10 @@
     </div>
 
 
+    <div id="waitLoad" class="hidden">
+      <div class="loader"></div>
+      <h2 id='load'></h2>
+    </div>
     <!--加载动画-->
     <!--<div class="loading">
       <div class="loading-pair">

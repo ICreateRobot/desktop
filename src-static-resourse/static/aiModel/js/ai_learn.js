@@ -27,6 +27,8 @@ let isTraining=false
 
 let robotCameraTimer
 
+let recordFps=100
+
 // const waitLoad = document.getElementById('waitLoad');
 
 const channelOpenCamera = new BroadcastChannel('open-camera')
@@ -37,28 +39,463 @@ function createCameraSelectionModal() {
     const modal = document.createElement('div');
     modal.id = 'cameraSelectionModal';
     modal.style.cssText = `
-        position: fixed; top: 30%; left: 50%; transform: translate(-50%, -30%);
-        background: white; border: 1px solid #ccc; padding: 20px;
-        z-index: 9999; border-radius: 8px; display: flex; flex-direction: column;
-        min-width: 280px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        width: 390px;
+        box-sizing: border-box;
+
+        background: #fdfdfd;
+
+        border: 1px solid #e2e5e9;
+        border-radius: 14px;
+
+        padding: 26px 28px 24px;
+
+        z-index: 9999;
+
+        display: flex;
+        flex-direction: column;
+
+        box-shadow:
+            0 18px 45px rgba(0, 0, 0, 0.13),
+            0 4px 12px rgba(0, 0, 0, 0.05);
+
+        font-family:
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Arial,
+            sans-serif;
     `;
 
     modal.innerHTML = `
-        <h3 id='selectTitle' style="margin-bottom: 10px;">选择摄像头类型</h3>
-        <div style="margin-bottom: 10px;">
-            <label><input type="radio" name="cameraType" value="local" checked> <span id='local'>本地摄像头</span></label><br>
-            <label><input type="radio" name="cameraType" value="network"><span id='network'>网络摄像头</span> </label>
-            <label><input type="radio" name="cameraType" value="robot"><span id='robot'>ICrobot摄像头</span></label>
+        <!-- 顶部标题 -->
+        <div
+            style="
+                display: flex;
+                align-items: center;
+                margin-bottom: 22px;
+            "
+        >
+            <div
+                style="
+                    width: 4px;
+                    height: 20px;
+                    border-radius: 4px;
+                    background: #9aa1aa;
+                    margin-right: 11px;
+                "
+            ></div>
+
+            <h3
+                id="selectTitle"
+                style="
+                    margin: 0;
+                    padding: 0;
+
+                    font-size: 19px;
+                    font-weight: 600;
+                    line-height: 1.4;
+
+                    color: #30343a;
+
+                    letter-spacing: 0.1px;
+                "
+            >
+                选择摄像头类型
+            </h3>
         </div>
-        <div id="networkCameraInput" style="margin-bottom: 10px; display: none;">
-            <input type="text" id="cameraIp" placeholder="请输入网络摄像头IP地址" style="width: 100%; padding: 5px;">
+
+
+        <!-- 摄像头选择区域 -->
+        <div
+            style="
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 18px;
+            "
+        >
+
+            <!-- 本地摄像头 -->
+            <label
+                style="
+                    position: relative;
+
+                    display: flex;
+                    align-items: center;
+
+                    min-height: 48px;
+                    padding: 0 13px;
+
+                    box-sizing: border-box;
+
+                    border: 1px solid #e3e6ea;
+                    border-radius: 9px;
+
+                    background: #ffffff;
+
+                    cursor: pointer;
+
+                    color: #4a5058;
+                    font-size: 14px;
+
+                    transition:
+                        background-color 0.18s ease,
+                        border-color 0.18s ease,
+                        box-shadow 0.18s ease,
+                        transform 0.15s ease;
+                "
+                onmouseover="
+                    if (!this.querySelector('input').checked) {
+                        this.style.backgroundColor='#fafbfc';
+                        this.style.borderColor='#d7dbe0';
+                    }
+                "
+                onmouseout="
+                    if (!this.querySelector('input').checked) {
+                        this.style.backgroundColor='#ffffff';
+                        this.style.borderColor='#e3e6ea';
+                    }
+                "
+            >
+                <input
+                    type="radio"
+                    name="cameraType"
+                    value="local"
+                    checked
+                    style="
+                        width: 17px;
+                        height: 17px;
+
+                        margin: 0 11px 0 0;
+
+                        accent-color: #6d737b;
+
+                        cursor: pointer;
+                        flex-shrink: 0;
+                    "
+                >
+
+                <span
+                    id="local"
+                    style="
+                        font-weight: 500;
+                    "
+                >
+                    本地摄像头
+                </span>
+            </label>
+
+
+            <!-- 网络摄像头 -->
+            <label
+                style="
+                    position: relative;
+
+                    display: flex;
+                    align-items: center;
+
+                    min-height: 48px;
+                    padding: 0 13px;
+
+                    box-sizing: border-box;
+
+                    border: 1px solid #e3e6ea;
+                    border-radius: 9px;
+
+                    background: #ffffff;
+
+                    cursor: pointer;
+
+                    color: #4a5058;
+                    font-size: 14px;
+
+                    transition:
+                        background-color 0.18s ease,
+                        border-color 0.18s ease,
+                        box-shadow 0.18s ease,
+                        transform 0.15s ease;
+                "
+                onmouseover="
+                    if (!this.querySelector('input').checked) {
+                        this.style.backgroundColor='#fafbfc';
+                        this.style.borderColor='#d7dbe0';
+                    }
+                "
+                onmouseout="
+                    if (!this.querySelector('input').checked) {
+                        this.style.backgroundColor='#ffffff';
+                        this.style.borderColor='#e3e6ea';
+                    }
+                "
+            >
+                <input
+                    type="radio"
+                    name="cameraType"
+                    value="network"
+                    style="
+                        width: 17px;
+                        height: 17px;
+
+                        margin: 0 11px 0 0;
+
+                        accent-color: #6d737b;
+
+                        cursor: pointer;
+                        flex-shrink: 0;
+                    "
+                >
+
+                <span
+                    id="network"
+                    style="
+                        font-weight: 500;
+                    "
+                >
+                    网络摄像头
+                </span>
+            </label>
+
+
+            <!-- ICrobot 摄像头 -->
+            <label
+                style="
+                    position: relative;
+
+                    display: flex;
+                    align-items: center;
+
+                    min-height: 48px;
+                    padding: 0 13px;
+
+                    box-sizing: border-box;
+
+                    border: 1px solid #e3e6ea;
+                    border-radius: 9px;
+
+                    background: #ffffff;
+
+                    cursor: pointer;
+
+                    color: #4a5058;
+                    font-size: 14px;
+
+                    transition:
+                        background-color 0.18s ease,
+                        border-color 0.18s ease,
+                        box-shadow 0.18s ease,
+                        transform 0.15s ease;
+                "
+                onmouseover="
+                    if (!this.querySelector('input').checked) {
+                        this.style.backgroundColor='#fafbfc';
+                        this.style.borderColor='#d7dbe0';
+                    }
+                "
+                onmouseout="
+                    if (!this.querySelector('input').checked) {
+                        this.style.backgroundColor='#ffffff';
+                        this.style.borderColor='#e3e6ea';
+                    }
+                "
+            >
+                <input
+                    type="radio"
+                    name="cameraType"
+                    value="robot"
+                    style="
+                        width: 17px;
+                        height: 17px;
+
+                        margin: 0 11px 0 0;
+
+                        accent-color: #6d737b;
+
+                        cursor: pointer;
+                        flex-shrink: 0;
+                    "
+                >
+
+                <span
+                    id="robot"
+                    style="
+                        font-weight: 500;
+                    "
+                >
+                    ICrobot摄像头
+                </span>
+            </label>
+
         </div>
-        <div style="text-align: right;">
-            <button id="cameraSelectConfirm" style="margin-right: 10px;">确定</button>
-            <button id="cameraSelectCancel">取消</button>
+
+
+        <!-- 网络摄像头 IP -->
+        <div
+            id="networkCameraInput"
+            style="
+                margin-bottom: 18px;
+                display: none;
+            "
+        >
+            <div
+                style="
+                    font-size: 12px;
+                    color: #8a9098;
+                    margin-bottom: 7px;
+                "
+            >
+                IP Address
+            </div>
+
+            <input
+                type="text"
+                id="cameraIp"
+                placeholder="请输入网络摄像头IP地址"
+                style="
+                    width: 100%;
+                    height: 40px;
+
+                    padding: 0 13px;
+
+                    box-sizing: border-box;
+
+                    border: 1px solid #dfe3e7;
+                    border-radius: 8px;
+
+                    outline: none;
+
+                    background: #f8f9fa;
+
+                    color: #424850;
+
+                    font-size: 14px;
+
+                    transition:
+                        background-color 0.18s ease,
+                        border-color 0.18s ease,
+                        box-shadow 0.18s ease;
+                "
+                onfocus="
+                    this.style.backgroundColor='#ffffff';
+                    this.style.borderColor='#c9ced4';
+                    this.style.boxShadow='0 0 0 3px rgba(80, 85, 92, 0.07)';
+                "
+                onblur="
+                    this.style.backgroundColor='#f8f9fa';
+                    this.style.borderColor='#dfe3e7';
+                    this.style.boxShadow='none';
+                "
+            >
+        </div>
+
+
+        <!-- 分割线 -->
+        <div
+            style="
+                height: 1px;
+                background: #eceef0;
+                margin: 2px 0 18px;
+            "
+        ></div>
+
+
+        <!-- 底部按钮 -->
+        <div
+            style="
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 9px;
+            "
+        >
+
+            <!-- 取消 -->
+            <button
+                id="cameraSelectCancel"
+                style="
+                    height: 37px;
+                    min-width: 76px;
+
+                    padding: 0 17px;
+
+                    box-sizing: border-box;
+
+                    border: 1px solid #dfe2e6;
+                    border-radius: 8px;
+
+                    background: #ffffff;
+                    color: #626870;
+
+                    font-size: 14px;
+                    font-weight: 500;
+
+                    cursor: pointer;
+
+                    transition:
+                        background-color 0.18s ease,
+                        border-color 0.18s ease,
+                        box-shadow 0.18s ease;
+                "
+                onmouseover="
+                    this.style.backgroundColor='#f7f8f9';
+                    this.style.borderColor='#d4d8dd';
+                "
+                onmouseout="
+                    this.style.backgroundColor='#ffffff';
+                    this.style.borderColor='#dfe2e6';
+                "
+            >
+                取消
+            </button>
+
+
+            <!-- 确定 -->
+            <button
+                id="cameraSelectConfirm"
+                style="
+                    height: 37px;
+                    min-width: 76px;
+
+                    padding: 0 17px;
+
+                    box-sizing: border-box;
+
+                    border: 1px solid #cfd3d8;
+                    border-radius: 8px;
+
+                    background: #e9ebed;
+                    color: #3f444a;
+
+                    font-size: 14px;
+                    font-weight: 600;
+
+                    cursor: pointer;
+
+                    transition:
+                        background-color 0.18s ease,
+                        border-color 0.18s ease,
+                        box-shadow 0.18s ease;
+                "
+                onmouseover="
+                    this.style.backgroundColor='#e1e4e7';
+                    this.style.borderColor='#c5c9ce';
+                    this.style.boxShadow='0 3px 8px rgba(0,0,0,0.07)';
+                "
+                onmouseout="
+                    this.style.backgroundColor='#e9ebed';
+                    this.style.borderColor='#cfd3d8';
+                    this.style.boxShadow='none';
+                "
+            >
+                确定
+            </button>
+
         </div>
     `;
-
     document.body.appendChild(modal);
 
     let langT = localStorage.getItem('tw:language') || 'zh-cn';
@@ -180,13 +617,22 @@ var MType = GetQueryString("MType");//当前项目类型
 
 
 const languageDate = {
-  "zh-cn": {
+"zh-cn": {
     "tilt_G": "手势训练",
     "tilt_I": "图像训练",
     "tilt_P": "姿态训练",
     getCategoryName: (index) => `类别 ${index}`,
     getSampleText: (index) => `个图像样本`,
-    "addClass": "+ 添加一个类别",
+    "addClass":  `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    style="vertical-align: middle; margin-right:6px;">
+        <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+        <path d="M8 12h8"></path>
+        <path d="M12 8v8"></path>
+    </svg>
+    添加一个类别`,
     "trainText": "训练",
     "progressText": "0%",
     "epo": "周期数：",
@@ -199,12 +645,12 @@ const languageDate = {
     "playModel": "使用模型",
     "nameTilt": "名称:",
     "instructionsTilt": "说明:",
-    "keepPhoto":"长按此处持续拍照",
+    "keepPhoto":"按住即可录制",
     "highLevel":"高级",
     "reset":"重置为默认设置",
     "deepLearn":"深入了解",
     "startTrain":"开始训练",
-     "selectTitle": "选择摄像头类型",
+    "selectTitle": "选择摄像头类型",
     "local": "本地摄像头",
     "network": "网络摄像头",
     "robot": "ICrobot摄像头",
@@ -215,15 +661,30 @@ const languageDate = {
     'completed':'已完成',
     'nameNotNull':'项目名称不能为空',
     'illeglStr':'存在非法字符 -',
-    'stopTest':'停止测试'
-  },
-  "en": {
+    'stopTest':'停止测试',
+    'webcamSpan':'设置',
+    'save':'保存',
+    'cancel':'取消',
+    'noHand':'当前图像没有检测到手势',
+    'notSupport':'暂不支持',
+    'modelEqule':'请确保选择的模型与当前模式匹配',
+    'fileFailed':'文件解析失败'
+},
+"en": {
     "tilt_G": "Gesture Training",
     "tilt_I": "Image Training",
     "tilt_P": "Pose Training",
     getCategoryName: (index) => `Category ${index}`,
     getSampleText: (index) => ` image samples`,
-    "addClass": "+ Add a category",
+    "addClass": `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    style="vertical-align: middle; margin-right:6px;">
+        <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+        <path d="M8 12h8"></path>
+        <path d="M12 8v8"></path>
+    </svg>
+    Add a category`,
     "trainText": "Training",
     "progressText": "0%",
     "epo": "Epochs:",
@@ -236,7 +697,7 @@ const languageDate = {
     "playModel": "Use model",
     "nameTilt": "Name:",
     "instructionsTilt": "Description:",
-    "keepPhoto":"Press and hold to keep taking photos",
+    "keepPhoto":"Hold to record",
     "highLevel":"Advanced",
     "reset":"Reset to default",
     "deepLearn":"Learn more",
@@ -252,9 +713,16 @@ const languageDate = {
     'completed':'Completed',
     'nameNotNull':'The project name cannot be empty',
     'illeglStr':'Presence of illegal characters -',
-    'stopTest':'Stop testing'
-  },
-  "pl": {
+    'stopTest':'Stop testing',
+    'webcamSpan':'Settings',
+    'save':'Save',
+    'cancel':'Cancel',
+    'noHand':'No gesture detected in the current image',
+    'notSupport':'Not supported yet',
+    'modelEqule':'Please ensure that the selected model matches the current mode',
+    'fileFailed':'Failed to parse the file'
+},
+"pl": {
     "tilt_G": "Trenowanie gestów",
     "tilt_I": "Trenowanie obrazu",
     "tilt_P": "Trenowanie pozy",
@@ -262,7 +730,15 @@ const languageDate = {
     getCategoryName: (index) => `Kategoria ${index}`,
     getSampleText: (index) => ` próbek obrazu`,
 
-    "addClass": "+ Dodaj kategorię",
+    "addClass": `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    style="vertical-align: middle; margin-right:6px;">
+        <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+        <path d="M8 12h8"></path>
+        <path d="M12 8v8"></path>
+    </svg>
+    Dodaj kategorię`,
     "trainText": "Trenowanie",
     "progressText": "0%",
     "epo": "Epoki:",
@@ -278,7 +754,7 @@ const languageDate = {
     "nameTilt": "Nazwa:",
     "instructionsTilt": "Opis:",
 
-    "keepPhoto": "Naciśnij i przytrzymaj, aby robić zdjęcia",
+    "keepPhoto": "Przytrzymaj, aby nagrywać",
     "highLevel": "Zaawansowane",
     "reset": "Przywróć ustawienia domyślne",
     "deepLearn": "Dowiedz się więcej",
@@ -296,7 +772,14 @@ const languageDate = {
     "completed": "Zakończono",
     "nameNotNull": "Nazwa projektu nie może być pusta",
     "illeglStr": "Zawiera niedozwolone znaki -",
-    "stopTest": "Zatrzymaj test"
+    "stopTest": "Zatrzymaj test",
+    'webcamSpan':'Ustawienia',
+    'save':'Zapisz',
+    'cancel':'Anuluj',
+    'noHand':'Nie wykryto gestu na bieżącym obrazie',
+    'notSupport':'Obecnie nieobsługiwane',
+    'modelEqule':'Upewnij się, że wybrany model jest zgodny z bieżącym trybem',
+    'fileFailed':'Nie udało się przetworzyć pliku'
     },
     "ru": {
     "tilt_G": "обучение жестам",
@@ -306,7 +789,15 @@ const languageDate = {
     getCategoryName: (index) => `категория ${index}`,
     getSampleText: (index) => ` образцов изображений`,
 
-    "addClass": "+ добавить категорию",
+    "addClass": `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    style="vertical-align: middle; margin-right:6px;">
+        <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+        <path d="M8 12h8"></path>
+        <path d="M12 8v8"></path>
+    </svg>
+    добавить категорию`,
     "trainText": "обучение",
     "progressText": "0%",
     "epo": "эпохи:",
@@ -322,7 +813,7 @@ const languageDate = {
     "nameTilt": "название:",
     "instructionsTilt": "описание:",
 
-    "keepPhoto": "нажмите и удерживайте для съёмки",
+    "keepPhoto": "Нажмите и удерживайте, чтобы записать",
     "highLevel": "расширенные",
     "reset": "сбросить к настройкам по умолчанию",
     "deepLearn": "узнать больше",
@@ -340,9 +831,16 @@ const languageDate = {
     "completed": "завершено",
     "nameNotNull": "название проекта не может быть пустым",
     "illeglStr": "содержит недопустимые символы -",
-    "stopTest": "остановить тестирование"
-  },
-  "zh-tw": {
+    "stopTest": "остановить тестирование",
+    'webcamSpan':'Настройки',
+    'save':'Сохранить',
+    'cancel':'Отмена',
+    'noHand':'Жест в текущем изображении не обнаружен',
+    'notSupport':'Пока не поддерживается',
+    'modelEqule':'Убедитесь, что выбранная модель соответствует текущему режиму',
+    'fileFailed':'Не удалось разобрать файл'
+},
+"zh-tw": {
     "tilt_G": "手勢訓練",
     "tilt_I": "影像訓練",
     "tilt_P": "姿態訓練",
@@ -350,7 +848,15 @@ const languageDate = {
     getCategoryName: (index) => `類別 ${index}`,
     getSampleText: (index) => ` 個影像樣本`,
 
-    "addClass": "+ 新增一個類別",
+    "addClass": `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    style="vertical-align: middle; margin-right:6px;">
+        <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+        <path d="M8 12h8"></path>
+        <path d="M12 8v8"></path>
+    </svg>
+    新增一個類別`,
     "trainText": "訓練",
     "progressText": "0%",
     "epo": "週期數：",
@@ -366,7 +872,7 @@ const languageDate = {
     "nameTilt": "名稱：",
     "instructionsTilt": "說明：",
 
-    "keepPhoto": "長按此處持續拍照",
+    "keepPhoto": "按住即可錄製",
     "highLevel": "進階",
     "reset": "重置為預設設定",
     "deepLearn": "深入了解",
@@ -384,7 +890,14 @@ const languageDate = {
     "completed": "已完成",
     "nameNotNull": "專案名稱不能為空",
     "illeglStr": "存在非法字元 -",
-    "stopTest": "停止測試"
+    "stopTest": "停止測試",
+    'webcamSpan':'設定',
+    'save':'儲存',
+    'cancel':'取消',
+    'noHand':'目前影像未偵測到手勢​',
+    'notSupport':'暫不支援',
+    'modelEqule':'請確保選擇的模型與目前模式相符',
+    'fileFailed':'檔案解析失敗'
     }
 };
 
@@ -471,12 +984,12 @@ function changeLanguage(){
     document.getElementById('c2').value = data.getCategoryName(2);
     document.getElementById('n2').textContent = data.getSampleText(2);
 
-    document.getElementById('addClass').textContent = data.addClass;
+    document.getElementById('addClass').innerHTML = data.addClass;
     document.getElementById('trainText').textContent = data.trainText;
-    document.getElementById('progressText').textContent = data.progressText;
+    // document.getElementById('progressText').textContent = data.progressText;
     document.getElementById('epo').previousElementSibling.textContent = data.epo;
     document.getElementById('batch').previousElementSibling.textContent = data.batch;
-    document.getElementById('speed').previousElementSibling.textContent = data.speed;
+    // document.getElementById('speed').previousElementSibling.textContent = data.speed;
 
     document.getElementById('saveProject').textContent = data.saveProject;
     document.getElementById('select-camera').textContent = data['select-camera'];
@@ -490,9 +1003,16 @@ function changeLanguage(){
         btn.textContent = data.keepPhoto;
     });
 
-    document.querySelector('.advanced-toggle').textContent = data.highLevel;
+    document.querySelectorAll('.settingsCancel').forEach(btn => {
+        btn.textContent = data.cancel;
+    });
+    document.querySelectorAll('.settingsSave').forEach(btn => {
+        btn.textContent = data.save;
+    });
+    // document.querySelector('.advanced-toggle').textContent = data.highLevel;
+    document.getElementById('highLevel').textContent=data.highLevel
     document.querySelector('.reset-button').textContent = data.reset;
-    document.querySelector('.learn-more-button').textContent = data.deepLearn;
+    // document.querySelector('.learn-more-button').textContent = data.deepLearn;
     document.getElementById('trainingModel').textContent = data.startTrain;
 }
 changeLanguage()
@@ -505,47 +1025,186 @@ function getExtension(str) {
     let index = str.lastIndexOf(".");
     return index !== -1 ? str.slice(index + 1) : ""; // 如果找到点，截取后面的部分，否则返回空字符串
 }
-if(isLoad=='true'){
-    var input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json"; // 只接受 JSON 文件
+// if(isLoad=='true'){
+    // var input = document.createElement("input");
+    // input.type = "file";
+    // input.accept = ".json"; // 只接受 JSON 文件
     
-    // 监听文件选择事件
-    input.addEventListener("change", function(event) {
-        var file = event.target.files[0]; // 获取选择的文件
+    // // 监听文件选择事件
+    // input.addEventListener("change", function(event) {
+    //     var file = event.target.files[0]; // 获取选择的文件
     
-        if (!file) return;
+    //     if (!file) return;
     
-        var reader = new FileReader();
+    //     var reader = new FileReader();
     
-        reader.onload = function(e) {
-            try {
-                // 解析 JSON 数据
-                var jsonData = JSON.parse(e.target.result);
-                console.log("读取的 JSON 内容:", jsonData);
-                projectJson=jsonData
-                if(getExtension(projectJson.projectName)==MType){
-                    INIpage(projectJson.projectName,projectJson.imageDATA)
-                }else{
-                    alert('请确保选择的模型与当前模式匹配')
-                }
+    //     reader.onload = function(e) {
+    //         try {
+    //             // 解析 JSON 数据
+    //             var jsonData = JSON.parse(e.target.result);
+    //             console.log("读取的 JSON 内容:", jsonData);
+    //             projectJson=jsonData
+    //             if(getExtension(projectJson.projectName)==MType){
+    //                 INIpage(projectJson.projectName,projectJson.imageDATA)
+    //             }else{
+    //                 alert('请确保选择的模型与当前模式匹配')
+    //             }
     
                 
                 
-            } catch (error) {
-                console.error("JSON 解析失败:", error);
-                alert("文件内容格式错误！");
-            }
-        };
+    //         } catch (error) {
+    //             console.error("JSON 解析失败:", error);
+    //             alert("文件内容格式错误！");
+    //         }
+    //     };
     
-        // 读取文件为文本
-        reader.readAsText(file);
-    });
+    //     // 读取文件为文本
+    //     reader.readAsText(file);
+    // });
     
-    // 触发文件选择框的打开
-    input.click();
-}
+    // // 触发文件选择框的打开
+    // input.click();
 
+    
+// }
+
+// window.addEventListener("load", function () {
+
+//     if(isLoad=='true'){
+//         let data = localStorage.getItem("importProjectJson");
+
+//         if(data){
+//             try{
+//                 // console.log(data)
+
+//                 let jsonData = JSON.parse(data);
+//                 projectJson = jsonData;
+
+//                 if(getExtension(projectJson.projectName)==MType){
+//                     INIpage(projectJson.projectName,projectJson.imageDATA)
+//                 }else{
+//                     alert('请确保选择的模型与当前模式匹配')
+//                 }
+
+//                 localStorage.removeItem("importProjectJson");
+
+//             }catch(e){
+//                 console.log(e)
+//                 alert("文件解析失败");
+//             }
+//         }
+//     }
+
+// });
+window.addEventListener("load", function () { 
+ 
+    if(isLoad=='true'){ 
+        console.log('---------') 
+
+        // ✅ 从 IndexedDB 读取
+        new Promise((resolve, reject) => {
+            const request = indexedDB.open("ProjectDB", 1);
+
+            request.onupgradeneeded = function(event) {
+                const db = event.target.result;
+
+                if (!db.objectStoreNames.contains("projects")) {
+                    db.createObjectStore("projects");
+                }
+            };
+
+            request.onsuccess = function(event) {
+                resolve(event.target.result);
+            };
+
+            request.onerror = function(event) {
+                reject(event.target.error);
+            };
+        }).then(async (db) => {
+
+            try {
+
+                const data = await new Promise((resolve, reject) => {
+
+                    const transaction = db.transaction(
+                        "projects",
+                        "readonly"
+                    );
+
+                    const store = transaction.objectStore("projects");
+
+                    const request = store.get(
+                        "importProjectJson"
+                    );
+
+                    request.onsuccess = function() {
+                        resolve(request.result);
+                    };
+
+                    request.onerror = function(event) {
+                        reject(event.target.error);
+                    };
+
+                });
+
+                if(data){ 
+                    try{ 
+                        // console.log(data) 
+ 
+                        // ✅ IndexedDB 里面已经直接存的是对象
+                        let jsonData = data; 
+                        projectJson = jsonData; 
+ 
+                        if(getExtension(projectJson.projectName)==MType){ 
+                            INIpage(projectJson.projectName,projectJson.imageDATA) 
+                        }else{ 
+                            showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['modelEqule']) 
+                        } 
+ 
+                        // ✅ 删除 IndexedDB 中的数据
+                        await new Promise((resolve, reject) => {
+
+                            const transaction = db.transaction(
+                                "projects",
+                                "readwrite"
+                            );
+
+                            const store = transaction.objectStore(
+                                "projects"
+                            );
+
+                            const request = store.delete(
+                                "importProjectJson"
+                            );
+
+                            request.onsuccess = function() {
+                                resolve();
+                            };
+
+                            request.onerror = function(event) {
+                                reject(event.target.error);
+                            };
+
+                        });
+
+                    }catch(e){ 
+                        console.log(e) 
+                        showToast(languageDate[localStorage.getItem('tw:language') || 'zh-cn']['fileFailed']) 
+                    } 
+                }
+
+                db.close();
+
+            } catch(e) {
+                console.log(e);
+            }
+
+        }).catch(function(error) {
+            console.log(error);
+        });
+    } 
+ 
+});
 
 
 var  oldProjectName='';
@@ -595,9 +1254,9 @@ let video
 let canvasId='canvas1'
 
 let trainingModel = $('#trainingModel');//训练按钮
-let trainingModel_progress = $('#trainingModel_progress');//训练进度条整体
-let progressText = $('#progressText');//进度条文本描述
-let barTrain = $('#barTrain');//进度条块
+// let trainingModel_progress = $('#trainingModel_progress');//训练进度条整体
+// let progressText = $('#progressText');//进度条文本描述
+// let barTrain = $('#barTrain');//进度条块
 
 let show_video = document.getElementById('show_cameraView');//展示视图
 
@@ -779,6 +1438,12 @@ $('#cameraWinButton_shoot').on('touchend mouseup', function(e) {
     clearInterval(shootTime);*/
 });
 
+$('.reset-button').click(function() {
+    epo=50
+    batch=32
+    document.getElementById('epo').value=50
+    document.getElementById('batch').value=16
+})
 
 function handleButtonEnd(e) {
     e.preventDefault();
@@ -813,27 +1478,128 @@ function addCard() {
     const card = document.createElement('div');
     card.classList.add('card');
     card.id = 'card-'+NUM_CLASS;
-    card.innerHTML = `
-         <div class="card_top" id="card-${NUM_CLASS}"></div>
-                  <input type="text" id="c${NUM_CLASS}" value="类别 ${NUM_CLASS}" />
-                  <button class="delete" onclick="deleteCard(this)">×</button>
-                  <div style="height: 1px; width: 100%; border-bottom: 1px solid black;"></div>
-                  <div class="cameraBn" style="display: flex;">
-                    <button class="camera" onclick="openCamera(this)"></button>
-                    <button class="upFile" onclick="openFile(this)"></button>
-                  </div>
-                  <div class="cameraWin" id="cameraWin${NUM_CLASS}">
-                    <video class="cameraView" width="320" height="240" id="cameraView${NUM_CLASS}"  autoplay muted></video>
-                     <img class="netCamera"  crossorigin="anonymous" id="netCamera${NUM_CLASS}">
-                    <canvas class="cameraView" width="320" height="240" id="canvas${NUM_CLASS}" ></canvas>
+    // card.innerHTML = `
+    //      <div class="card_top" id="card-${NUM_CLASS}"></div>
+    //               <input type="text" id="c${NUM_CLASS}" value="类别 ${NUM_CLASS}" />
+    //               <button class="delete" onclick="deleteCard(this)">×</button>
+    //               <div style="height: 1px; width: 100%; border-bottom: 1px solid black;"></div>
+    //               <div class="cameraBn" style="display: flex;">
+    //                 <button class="camera" onclick="openCamera(this)"></button>
+    //                 <button class="upFile" onclick="openFile(this)"></button>
+    //               </div>
+    //               <div class="cameraWin" id="cameraWin${NUM_CLASS}">
+    //                 <video class="cameraView" width="320" height="240" id="cameraView${NUM_CLASS}"  autoplay muted></video>
+    //                  <img class="netCamera"  crossorigin="anonymous" id="netCamera${NUM_CLASS}">
+    //                 <canvas class="cameraView" width="320" height="240" id="canvas${NUM_CLASS}" ></canvas>
             
-                    <button class="cameraWinButton_close">×</button>
-                  </div>
-                  <button class="upload gray" onmousedown="handleButtonStart(event)" onmouseup="handleButtonEnd(event)" ontouchstart="handleButtonStart(event)" ontouchend="handleButtonEnd(event)">长按此处持续拍照</button>
-                  <p class="card_numText"><span class='card_numText_n'>0</span><span id="n${NUM_CLASS}">个图像样本</span></p>
-                  <div class="photoLibrary"> </div>
+    //                 <button class="cameraWinButton_close">×</button>
+    //               </div>
+    //               <button class="upload gray" onmousedown="handleButtonStart(event)" onmouseup="handleButtonEnd(event)" ontouchstart="handleButtonStart(event)" ontouchend="handleButtonEnd(event)">按住即可录制</button>
+    //               <p class="card_numText"><span class='card_numText_n'>0</span><span id="n${NUM_CLASS}">个图像样本</span></p>
+    //               <div class="photoLibrary"> </div>
 
-    `;
+    // `;
+    card.innerHTML=`
+        <span class="input-wrap">
+        <input type="text" id="c${NUM_CLASS}" value="类别 ${NUM_CLASS}" />
+        
+        <button style="background-color: transparent;border: none;margin-top:10px" onclick="focusInput(this)">
+        <svg xmlns="http://www.w3.org/2000/svg"
+            width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-pencil">
+            <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path>
+            <path d="m15 5 4 4"></path>
+        </svg>
+        </button>
+    
+    </span>
+
+    <!-- <button class="delete" onclick="deleteCard(this)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical ant-dropdown-trigger" style="cursor: pointer;"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></button> -->
+    <div class="menu-wrap">
+        <button class="delete" type="button" onclick="toggleMenu(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+        </button>
+
+        <!-- 下拉菜单 -->
+        <div class="menu">
+            <div class="menu-item" onclick="deleteCard(this)">删除类别</div>
+            <div class="menu-item" onclick="deleteSample(this)">移除所有类别</div>
+        </div>
+    </div>
+    <!-- <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical ant-dropdown-trigger" style="cursor: pointer;"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></span> -->
+    <div style="height: 1px; width: 100%; border-bottom: 1px solid rgb(220, 216, 216);margin-top:20px"></div>
+    <div class="cameraBn" style="display: flex;">
+        <button class="camera" onclick="openCamera(this)"></button>
+        <button class="upFile" onclick="openFile(this)"></button>
+    </div>
+    <div class="cameraLeft" id="cameraLeft${NUM_CLASS}">
+    <div class="cameraTop">
+        <span class="webcamSpan">webcam</span>
+        <button class="cameraWinButton_close">×</button>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="cameraSettings" style="display:none;">
+        
+        <!-- FPS 设置 -->
+        <div class="settingItem">
+        <label>FPS：</label>
+        <div class="numberBox">
+            <input type="number" id="fpsInput1" min="1" max="100" value="30">
+            <!-- <div class="stepBtns">
+            <button onclick="changeFPS(this,1)">▲</button>
+            <button onclick="changeFPS(this,-1)">▼</button>
+            </div> -->
+        </div>
+        </div>
+
+        <!-- 按住录制开关 -->
+        <!--<div class="settingItem">
+        <label>按住即可录制</label>
+        <label class="switch">
+            <input type="checkbox" id="holdRecord1">
+            <span class="slider"></span>
+        </label>
+        </div>-->
+
+        <!-- 底部按钮 -->
+        <div class="settingActions">
+        <button class="settingsCancel" onclick="cancelSetting(this)">取消</button>
+        <button class="settingsSave" onclick="saveSetting(this)">保存</button>
+        </div>
+
+    </div>
+    
+    <div class="cameraWin" id="cameraWin${NUM_CLASS}">
+        <video class="cameraView" width="320" height="240" id="cameraView${NUM_CLASS}"  autoplay muted></video>
+        <img class="netCamera"  crossorigin="anonymous" id="netCamera${NUM_CLASS}">
+        <canvas class="cameraView" width="320" height="240" id="canvas${NUM_CLASS}" ></canvas>
+
+        
+    </div>
+    <button class="upload gray" onmousedown="handleButtonStart(event)" onmouseup="handleButtonEnd(event)" ontouchstart="handleButtonStart(event)" ontouchend="handleButtonEnd(event)">点击此处可持续拍照</button>
+    <span class="uploadSetting"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings" style="color: rgb(25, 103, 210);"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+    </div>
+    
+    <!-- <button
+    class="upload gray"
+    onmousedown="handleButtonStart(event)"
+    ontouchstart="handleButtonStart(event)">
+    长按此处持续拍照
+    </button> -->
+    <div class="sampleRight">
+    <p class="card_numText"><span class='card_numText_n'>0</span><span id='n${NUM_CLASS}'>个图像样本</span></p>
+    <div class="photoLibrary"> </div>
+    </div>
+    `
     cardContainer.appendChild(card);
     if(MType=='I'){
         createModel();//重新创建训练模型
@@ -848,6 +1614,11 @@ function addCard() {
         closeCameraWin();
     });
 
+    document.querySelectorAll('.uploadSetting').forEach(btn=>{
+        btn.removeEventListener('click',uploadSettingFun)
+        btn.addEventListener('click', uploadSettingFun);
+      });
+
     const data =
     languageDate[localStorage.getItem('tw:language')] ||
     languageDate['zh-cn'];
@@ -860,7 +1631,13 @@ function addCard() {
     document.querySelectorAll('.upload').forEach(button => {
     button.textContent = data.keepPhoto;
     });
-     
+    document.querySelectorAll('.settingsCancel').forEach(btn => {
+        btn.textContent = data.cancel;
+    });
+    document.querySelectorAll('.settingsSave').forEach(btn => {
+        btn.textContent = data.save;
+    });
+    drawKittenLines();
     // if(localStorage.getItem('tw:language')=='en'){
     //     document.getElementById(`c${NUM_CLASS}`).value=languageDate['en'].getCategoryName(NUM_CLASS)
     //     document.getElementById(`n${NUM_CLASS}`).textContent=languageDate['en'].getSampleText(NUM_CLASS)
@@ -880,95 +1657,87 @@ function addCard() {
 
 /*删除卡片*/
 function deleteCard(button) {
-    if(cameraType) return;
-    console.log('删除了一个卡片')
-    var card = button.parentElement;
-    var dellab = parseInt(card.id.split('-')[1])-1;
-    console.log('删除的id',dellab)
-    //删除数据
-    data.forEach((da,index)=>{
-       if(da.label==dellab){
-           data.splice(index,1)
-       }
-    })
-    labelClass.forEach((lab,index)=>{
-        if(dellab==lab){
-            labelClass.splice(index,1)
-        }
-    })
-
-    for(let i = data.length - 1; i >= 0; i--){
-        var da = data[i]
-        if(da.label==dellab){
-           data.splice(i,1)
-        }
-    }
-    for(let i = imageDATA.length - 1; i >= 0; i--){
-        var con = imageDATA[i]
-        if(con.data.label==dellab){
-           imageDATA.splice(i,1)
-        }
-    }
-    //删除card
-    card.remove();
-    //样本总量减少
-    sampleSize -= parseInt($(card).find('.card_numText_n').text());
-    SUM_CLASS -= 1;//类之和减少
-    /*if(MType=='I'){
-        createModel();//重新创建训练模型
+    if(cameraType) {
+        showToast('请先关闭摄像头')
+        return
     }else{
-        model = createModel();//重新创建训练模型
-    }*/
-}
-
-/*删除照片*/
-function deletePhoto(button) {
-    var photo = button.parentElement;
-    var card = (photo.parentElement).parentElement;
-
-    console.log(photo)
-    console.log(card)
-    //删除数据
-    var pd,lab;
-    relation.forEach(rela=>{
-        if(rela.img==photo.id){
-            pd=rela.pose
-            lab=rela.label
-        }
-    })
-    data.forEach((da,index)=>{
-        if(da.pose==pd && da.label==lab){
+        console.log('删除了一个卡片')
+        // var card = button.parentElement;
+        var card = button.closest('.card');
+        var dellab = parseInt(card.id.split('-')[1])-1;
+        console.log('删除的id',dellab)
+        //删除数据
+        data.forEach((da,index)=>{
+        if(da.label==dellab){
             data.splice(index,1)
         }
-    })
-    imageDATA.forEach((con,index)=>{
-        if(con.data.pose==pd && con.data.label==lab){
-            imageDATA.splice(index,1)
+        })
+        labelClass.forEach((lab,index)=>{
+            if(dellab==lab){
+                labelClass.splice(index,1)
+            }
+        })
+
+        for(let i = data.length - 1; i >= 0; i--){
+            var da = data[i]
+            if(da.label==dellab){
+            data.splice(i,1)
+            }
         }
-    })
-
-    //删除img
-    photo.remove()
-
-    //样本总量减少
-    card.querySelector('.card_numText_n').textContent = parseInt(card.querySelector('.card_numText_n').textContent)-1;
-    sampleSize--;
-
-    console.log(card)
-
-   
+        for(let i = imageDATA.length - 1; i >= 0; i--){
+            var con = imageDATA[i]
+            if(con.data.label==dellab){
+            imageDATA.splice(i,1)
+            }
+        }
+        //删除card
+        card.remove();
+        //样本总量减少
+        sampleSize -= parseInt($(card).find('.card_numText_n').text());
+        SUM_CLASS -= 1;//类之和减少
+        drawKittenLines();
+        /*if(MType=='I'){
+            createModel();//重新创建训练模型
+        }else{
+            model = createModel();//重新创建训练模型
+        }*/
+    }
     
+}
+
+
+function getCurrentCard(element) {
+    return element.closest(".card");
+}
+
+function setPhotoLibraryMode(card, mode) {
+    const library = card.querySelector(".photoLibrary");
+    if (!library) return;
+
+    if (mode === "horizontal") {
+        library.classList.add("single-line");
+    } else {
+        library.classList.remove("single-line");
+    }
 }
 
 
 /*展开相机窗口*/
 function openCamera(button) {
     console.log('---------------')
+   
     // document.getElementById('cameraBn').style.display='none'
     closeAllCamera()
-    if(cameraType==true && classChecked_div==button.parentNode.parentNode){//如果摄像头打开，再次点击该按键，关闭摄像头
+    // closeCameraWin();
+    if(classChecked_div){//如果摄像头打开，再次点击该按键，关闭摄像头
+        console.log('有打开的窗口')
         closeCameraWin();
-    }else if(cameraType==false){//如果相机未打开，直接打开
+    }
+    if(cameraType==false){//如果相机未打开，直接打开
+        const card = getCurrentCard(button);
+
+        // 打开摄像头 → 强制竖向滚动
+        setPhotoLibraryMode(card, "vertical");
         classChecked_div = button.parentNode.parentNode;
         classChecked_div.querySelector('.cameraBn').style.display='none'
 
@@ -976,6 +1745,7 @@ function openCamera(button) {
         // let lastChar = classChecked_div.id.charAt(classChecked_div.id.length - 1);
         let lastChar = classChecked_div.id.match(/\d+$/);
         if(whatCamera!='local'){
+            classChecked_div.querySelector(`#cameraLeft${lastChar}`).style.display='block'
             classChecked_div.querySelector(`.cameraWin #netCamera${lastChar}`).style.display='block'
             classChecked_div.querySelector(`.cameraWin #canvas${lastChar}`).style.display='block'
             // classChecked_div.querySelector(`.cameraWin #canvas${lastChar}`).style.zIndex='100'
@@ -994,6 +1764,7 @@ function openCamera(button) {
         }else{
             console.log(classChecked_div)
             console.log(document.getElementById(`netCamera${lastChar}`))
+            classChecked_div.querySelector(`#cameraLeft${lastChar}`).style.display='block'
             classChecked_div.querySelector(`.cameraWin #cameraView${lastChar}`).style.display='block'
             classChecked_div.querySelector(`.cameraWin #canvas${lastChar}`).style.display='block'
             video=classChecked_div.querySelector(`.cameraWin #cameraView${lastChar}`)
@@ -1007,15 +1778,39 @@ function openCamera(button) {
         
         
         cameraShow();  // 打开相机
+        drawKittenLines()
     }
 
 }
 /*关闭相机窗口*/
 function closeCameraWin() {
+    console.log('关闭所有窗口')
+    document.querySelectorAll(".photoLibrary").forEach(el => {
+        el.classList.add("single-line");
+    });
+
+    // let box = this.closest('.cameraLeft');
+
+    // 关闭整个面板
+    // box.style.display = 'none';
+
+    // 关键：重置状态
+    // document.querySelectorAll(".cameraSettings").forEach(el => {
+    //     el.style.display = 'none';
+    // })
+    // document.querySelectorAll(".cameraSettings").forEach(el => {
+    //     el.style.display = 'none';
+    // })
+    classChecked_div.querySelector('.cameraSettings').style.display = 'none';
+    classChecked_div.querySelector('.cameraWin').style.display = 'block';
+    classChecked_div.querySelector('.upload').style.display = 'block';
+    classChecked_div.querySelector('.uploadSetting').style.display = 'block';
+    classChecked_div.querySelector('.webcamSpan').textContent='webcam'
     console.log('################')
     //  document.getElementById('cameraBn').style.display='flex'
     closeCamera();  // 关闭相机
     // $('#cameraWin').css('display', 'none');//隐藏窗口
+    classChecked_div.querySelector(`.cameraLeft`).style.display='none'
     classChecked_div.querySelector('.cameraWin').style.display='none'
     cameraType = false;
     stopDetection();//停止检测
@@ -1024,6 +1819,7 @@ function closeCameraWin() {
     classChecked_div.querySelector('.photoLibrary').classList.remove('photoLibrary_b');//移除边框
     classChecked_div.querySelector('.upload').classList.add('gray');//增加禁用
     classChecked_div.querySelector('.upload').style.display='none';//增加禁用
+    drawKittenLines()
 }
 
 function closeAllCamera(){
@@ -1463,3 +2259,246 @@ $('#MicroWinButton_close').click(function() {
     // 隐藏窗口
     $('#cameraWin').css('display', 'none');
 });
+
+
+// function drawKittenLines() {
+//     const svg = document.getElementById("linkSvg");
+//     if (!svg) return;
+//     const main = document.querySelector(".main");
+//     if (!main) return;
+
+//     svg.innerHTML = "";
+
+//     const cards = document.querySelectorAll(".card");
+//     const target = document.querySelector(".trainingModel_bg");
+
+//     if (!target || cards.length === 0) return;
+
+//     const tRect = target.getBoundingClientRect();
+
+//     // const scrollX = window.scrollX;
+//     // const scrollY = window.scrollY;
+//     const mainRect = main.getBoundingClientRect();
+
+//     // const endX = tRect.left + scrollX;
+//     // const endY = tRect.top + tRect.height / 2 + scrollY;
+//     const endX = tRect.left - mainRect.left + main.scrollLeft;
+//     const endY = tRect.top - mainRect.top + tRect.height / 2 + main.scrollTop;
+
+//     cards.forEach(card => {
+//         const cRect = card.getBoundingClientRect();
+
+//         const startX = cRect.right + scrollX;
+//         const startY = cRect.top + cRect.height / 2 + scrollY;
+
+//         const midX = startX + 60;
+
+//         const pathData = `
+//             M ${startX} ${startY}
+//             C ${midX} ${startY},
+//               ${midX} ${endY},
+//               ${endX} ${endY}
+//         `;
+
+//         const path = document.createElementNS(
+//             "http://www.w3.org/2000/svg",
+//             "path"
+//         );
+
+//         path.setAttribute("d", pathData);
+//         path.setAttribute("stroke", "#BDC1C6");
+//         path.setAttribute("stroke-width", "2");
+//         path.setAttribute("fill", "none");
+
+//         svg.appendChild(path);
+//     });
+// }
+function drawKittenLines() {
+    const svg = document.getElementById("linkSvg");
+    const main = document.querySelector(".main");
+
+    if (!svg || !main) return;
+
+    // 根据滚动内容大小设置 SVG 尺寸
+    svg.setAttribute("width", main.scrollWidth);
+    svg.setAttribute("height", main.scrollHeight);
+
+    // 清空旧的连线
+    svg.innerHTML = "";
+
+    const cards = document.querySelectorAll(".card");
+    const target = document.querySelector(".trainingModel_bg");
+
+    if (!target || cards.length === 0) return;
+
+    // main 在视口中的位置
+    const mainRect = main.getBoundingClientRect();
+
+    // 目标位置
+    const tRect = target.getBoundingClientRect();
+
+    const endX =
+        tRect.left - mainRect.left + main.scrollLeft;
+
+    const endY =
+        tRect.top -
+        mainRect.top +
+        tRect.height / 2 +
+        main.scrollTop;
+
+    cards.forEach(card => {
+        const cRect = card.getBoundingClientRect();
+
+        const startX =
+            cRect.right -
+            mainRect.left +
+            main.scrollLeft;
+
+        const startY =
+            cRect.top -
+            mainRect.top +
+            cRect.height / 2 +
+            main.scrollTop;
+
+        const midX = startX + 60;
+
+        const pathData = `
+            M ${startX} ${startY}
+            C ${midX} ${startY},
+              ${midX} ${endY},
+              ${endX} ${endY}
+        `;
+
+        const path = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path"
+        );
+
+        path.setAttribute("d", pathData);
+        path.setAttribute("stroke", "#BDC1C6");
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("fill", "none");
+
+        svg.appendChild(path);
+    });
+}
+
+// window.addEventListener("load", drawKittenLines);
+// window.addEventListener("resize", drawKittenLines);
+// window.addEventListener("scroll", drawKittenLines);
+
+// document.querySelector('.main').addEventListener("resize", drawKittenLines);
+// document.querySelector('.main').addEventListener("scroll", drawKittenLines);
+
+window.addEventListener("load", () => {
+    drawKittenLines();
+
+    const main = document.querySelector(".main");
+    if (main) {
+        main.addEventListener("scroll", drawKittenLines);
+    }
+});
+
+window.addEventListener("resize", drawKittenLines);
+
+function focusInput(svg) {
+    console.log('111111111111111')
+    const input = svg.parentElement.querySelector("input");
+    input.focus();   // 让 input 获取焦点
+}
+
+// 打开/关闭菜单
+function toggleMenu(btn) {
+    const menu = btn.parentElement.querySelector('.menu');
+
+    // 先关闭所有菜单
+    document.querySelectorAll('.menu').forEach(m => {
+        if (m !== menu) m.style.display = 'none';
+    });
+
+    // 切换当前
+    menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+}
+
+// 点击页面其他地方关闭
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.menu-wrap')) {
+        document.querySelectorAll('.menu').forEach(m => {
+            m.style.display = 'none';
+        });
+    }
+});
+
+function updatePhotoLibraryScroll(container) {
+    // 先恢复默认（多行）
+    container.classList.remove("single-line");
+
+    // 等浏览器渲染完成再判断
+    requestAnimationFrame(() => {
+        if (container.scrollHeight <= container.clientHeight + 5) {
+            // ⭐ 说明只有一行
+            container.classList.add("single-line");
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".photoLibrary").forEach(el => {
+        el.classList.add("single-line");
+    });
+});
+
+function uploadSettingFun(){
+    const lang = localStorage.getItem('tw:language') || 'zh-cn';
+    const dataLang = languageDate[lang] || languageDate['zh-cn'];
+
+    let card = this.closest('.cameraLeft');
+  
+      card.querySelector('.cameraWin').style.display = 'none';
+      card.querySelector('.upload').style.display = 'none';
+      card.querySelector('.uploadSetting').style.display = 'none';
+  
+      card.querySelector('.cameraSettings').style.display = 'block';
+      card.querySelector('.webcamSpan').textContent=dataLang.webcamSpan
+      card.querySelector('#fpsInput1').value=recordFps
+}
+document.querySelectorAll('.uploadSetting').forEach(btn=>{
+    btn.addEventListener('click', uploadSettingFun);
+});
+
+  function changeFPS(btn, step){
+    let input = btn.closest('.numberBox').querySelector('input');
+    let val = parseInt(input.value) || 0;
+  
+    val += step;
+    if(val > 100) val = 100;
+    if(val < 1) val = 1;
+  
+    input.value = val;
+  }
+
+  function cancelSetting(btn){
+    let box = btn.closest('.cameraLeft');
+  
+    box.querySelector('.cameraSettings').style.display = 'none';
+    box.querySelector('.cameraWin').style.display = 'block';
+    box.querySelector('.upload').style.display = 'block';
+    box.querySelector('.uploadSetting').style.display = 'block'; 
+    document.querySelector('.webcamSpan').textContent='webcam'
+  }
+
+  function saveSetting(btn){
+    let box = btn.closest('.cameraLeft');
+  
+    let fps = box.querySelector('#fpsInput1').value;
+    let hold = box.querySelector('#holdRecord1').checked;
+  
+    recordFps=fps
+    console.log("FPS:", fps);
+    console.log("按住录制:", hold);
+  
+    // 👉 这里你可以把参数传给模型或摄像头逻辑
+  
+    // 切回摄像头界面
+    cancelSetting(btn);
+  }

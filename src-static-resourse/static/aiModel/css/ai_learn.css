@@ -8,7 +8,7 @@ body {
     /* overflow:hidden; */
     max-width: 100%;
     overflow-x: hidden;
-    background-color: #f0f3f2;
+    background-color: #e8eaed;
     min-height: 100vh;
     position: relative;
 
@@ -114,7 +114,7 @@ body {
     margin-left: 2vw;
     text-align: center;
     width:7vw;
-    color:#38ceb1;
+    color:#35c3fb;
     font-weight:600;
 }
 /*输入*/
@@ -125,7 +125,7 @@ body {
     font-size:1.5vh;
     /*letter-spacing: 1.5px;*/
     border-radius: 5px;
-    border: 2px solid #38ceb1;
+    border: 2px solid #35c3fb;
     outline: none;
 }
 /*按钮*/
@@ -135,18 +135,18 @@ body {
     margin-top: 3vh;
     margin-left: 6vw;
     width:7vw;
-    border: 2px solid #38ceb1;
+    border: 2px solid #35c3fb;
     height: 3vh;
     line-height:3vh;
     border-radius: 5px;
     font-size:2.5vh;
-    color:#38ceb1;
+    color:#35c3fb;
     background-color: #fff;
 }
 #editWinTrue{
     margin-left: 10vw;
     color:#fff;
-    background-color: #38ceb1;
+    background-color: #35c3fb;
 }
 /*--------------------------------------------------------------------------------------------------*/
 
@@ -154,14 +154,15 @@ body {
 /*相机窗口*/
 .cameraWin{
     position: relative;
-    top: 6px;
-    background-color: #fff;
+    top: 30px;
+    /* background-color: #fff; */
     /* top:25vh;
     left:calc(50% - 17vh); */
+    left: 10px;
     width:170px;
-    /* height:200px; */
+    height:160px;
     border-radius: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
     /* border: 2px solid #38ceb1; */
     display:none;
     z-index:20;
@@ -169,7 +170,7 @@ body {
 /*相机视图*/
 .cameraView{
     position: absolute;
-    border-radius: 15px;
+    border-radius: 5px;
     top:0;
     transform: scaleX(-1);
     width: 200px;
@@ -179,11 +180,17 @@ body {
 }
 .netCamera{
     position: absolute;
-    border-radius: 15px;
+    border-radius: 5px;
     top:0;
     transform: scaleX(-1);
     width: 200px;
     height: 150px;
+    display: none;
+}
+.cameraLeft{
+    height: 300px;
+    width: 220px;
+    background-color: #e8f0fe;
     display: none;
 }
 /* #canvas1{
@@ -223,9 +230,9 @@ body {
 /*关闭按钮*/
 .cameraWinButton_close{
     position: absolute;
-    top: 0;
-    right: -20px;
-    color: #e62c0d;
+    right: 10px;        
+    top: 5px;            
+    color: #101010;
     border: none;
     width: 3vh;
     height: 3vh;
@@ -237,6 +244,16 @@ body {
     background-color: transparent;
     /* z-index: 30; */
 }
+.webcamSpan{
+    position: absolute;
+    left: 10px;        
+    top: 10px;            
+}
+.cameraTop{
+    position: relative;
+    height: 20px;
+    width: 220px;
+}
 /*--------------------------------------------------------------------------------------------------*/
 
 /*----------------------------------------------主功能-----------------------------------------------*/
@@ -245,16 +262,45 @@ body {
     justify-content: flex-start;
     align-items: flex-start;
     margin-top: 0.5vh;
+    position: relative;
+    height:  calc(100vh - 65px);
+    overflow-y: auto;
+    /* min-height: 120vh;  */
 
+}
+#linkSvg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    overflow: visible;
+    pointer-events: none; /* 不影响点击 */
+
+    z-index: 0;
+}
+#linkSvg path {
+    stroke: #BDC1C6;
+    stroke-width: 2;
+    fill: none;
+    opacity: 0.8;
+}
+
+@keyframes flow {
+    to {
+        stroke-dashoffset: -8;
+    }
 }
 /*左侧*/
 .class_add{
     width: 40vw;
-    height: 85vh;
+    /* height: 85vh; */
     padding-right:2vw;
     margin-left:3vw;
     margin-top: 8vh;
     overflow-y:auto;
+    justify-content: center;
 }
 /* 自定义滚动条样式 */
 .container::-webkit-scrollbar {
@@ -288,9 +334,10 @@ body {
     box-shadow:0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
     align-items: flex-start;
     position: relative;
-    height: 35vh;
+    /* height: 35vh; */
+    /* padding-bottom: 20px; */
     /* width: 460px; */
-    width: 37vw;
+    width: 39vw;
 
 }
 .card_top {
@@ -305,20 +352,47 @@ body {
 }
 .card input{
     position: relative;
-    width:10vw;
+    width:6vw;
     height:3vh;
     padding:0.4vh;
     margin-top:1vh;
     margin-left:1vh;
     font-size: 2vh;
 
-    /* background:	#87CEFA	; */
     color:black;
     border-radius: 8px;
     border: 0px;
     text-align:center;
     outline: none;
+    /* width: 6vw;
+    height: 3vh;
+    padding: 0.4vh;
+    margin-top: 1vh;
+    margin-left: 1vh;
+    font-size: 2vh;
+    color: black;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    text-align: center;
+    outline: none;
+    transition: 0.2s; */
 
+}
+
+.input-wrap {
+    display: inline-flex;
+    align-items: center;
+}
+
+.input-wrap input:focus {
+    border: 1px solid #00BFFF;
+    background-color: #f9f9f9;
+}
+
+
+.input-wrap svg {
+    margin-left: 6px;
+    cursor: pointer;
 }
 /*相机*/
 .card .camera{
@@ -329,7 +403,8 @@ body {
     width:6vw;
     height:9vh;
     border: 3px solid white;
-    background-color: 	#87CEFA;/*bffdf1*/
+    background-color: 	#e8f0fe;/*bffdf1*/
+    border-radius: 10px;
 }
 
 /*相机*/
@@ -341,37 +416,59 @@ body {
     width:6vw;
     height:9vh;
     border: 3px solid white;
-    background-color: 	#87CEFA;/*bffdf1*/
+    background-color: 	#e8f0fe;/*bffdf1*/
+    border-radius: 10px;
 }
 /*上传*/
 .card .upload{
     position: relative;
-    top: 160px;
+    top: 50px;
     left: 15px;
     /* margin-top:4vh; */
     /* background:url(../../../img/AI/upload.svg)  no-repeat center center; */
     background-size: calc(35%) ;
     /* margin-left:1vh; */
-    width:12vw;
+    width:150px;
     height:4vh;
     border: 0px;
     background-color: #68bef7;
     display: none;
     box-shadow:0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
-    border-radius: 30px;
+    border-radius: 10px;
+}
+.card .uploadSetting{
+    position: relative;
+    top: 23px;
+    left: 180px;
 }
 .gray{
     filter: grayscale(100%); /* 将背景图标和颜色变灰 */
      pointer-events: none; /* 禁用所有事件 */
      opacity: 0.6;
 }
+.sampleRight{
+    position: absolute;
+
+    top: 6vh;          /* 保持你原来的顶部间距 */
+    left: 220px;        /* 左侧从按钮区之后开始 */
+
+    right: 0;          /* ⭐关键：自动贴到 card 右边 */
+    bottom: 0;         /* ⭐关键：高度跟随 card */
+
+    height: auto;      /* 不再写死 */
+    width: auto;       /* 不再写死 */
+
+    display: flex;
+    flex-direction: column;
+}
 /*模型数量统计*/
 .card_numText{
-    position: absolute;
-    width: 20.5vw;
+    /* position: absolute; */
+    /* width: 20.5vw; */
+    width: 100%;
     height: 2.5vh;
-    left: 16vw;
-    top: 5.5vh;
+    /* left: 16vw; */
+    /* top: 6.5vh; */
     font-size:1.5vh;
     letter-spacing: 2px;
     padding-left: 1vw;
@@ -380,11 +477,11 @@ body {
 }
 /*照片区*/
 .photoLibrary{
-    position: absolute;
-    width: 19vw;
-    height: 18.5vh;
-    left: 17vw;
-    top: 10vh;
+    /* position: absolute; */
+    width: 100%;
+    /* height: 18.5vh; */
+    /* left: 17vw; */
+    /* top: 10vh; */
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
@@ -392,10 +489,19 @@ body {
     flex-direction: row;
     align-content: flex-start;
     overflow-y: scroll;
+    overflow-x: hidden;
     /* border: 3px solid rgb(219, 30, 30); */
 }
+/*单行模式（横向滚动） */
+.photoLibrary.single-line {
+    flex-wrap: nowrap;       /* 不换行 */
+    overflow-x: scroll;
+    overflow-y: hidden;
+    width: fit-content;
+    max-width: 100%;
+}
 .photoLibrary_b{
-    border: 2px solid #e3b214bd;
+    /* border: 2px solid #e3b214bd; */
     border-radius: 7px;
 }
 
@@ -407,6 +513,10 @@ body {
     margin: 0.5vh 0.3vw;
     transform: scaleX(-1);
     transition: transform 0.2s;
+    flex-shrink: 0;
+}
+.cameraBn{
+    margin-bottom: 40px;
 }
 /*删除照片*/
 .img_del{
@@ -423,24 +533,23 @@ body {
 }
 /*删除卡片*/
 .card .delete {
-    background-color: #ff4d4d;
-    color: white;
+    /* background-color: #ff4d4d; */
+    background-color: transparent;
+    /* color: white; */
     border: none;
-    border-radius: 50%;
+    /* border-radius: 50%; */
     width: 3vh;
     height: 3vh;
     cursor: pointer;
     position: absolute;
     top: 1vh;
-    right: 1vh;
+    right: 1.5vh;
 }
 
 /*############################################中间*/
-.trainingModel_bg{
-    /* border: 2px solid #38ceb1; */
+/* .trainingModel_bg{
     width: 16vw;
-    /* height: 30vh; */
-    margin-left:6vw;
+    margin-left:3vw;
     text-align: center;
 
 
@@ -451,6 +560,20 @@ body {
     font-family: sans-serif;
     position: relative;
     top: 150px;
+} */
+
+.trainingModel_bg{
+    width: 16vw;
+    margin-left:3vw;
+
+    background-color: white;
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+    position: sticky;
+    top: 50%;
+    transform: translateY(-50%);
 }
 #epo{
     width: 30px;
@@ -459,12 +582,13 @@ body {
     width: 30px;
 }
 /*开始训练*/
-.trainBegin_button{
+/* .trainBegin_button{
     display: inline-block;
     text-align: center;
     margin-top: 2vh;
     margin-right: 1vh;
     margin-bottom: 3vh;
+    margin-left:35px;
     width: 10vw;
     height: 5vh;
     line-height:4vh;
@@ -473,15 +597,65 @@ body {
     color:#fff;
     cursor: pointer;
     background-color: #00BFFF;
+} */
+
+.trainBegin_button {
+    position: relative;
+    overflow: hidden;
+
+    display: inline-block;
+    text-align: center;
+
+    margin-top: 2vh;
+    margin-right: 1vh;
+    margin-bottom: 3vh;
+    margin-left: 20px;
+
+    width: 13vw;
+    height: 5vh;
+    line-height: 5vh;
+
+    border-radius: 9px;
+    font-size: 2vh;
+    color: #fff;
+    cursor: pointer;
+
+    background-image:
+        linear-gradient(to right, #95e2fc, #95e2fc),
+        linear-gradient(to right, #DCDCDC, #DCDCDC);
+    
+    background-size:
+        var(--progress, 100%) 100%,
+        100% 100%;
+
+    background-repeat: no-repeat;
+    background-position: left, left;
+
+    /* transition: background-size 0.2s linear; */
+}
+
+
+
+.trainGray {
+    background-color: #DCDCDC !important;
+    background-image: linear-gradient(
+        to right,
+        #DCDCDC,
+        #DCDCDC
+    );
+    background-size: var(--progress, 0%) 100%;
+    background-repeat: no-repeat;
 }
 #trainText{
     margin-top: 0;
     text-align: left;
+    font-weight: bold;
+    color: #acabab;
 }
 /*灰色*/
-.trainGray {
+/* .trainGray {
     background-color: gray;
-}
+} */
 /*训练进度*/
 #trainingModel_progress{
     /* background-color: #a0e8da; */
@@ -510,27 +684,30 @@ body {
 }
 /*连接线*/
 .connLine{
-    width: 8vw;
-    height: 40vh;
+    width: 7vw;
+    /* height: 40vh; */
     margin-top:30vh;
-    margin-left:1vw;
-    border-top: 2px solid #00BFFF;
+    /* margin-left:1vw; */
+    border-top: 2px solid #BDC1C6;
+    position: sticky;
+    top: 46%;
+    transform: translateY(-50%);
 }
 
 
 .advanced-container {
-    margin-top: 15px;
+    /* margin-top: 15px; */
     background: #fff;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    /* box-shadow: 0 1px 4px rgba(0,0,0,0.05); */
     font-size: 14px;
 }
 
 .advanced-toggle {
     padding: 12px;
-    background: #f3f8fc;
-    border: 1px solid #cce2f3;
+    /* background: #f3f8fc;
+    border: 1px solid #cce2f3; */
     cursor: pointer;
     display: flex;
     justify-content: space-between;
@@ -603,22 +780,53 @@ body {
 }
 
 
-
 /*#############################################################右侧*/
-.modelEnd_bg{
+/* .modelEnd_bg{
     width:  30vw;
     height: 80vh;
+    max-height: 80vh;
     margin-left: 0.5vw;
+
+    position: fixed;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+} */
+.modelEnd_bg{
+    width: 30vw;
+    height: 80vh;
+    max-height: 80vh;
+
+    position: fixed;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 25px;
 }
 /*展示框*/
-.model_show{
-    width: 25vw;
-    height: 70vh;
+/* .model_show{
+    width: 26vw;
+
     background-color: white;
     border-radius: 12px;
     margin-top: 5vh;
     border: 2px solid white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 添加柔和阴影 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+} */
+.model_show{
+    width: 350px;
+
+    background: white;
+    border-radius: 12px;
+    border: 2px solid white;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    margin: 0;
 }
 #showLoad{
     width: 320px;
@@ -632,7 +840,7 @@ body {
 /*background:#ff0000;*/
     position: absolute;
     border-radius: 15px;
-    top:254px;
+    /* top:254px; */
     transform: scaleX(-1);
     /* border: 2px solid #38ceb1; */
     z-index: 50;
@@ -641,7 +849,7 @@ body {
 #show_netCamera{
     position: absolute;
     border-radius: 15px;
-    top:254px;
+    /* top:254px; */
     transform: scaleX(-1);
     /* border: 2px solid #38ceb1; */
     z-index: 50;
@@ -650,24 +858,29 @@ body {
 #show_canvas{
     position: absolute;
     border-radius: 15px;
-    top:254px;
+    /* top:254px; */
     transform: scaleX(-1);
     /* border: 2px solid #38ceb1; */
     z-index: 50;
 }
 
 .preview_center {
-    display: flex;
+    display: none;
     flex-direction: column; /* 上下排列 */
     align-items: center;    /* ⭐ 左右居中 */
   }
 /*类展示*/
 .class_show{
-    width: 310px;
-    height: 150px;
-    margin-top: 300px;
-    margin-left: 5px;
+    width: 100%;
+    height: 180px;
+    margin-top: 280px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    /* gap: 12px; */
     overflow-y: auto;
+    padding-bottom: 10px;
+    align-content: flex-start;
 }
 /*类卡*/
 .class_show_card{
@@ -692,17 +905,17 @@ body {
 .class_show_progressTrain{
     position: absolute;
     width: 188px;
-    height: 15px;
+    height: 30px;
     left: 72px;
     top: 12px;
-    border-radius: 20px;
+    border-radius: 5px;
     background-color: #fff;
     border: 1px solid #00BFFF;
 }
 .class_show_barTrain{
     width:0%;
-    height: 15px;
-    border-radius: 20px;
+    height: 30px;
+    border-radius: 5px;
     background-color: #00BFFF;
 }
 .class_show_num{
@@ -714,25 +927,52 @@ body {
     line-height:40px;
 }
 /*按钮*/
-.modelEnd_buttons {
+/* .modelEnd_buttons {
     display: flex;
-    justify-content: space-between; /* 两侧靠紧父级 */
-    align-items: center; /* 垂直居中对齐 */
-    width: 100%; /* 父级宽度 */
+    justify-content: space-between; 
+    align-items: center; 
+    width: 100%; 
     max-width: 320px;
     height: 4vh;
-    padding: 0 10px; /* 添加左右内边距，避免贴边 */
-    box-sizing: border-box; /* 确保宽度包含内边距 */
+    padding: 0 10px;
+    box-sizing: border-box;
     margin-top: 5vh;
+} */
+.modelEnd_buttons{
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    max-width: 320px;
+    height: 4vh;
+
+    padding: 0 10px;
+    box-sizing: border-box;
+
+    margin: 0;
 }
 
-.button-container {
+/* .button-container {
   display: flex;
-  gap: 20px; /* 固定按钮间距 */
-  justify-content: center; /* 居中显示 */
-}
+  gap: 20px;
 
-.save-project,
+} */
+.button-container{
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    display: flex;
+    gap: 20px;
+}
+/* .save-project,
 .select-camera {
   text-align: center;
   width: 15vh;
@@ -748,37 +988,296 @@ body {
 }
 .save-project, .select-camera {
     display: inline-block;
-    vertical-align: middle; /* 可选，对齐更整齐 */
+    vertical-align: middle;
+} */
+.save-project,
+.select-camera {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+
+    min-width: 130px;
+    height: 4vh;
+    min-height: 36px;
+    padding: 0 20px;
+
+    box-sizing: border-box;
+
+    border-radius: 8px;
+
+    font-size: 2vh;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
 }
-.modelEnd_button{
+
+
+/* =========================
+   导出项目
+   ========================= */
+
+.save-project {
+    color: #4f5968;
+
+    background: #ffffff;
+
+    border: 1px solid #dfe3e8;
+
+    box-shadow:
+        0 2px 5px rgba(40, 50, 60, 0.06);
+}
+
+
+/* Hover */
+
+.save-project:hover {
+    color: #3f4958;
+
+    background: #eef1f4;
+
+    border-color: #d3d8df;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 9px rgba(40, 50, 60, 0.10);
+}
+
+
+/* =========================
+   选择摄像头
+   ========================= */
+
+.select-camera {
+    color: #566273;
+
+    background: #ffffff;
+
+    border: 1px solid #dfe3e8;
+
+    box-shadow:
+        0 2px 5px rgba(40, 50, 60, 0.06);
+}
+
+
+/* Hover */
+
+.select-camera:hover {
+    color: #465365;
+
+    background: #f5f7f9;
+
+    border-color: #d3d8df;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 9px rgba(40, 50, 60, 0.10);
+}
+
+
+/* =========================
+   点击
+   ========================= */
+
+.save-project:active,
+.select-camera:active {
+    transform: translateY(0);
+
+    box-shadow:
+        0 1px 3px rgba(40, 50, 60, 0.08);
+}
+
+
+/* 两个按钮之间的间距 */
+
+.save-project {
+    margin-right: 10px;
+}
+/* .modelEnd_button{
     text-align: center;
-    width: auto; /* 自动适应内容宽度 */
+    width: auto; 
     height: 4vh;
     line-height: 4vh;
-    border: 2px solid #00BFFF;
     border-radius: 4px;
     font-size: 2vh;
     color: #00BFFF;
     background-color: #fff;
-    padding: 0 15px; /* 添加左右内边距，增加可点击区域 */
-    transition: background-color 0.3s ease, color 0.3s ease; /* 添加过渡效果 */
+    padding: 0 15px; 
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 #playModel{
     color:#fff;
     background-color: #00BFFF;
+    width:30%;
 }
-/*灰色*/
+#exportModel{
+    color:#fff;
+    background-color: #00BFFF;
+}
 .exportGray {
-    color: gray;
-    border: 2px solid gray;
+    background-color: #33333321 !important;
 }
 .playGray {
-    background-color: gray !important;
-    border: 2px solid gray;
+    background-color: #33333321 !important;
+} */
+.modelEnd_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+
+    width: auto;
+    min-width: 100px;
+
+    height: 4vh;
+    min-height: 34px;
+
+    padding: 0 18px;
+    box-sizing: border-box;
+
+    border-radius: 7px;
+
+    font-size: 2vh;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease,
+        color 0.2s ease;
+}
+
+
+/* =========================
+   使用模型
+   ========================= */
+
+#playModel {
+    color: #4d5563;
+
+    background: #e8eefe;
+
+    border: 1px solid #dce3f5;
+
+    box-shadow:
+        0 2px 6px rgba(40, 50, 70, 0.08);
+}
+
+
+/* 使用模型 Hover */
+
+#playModel:hover {
+    color: #424a58;
+
+    background: #e1e7fa;
+
+    border-color: #d3dcf2;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(40, 50, 70, 0.12);
+}
+
+
+/* =========================
+   测试模型
+   ========================= */
+
+#exportModel {
+    color: #4d535b;
+
+    background: #ffffff;
+
+    border: 1px solid #dfe2e6;
+
+    box-shadow:
+        0 2px 6px rgba(40, 45, 50, 0.06);
+}
+
+
+/* 测试模型 Hover */
+
+#exportModel:hover {
+    color: #41464d;
+
+    background: #f7f8f9;
+
+    border-color: #d4d8dd;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(40, 45, 50, 0.10);
+}
+
+
+/* =========================
+   点击效果
+   ========================= */
+
+.modelEnd_button:active {
+    transform: translateY(0);
+
+    box-shadow:
+        0 1px 3px rgba(40, 45, 50, 0.08);
+}
+
+
+/* =========================
+   Gray / 禁用状态
+   ========================= */
+
+.exportGray,
+.playGray {
+    color: #adb2b9 !important;
+
+    background: #f0f1f3 !important;
+
+    border-color: #e4e6e9 !important;
+
+    box-shadow: none !important;
+
+    cursor: default;
+
+    transform: none !important;
+}
+
+
+/* Gray 状态禁止 Hover */
+
+.exportGray:hover,
+.playGray:hover {
+    color: #adb2b9 !important;
+
+    background: #f0f1f3 !important;
+
+    border-color: #e4e6e9 !important;
+
+    box-shadow: none !important;
+
+    transform: none !important;
 }
 
 /*添加类*/
-.add-btn {
+/* .add-btn {
     background-color: #00BFFF;
     color:#fff;
     padding: 1.5vh 0;
@@ -789,8 +1288,24 @@ body {
     width: 100%;
     font-size: 2.5vh;
     margin-top:3vh;
-}
+} */
 
+.add-btn {
+    background-color: transparent;   /* 背景透明 */
+    color: #000;                     /* 文字颜色（可保持或改成你原来的） */
+    padding: 1.5vh 0;
+    border: 2px dashed #ccc;         /* 灰色虚线边框 */
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    width: 98%;
+    font-size: 2.5vh;
+    margin-top: 3vh;
+}
+.add-btn:hover {
+    border-color: #999;
+    color: #333;
+}
 .preview_header {
     display: flex;
     flex-direction: column;
@@ -944,3 +1459,135 @@ body {
     color:#fff;
 }
 
+.menu-wrap {
+    display: inline-block;
+    width: 3vh;
+    height: 3vh;
+    position: absolute;
+    top: 1vh;
+    right: 1.5vh;
+}
+
+.menu {
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    display: none;
+    min-width: 120px;
+    z-index: 999;
+}
+
+.menu-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.menu-item:hover {
+    background-color: #f5f5f5;
+}
+
+.cameraSettings {
+    padding: 10px;
+    font-size: 14px;
+}
+
+.settingItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.numberBox {
+    display: flex;
+    align-items: center;
+}
+
+.numberBox input {
+    width: 60px;
+    text-align: center;
+}
+
+.stepBtns {
+    display: flex;
+    flex-direction: column;
+}
+
+.stepBtns button {
+    height: 15px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+/* 开关样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    background-color: #ccc;
+    border-radius: 20px;
+    top: 0; left: 0; right: 0; bottom: 0;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+input:checked + .slider {
+    background-color: #00BFFF;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* 底部按钮 */
+.settingActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 120px;
+}
+
+.settingActions button {
+    flex: 1;
+    margin: 0 5px;
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+.settingsCancel{
+    border: 0px;
+    background-color: transparent;
+    /* box-shadow:0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08); */
+    border-radius: 10px;
+}
+.settingsSave{
+    border: 0px;
+    background-color: #68bef7;
+    box-shadow:0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+    border-radius: 10px;
+}
