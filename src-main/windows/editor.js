@@ -25,10 +25,13 @@ const DownloadCodeWindow = require('./download-code');
 const BleConnectWindow = require('./ble-connect')
 const {getWin,setWin} = require('../../utils/win.js')
 const {getCode,setCode,getDown,setDown,setPlace,getPlace} = require('../../utils/tempCode.js')
-const {getPort} =require('../../utils/port')
+const {getPort,getUsingPort} =require('../../utils/port')
 const extensions = require('../../utils/extensionWho.js')
 const socket =require('../../utils/socket')
 const {setVersion,getVersion} = require('../../utils/currentVersion')
+const fs = require('fs');
+const { spawn } = require('child_process');
+const os = require('os');
 
 const TYPE_FILE = 'file';
 const TYPE_URL = 'url';
@@ -891,6 +894,1551 @@ class EditorWindow extends ProjectRunningWindow {
       setDown(2)
 
     });
+
+    // 获取资源路径
+    function getResourcePath(relativePath) {
+      if (app.isPackaged) {
+        // 打包后
+        return path.join(process.resourcesPath, 'utils', relativePath);
+      } else {
+        // 开发环境
+        return path.join(__dirname, '../../utils', relativePath);
+      }
+    }
+
+    // ============================================================
+    // Arduino CLI
+    // ============================================================
+
+    const cliPath = getResourcePath(
+      "resources/arduino-cli.exe"
+  );
+
+
+  // ============================================================
+  // PY32 ISP 烧录程序
+  // ============================================================
+
+  const puyaispPath = getResourcePath(
+      "resources/puyaispcom.exe"
+  );
+
+
+  // ============================================================
+  // Arduino / PY32 编译烧录
+  // ============================================================
+
+  this.ipc.handle(
+      "flash-arduino",
+      async (event, {code, boardType }) => {
+
+        let port =getUsingPort()
+
+          console.log("==========================================");
+          console.log("开始编译 / 烧录");
+          console.log("设备类型:", boardType);
+          console.log("串口:", port);
+          console.log("==========================================");
+
+
+          try {
+
+              // ====================================================
+              // 1. 检查参数
+              // ====================================================
+
+              if (!port) {
+                  prompts.alert(this.window,translate('flash-alert-noselectPort'))
+                  throw new Error("没有提供串口号");
+                  
+              }
+
+              if (!code) {
+                  throw new Error("没有提供 Arduino 代码");
+              }
+
+
+              // 如果没有传 boardType
+              // 默认按照 UNO 处理
+              if (!boardType) {
+                  boardType = "uno";
+              }
+
+
+              // ====================================================
+              // 2. 创建 Sketch
+              // ====================================================
+
+              // Sketch 名称
+              const sketchName = "mysketch";
+
+
+              // 临时 Sketch 目录
+              const sketchDir = path.join(
+                  os.tmpdir(),
+                  sketchName
+              );
+
+
+              // 如果不存在则创建
+              if (!fs.existsSync(sketchDir)) {
+
+                  fs.mkdirSync(
+                      sketchDir,
+                      {
+                          recursive: true
+                      }
+                  );
+
+              }
+
+
+              // Sketch 文件
+              const sketchFile = path.join(
+                  sketchDir,
+                  sketchName + ".ino"
+              );
+
+
+              // 写入 Arduino 代码
+              fs.writeFileSync(
+                  sketchFile,
+                  code,
+                  "utf8"
+              );
+
+
+              console.log(
+                  "Sketch 文件:",
+                  sketchFile
+              );
+
+
+              EditorWindow.instance.window.webContents.send(
+                  'send-arduino-flash',
+                  'start compile'
+              );
+              // ====================================================
+              // 3. Arduino UNO
+              // ====================================================
+
+              if (boardType === "uno") {
+
+                  console.log("------------------------------------------");
+                  console.log("目标设备: Arduino UNO");
+                  console.log("------------------------------------------");
+
+
+                  // =================================================
+                  // 检查 Arduino AVR Core
+                  // =================================================
+
+                  console.log(
+                      "检查 Arduino AVR Core..."
+                  );
+
+
+                  // 如果你的 Arduino Core 已经放在 package 中，
+                  // 这里不需要每次安装。
+                  //
+                  // 如果以后需要自动安装，可以打开：
+                  //
+                  // await runCli([
+                  //     "core",
+                  //     "install",
+                  //     "arduino:avr"
+                  // ]);
+
+
+                  console.log(
+                      "Arduino AVR Core 已准备完成"
+                  );
+
+
+                  // =================================================
+                  // 编译 UNO
+                  // =================================================
+
+                  console.log(
+                      "开始编译 Arduino UNO..."
+                  );
+
+
+                  await runCli([
+                      "compile",
+
+                      "--fqbn",
+                      "arduino:avr:uno",
+
+                      sketchDir
+                  ]);
+
+
+                  console.log(
+                      "Arduino UNO 编译成功"
+                  );
+
+
+                  // =================================================
+                  // 上传 UNO
+                  // =================================================
+
+                  EditorWindow.instance.window.webContents.send(
+                      'send-arduino-flash',
+                      'start flash'
+                  );
+                  console.log(
+                      "开始上传 Arduino UNO..."
+                  );
+
+                  console.log(
+                      "串口:",
+                      port
+                  );
+
+
+                  await runCli([
+                      "upload",
+
+                      "--fqbn",
+                      "arduino:avr:uno",
+
+                      "-p",
+                      port,
+
+                      sketchDir
+                  ]);
+
+
+                  console.log(
+                      "Arduino UNO 烧录成功"
+                  );
+
+
+                  return {
+
+                      success: true,
+
+                      type: "uno"
+
+                  };
+
+              }
+
+
+              // ====================================================
+              // 4. PY32
+              // ====================================================
+
+              if (boardType === "py32") {
+
+                  console.log("------------------------------------------");
+                  console.log("目标设备: PY32");
+                  console.log("------------------------------------------");
+
+
+                  // =================================================
+                  // PY32 编译输出目录
+                  // =================================================
+
+                  const py32BuildDir = path.join(
+                      os.tmpdir(),
+                      "py32_build"
+                  );
+
+
+                  // =================================================
+                  // 清理旧编译结果
+                  // =================================================
+
+                  if (fs.existsSync(py32BuildDir)) {
+
+                      console.log(
+                          "清理旧的 PY32 编译目录..."
+                      );
+
+
+                      fs.rmSync(
+                          py32BuildDir,
+                          {
+                              recursive: true,
+                              force: true
+                          }
+                      );
+
+                  }
+
+
+                  // 创建新的编译目录
+                  fs.mkdirSync(
+                      py32BuildDir,
+                      {
+                          recursive: true
+                      }
+                  );
+
+
+                  console.log(
+                      "PY32 编译输出目录:",
+                      py32BuildDir
+                  );
+
+
+                  // =================================================
+                  // PY32 FQBN
+                  // =================================================
+
+                  const py32Fqbn =
+                      "PY32Duino:PY32:GenF030:pnum=PY32F030x8";
+
+
+                  console.log(
+                      "PY32 FQBN:",
+                      py32Fqbn
+                  );
+
+
+                  // =================================================
+                  // 编译 PY32
+                  // =================================================
+
+                  console.log(
+                      "开始编译 PY32..."
+                  );
+
+
+                  await runCli([
+                      "compile",
+
+                      "--fqbn",
+                      py32Fqbn,
+
+                      "--output-dir",
+                      py32BuildDir,
+
+                      sketchDir
+                  ]);
+
+
+                  console.log(
+                      "PY32 编译成功"
+                  );
+
+
+                  // =================================================
+                  // 获取 BIN 文件
+                  // =================================================
+                  //
+                  // Arduino CLI 的输出文件按照 Sketch 名称生成。
+                  //
+                  // 当前：
+                  //
+                  // sketchName = mysketch
+                  //
+                  // 所以：
+                  //
+                  // mysketch.ino
+                  //
+                  // 对应：
+                  //
+                  // mysketch.ino.bin
+                  //
+                  // =================================================
+
+                  const binFile = path.join(
+                      py32BuildDir,
+                      sketchName + ".ino.bin"
+                  );
+
+
+                  console.log(
+                      "PY32 BIN 文件:",
+                      binFile
+                  );
+
+
+                  // =================================================
+                  // 检查 BIN 文件
+                  // =================================================
+
+                  if (!fs.existsSync(binFile)) {
+
+                      throw new Error(
+                          "PY32 编译成功，但是没有找到 BIN 文件:\n" +
+                          binFile
+                      );
+
+                  }
+
+
+                  // 获取 BIN 文件大小
+                  const binStat =
+                      fs.statSync(binFile);
+
+
+                  console.log(
+                      "BIN 文件大小:",
+                      binStat.size,
+                      "bytes"
+                  );
+
+
+                  // =================================================
+                  // PY32 烧录
+                  // =================================================
+
+                  EditorWindow.instance.window.webContents.send(
+                      'send-arduino-flash',
+                      'start flash'
+                  );
+                  console.log(
+                      "开始烧录 PY32..."
+                  );
+
+
+                  console.log(
+                      "烧录程序:",
+                      puyaispPath
+                  );
+
+
+                  console.log(
+                      "烧录串口:",
+                      port
+                  );
+
+
+                  console.log(
+                      "烧录固件:",
+                      binFile
+                  );
+
+
+                  // =================================================
+                  // puyaispcom 参数
+                  // =================================================
+                  //
+                  // 假设你的 puyaispcom.exe 使用：
+                  //
+                  // puyaispcom.exe
+                  //     --port COM3
+                  //     -f xxx.bin
+                  //
+                  // =================================================
+
+                  const puyaispArgs = [
+
+                      "--port",
+                      port,
+
+                      "-f",
+                      binFile
+
+                  ];
+
+
+                  // =================================================
+                  // 调用 puyaispcom.exe
+                  // =================================================
+
+                  await runPuyaisp(
+                      puyaispPath,
+                      puyaispArgs
+                  );
+
+
+                  console.log(
+                      "PY32 烧录成功"
+                  );
+
+
+                  return {
+
+                      success: true,
+
+                      type: "py32",
+
+                      binFile: binFile
+
+                  };
+
+              }
+
+
+              // ====================================================
+              // 5. 未知设备类型
+              // ====================================================
+
+              throw new Error(
+                  "未知的设备类型: " +
+                  boardType
+              );
+
+
+          } catch (err) {
+
+              console.error(
+                  "编译 / 烧录失败:",
+                  err
+              );
+
+
+              return {
+
+                  success: false,
+
+                  error:
+                      err.message ||
+                      String(err)
+
+              };
+
+          }
+
+      }
+  );
+
+
+  // ============================================================
+  // Arduino CLI 执行函数
+  // ============================================================
+
+  function runCli(args) {
+
+      // ==========================================================
+      // Arduino CLI 配置文件
+      // ==========================================================
+
+      const config = getResourcePath(
+          "resources/arduino-cli.yaml"
+      );
+
+
+      // ==========================================================
+      // Arduino CLI 工作目录
+      // ==========================================================
+      //
+      // arduino-cli.yaml 中如果存在：
+      //
+      // ./data
+      // ./staging
+      //
+      // 那么这里必须使用 resources 作为 cwd。
+      //
+      // ==========================================================
+
+      const cliDir = getResourcePath(
+          "resources"
+      );
+
+
+      return new Promise(
+          (resolve, reject) => {
+
+
+              console.log(
+                  "=========================================="
+              );
+
+
+              console.log(
+                  "执行 Arduino CLI:"
+              );
+
+
+              console.log(
+                  cliPath,
+                  "--config-file",
+                  config,
+                  ...args
+              );
+
+
+              console.log(
+                  "CLI cwd:",
+                  cliDir
+              );
+
+
+              console.log(
+                  "CLI config:",
+                  config
+              );
+              
+
+
+              // ====================================================
+              // 启动 Arduino CLI
+              // ====================================================
+
+              const proc = spawn(
+
+                  cliPath,
+
+                  [
+                      "--config-file",
+                      config,
+
+                      ...args
+                  ],
+
+                  {
+
+                      // 工作目录
+                      cwd: cliDir,
+
+                      // Windows 下直接执行 exe
+                      shell: false
+
+                  }
+
+              );
+
+
+              // ====================================================
+              // stdout
+              // ====================================================
+
+              proc.stdout.on(
+                  "data",
+                  d => {
+
+                      const output =
+                          d.toString();
+
+
+                      EditorWindow.instance.window.webContents.send(
+                          'send-arduino-flash',
+                          output
+                      );
+                      console.log(
+                          "[CLI stdout]:",
+                          output
+                      );
+
+                  }
+              );
+
+
+              // ====================================================
+              // stderr
+              // ====================================================
+
+              proc.stderr.on(
+                  "data",
+                  d => {
+
+                      const output =
+                          d.toString();
+
+
+                      if(args[0]=='compile'){
+                        EditorWindow.instance.window.webContents.send(
+                          'send-arduino-flash',
+                          'cli-failed'+output
+                        );
+                      }else if(args[0]=='upload'){
+                        EditorWindow.instance.window.webContents.send(
+                          'send-arduino-flash',
+                          'unoFlash-failed'+output
+                        );
+                      }
+                      
+                      console.error(
+                          "[CLI stderr]:",
+                          output
+                      );
+
+                  }
+              );
+
+
+              // ====================================================
+              // CLI 结束
+              // ====================================================
+
+              proc.on(
+                  "close",
+                  code => {
+
+                      console.log(
+                          "Arduino CLI exit code:",
+                          code
+                      );
+                      
+                      if(args[0]=='compile'){
+                        EditorWindow.instance.window.webContents.send(
+                          'send-arduino-flash',
+                          'cli-close'+code
+                      );
+                      }else if(args[0]=='upload'){
+                        EditorWindow.instance.window.webContents.send(
+                          'send-arduino-flash',
+                          'flash-exit'+code
+                        );
+                      }
+
+
+                      if (code === 0) {
+
+                          resolve();
+
+                      } else {
+
+                          reject(
+                              new Error(
+                                  "Arduino CLI Error, exitCode=" +
+                                  code
+                              )
+                          );
+
+                      }
+
+                  }
+              );
+
+
+              // ====================================================
+              // CLI 启动失败
+              // ====================================================
+
+              proc.on(
+                  "error",
+                  err => {
+
+                      console.error(
+                          "Arduino CLI process error:",
+                          err
+                      );
+                      EditorWindow.instance.window.webContents.send(
+                          'send-arduino-flash',
+                          'cli-start-failed'+err
+                      );
+
+
+                      reject(err);
+
+                  }
+              );
+
+          }
+      );
+
+  }
+
+
+// ============================================================
+// Arduino 库安装 / 卸载
+// ============================================================
+
+this.ipc.handle(
+  "download-lib",
+  async (event, data) => {
+
+    console.log(
+      "Arduino 库操作请求:",
+      data
+    );
+
+
+    try {
+
+      // ========================================================
+      // 获取参数
+      // ========================================================
+
+      const lib =
+        data && typeof data === "object"
+          ? data.lib
+          : data;
+
+      const action =
+        data && typeof data === "object"
+          ? data.action
+          : "install";
+
+
+      // ========================================================
+      // 检查库名称
+      // ========================================================
+
+      if (
+        !lib ||
+        typeof lib !== "string" ||
+        !lib.trim()
+      ) {
+
+        throw new Error(
+          "Arduino 库名称不能为空"
+        );
+
+      }
+
+
+      // ========================================================
+      // 检查操作类型
+      // ========================================================
+
+      if (
+        action !== "install" &&
+        action !== "uninstall"
+      ) {
+
+        throw new Error(
+          `不支持的 Arduino 库操作：${action}`
+        );
+
+      }
+
+
+      // ========================================================
+      // 执行 Arduino CLI
+      // ========================================================
+
+      const result =
+        await runArduinoLibInstall(
+          lib,
+          action
+        );
+
+
+      return result;
+
+
+    } catch (err) {
+
+      console.error(
+        "Arduino 库操作失败:",
+        err
+      );
+
+
+      // ========================================================
+      // 将错误发送给渲染进程
+      // ========================================================
+
+      if (
+        EditorWindow.instance &&
+        EditorWindow.instance.window
+      ) {
+
+        EditorWindow.instance.window.webContents.send(
+          'send-arduino-library-log',
+          {
+            type: 'error',
+            message:
+              err.message ||
+              String(err)
+          }
+        );
+
+      }
+
+
+      return {
+
+        success: false,
+
+        lib:
+          data && typeof data === "object"
+            ? data.lib
+            : data,
+
+        action:
+          data && typeof data === "object"
+            ? data.action
+            : "install",
+
+        error:
+          err.message ||
+          String(err)
+
+      };
+
+    }
+
+  }
+);
+
+
+// ============================================================
+// Arduino 库安装 / 卸载专用执行函数
+// ============================================================
+
+function runArduinoLibInstall(
+  libraryName,
+  action = "install"
+) {
+
+  // ==========================================================
+  // Arduino CLI 配置文件
+  // ==========================================================
+
+  const config =
+    getResourcePath(
+      "resources/arduino-cli.yaml"
+    );
+
+
+  // ==========================================================
+  // Arduino CLI 工作目录
+  // ==========================================================
+  //
+  // arduino-cli.yaml 中如果使用：
+  //
+  // ./data
+  // ./staging
+  // ./user
+  // ./libraries
+  //
+  // 那么 cwd 必须是 resources
+  //
+  // ==========================================================
+
+  const cliDir =
+    getResourcePath(
+      "resources"
+    );
+
+
+  return new Promise(
+    (resolve, reject) => {
+
+      console.log(
+        "=========================================="
+      );
+
+
+      console.log(
+        action === "install"
+          ? "开始安装 Arduino 库"
+          : "开始卸载 Arduino 库"
+      );
+
+
+      console.log(
+        "库名称:",
+        libraryName
+      );
+
+
+      console.log(
+        "操作:",
+        action
+      );
+
+
+      console.log(
+        "Arduino CLI:",
+        cliPath
+      );
+
+
+      console.log(
+        "CLI config:",
+        config
+      );
+
+
+      console.log(
+        "CLI cwd:",
+        cliDir
+      );
+
+
+      console.log(
+        "=========================================="
+      );
+
+
+      // ========================================================
+      // 检查库名称
+      // ========================================================
+
+      if (
+        !libraryName ||
+        typeof libraryName !== "string" ||
+        !libraryName.trim()
+      ) {
+
+        reject(
+          new Error(
+            "Arduino 库名称不能为空"
+          )
+        );
+
+        return;
+
+      }
+
+
+      libraryName =
+        libraryName.trim();
+
+
+      // ========================================================
+      // 检查操作类型
+      // ========================================================
+
+      if (
+        action !== "install" &&
+        action !== "uninstall"
+      ) {
+
+        reject(
+          new Error(
+            `不支持的 Arduino 库操作：${action}`
+          )
+        );
+
+        return;
+
+      }
+
+
+      // ========================================================
+      // Arduino CLI 参数
+      // ========================================================
+      //
+      // install：
+      //
+      // arduino-cli.exe
+      //   --config-file
+      //   arduino-cli.yaml
+      //   lib
+      //   install
+      //   TM1637
+      //
+      //
+      // uninstall：
+      //
+      // arduino-cli.exe
+      //   --config-file
+      //   arduino-cli.yaml
+      //   lib
+      //   uninstall
+      //   TM1637
+      //
+      // ========================================================
+
+      const args = [
+
+        "--config-file",
+        config,
+
+        "lib",
+
+        action,
+
+        libraryName
+
+      ];
+
+
+      console.log(
+        "执行命令:",
+        cliPath,
+        ...args
+      );
+
+
+      // ========================================================
+      // 启动 Arduino CLI
+      // ========================================================
+
+      const proc =
+        spawn(
+          cliPath,
+
+          args,
+
+          {
+            cwd: cliDir,
+            shell: false
+          }
+        );
+
+
+      // ========================================================
+      // stdout
+      // ========================================================
+
+      proc.stdout.on(
+        "data",
+        d => {
+
+          const output =
+            d.toString();
+
+
+          console.log(
+            "[Arduino Lib stdout]:",
+            output
+          );
+
+
+          // ====================================================
+          // 实时发送日志到渲染进程
+          // ====================================================
+
+          if (
+            EditorWindow.instance &&
+            EditorWindow.instance.window
+          ) {
+
+            EditorWindow.instance.window.webContents.send(
+              'send-arduino-library-log',
+              {
+                type: 'stdout',
+                message: output
+              }
+            );
+
+          }
+
+        }
+      );
+
+
+      // ========================================================
+      // stderr
+      // ========================================================
+
+      proc.stderr.on(
+        "data",
+        d => {
+
+          const output =
+            d.toString();
+
+
+          console.error(
+            "[Arduino Lib stderr]:",
+            output
+          );
+
+
+          // ====================================================
+          // 注意：
+          //
+          // stderr 不一定代表失败。
+          //
+          // Arduino CLI 某些正常信息也可能通过 stderr
+          // 输出，所以这里仅仅把它发送给渲染进程。
+          //
+          // 真正成功/失败以 close 的 exit code 为准。
+          // ====================================================
+
+          if (
+            EditorWindow.instance &&
+            EditorWindow.instance.window
+          ) {
+
+            EditorWindow.instance.window.webContents.send(
+              'send-arduino-library-log',
+              {
+                type: 'stderr',
+                message: output
+              }
+            );
+
+          }
+
+        }
+      );
+
+
+      // ========================================================
+      // Arduino CLI 进程结束
+      // ========================================================
+
+      proc.on(
+        "close",
+        code => {
+
+          console.log(
+            "Arduino CLI lib exit code:",
+            code
+          );
+
+
+          // ====================================================
+          // 操作成功
+          // ====================================================
+
+          if (code === 0) {
+
+            const successMessage =
+              action === "install"
+
+                ? `Arduino 库 ${libraryName} 安装成功`
+
+                : `Arduino 库 ${libraryName} 卸载成功`;
+
+
+            console.log(
+              successMessage
+            );
+
+
+            // ==================================================
+            // 发送成功日志
+            // ==================================================
+
+            if (
+              EditorWindow.instance &&
+              EditorWindow.instance.window
+            ) {
+
+              EditorWindow.instance.window.webContents.send(
+                'send-arduino-library-log',
+                {
+                  type: 'success',
+                  message: successMessage
+                }
+              );
+
+            }
+
+
+            resolve({
+
+              success: true,
+
+              libraryName,
+
+              action
+
+            });
+
+
+          }
+
+          // ====================================================
+          // 操作失败
+          // ====================================================
+
+          else {
+
+            const failMessage =
+              action === "install"
+
+                ? `Arduino 库 ${libraryName} 安装失败，退出码：${code}`
+
+                : `Arduino 库 ${libraryName} 卸载失败，退出码：${code}`;
+
+
+            console.error(
+              failMessage
+            );
+
+
+            // ==================================================
+            // 发送失败日志
+            // ==================================================
+
+            if (
+              EditorWindow.instance &&
+              EditorWindow.instance.window
+            ) {
+
+              EditorWindow.instance.window.webContents.send(
+                'send-arduino-library-log',
+                {
+                  type: 'error',
+                  message: failMessage,
+                  exitCode: code
+                }
+              );
+
+            }
+
+
+            reject(
+
+              new Error(
+                action === "install"
+
+                  ? `Arduino 库安装失败，exitCode=${code}`
+
+                  : `Arduino 库卸载失败，exitCode=${code}`
+              )
+
+            );
+
+          }
+
+        }
+      );
+
+
+      // ========================================================
+      // CLI 启动失败
+      // ========================================================
+
+      proc.on(
+        "error",
+        err => {
+
+          console.error(
+            "Arduino CLI 启动失败:",
+            err
+          );
+
+
+          // ====================================================
+          // 发送启动错误日志
+          // ====================================================
+
+          if (
+            EditorWindow.instance &&
+            EditorWindow.instance.window
+          ) {
+
+            EditorWindow.instance.window.webContents.send(
+              'send-arduino-library-log',
+              {
+                type: 'error',
+                message:
+                  `Arduino CLI 启动失败：${
+                    err.message || err
+                  }`
+              }
+            );
+
+          }
+
+
+          reject(err);
+
+        }
+      );
+
+    }
+  );
+
+}
+
+  // ============================================================
+  // PY32 puyaispcom 执行函数
+  // ============================================================
+
+  function runPuyaisp(exePath, args) {
+
+      return new Promise(
+          (resolve, reject) => {
+
+
+              console.log(
+                  "=========================================="
+              );
+
+
+              console.log(
+                  "执行 PY32 ISP:"
+              );
+
+
+              console.log(
+                  exePath,
+                  ...args
+              );
+
+
+              // ====================================================
+              // 启动 puyaispcom.exe
+              // ====================================================
+
+              const proc = spawn(
+
+                  exePath,
+
+                  args,
+
+                  {
+
+                      // 以 exe 所在目录作为工作目录
+                      cwd: path.dirname(exePath),
+
+                      // 不使用 shell
+                      shell: false
+
+                  }
+
+              );
+
+
+              // ====================================================
+              // stdout
+              // ====================================================
+
+              // proc.stdout.on(
+              //     "data",
+              //     d => {
+
+              //         const output =
+              //             d.toString();
+
+
+              //         EditorWindow.instance.window.webContents.send('send-arduino-flash', output);
+              //         console.log(
+              //             "[PY32 ISP stdout]:",
+              //             output
+              //         );
+
+              //     }
+              // );
+              proc.stdout.on("data", d => {
+
+                const output = d.toString("utf8");
+            
+                console.log(
+                    "[PY32 ISP stdout RAW]:",
+                    JSON.stringify(output)
+                );
+            
+                // 按 \r / \n 分割
+                const messages = output.split(/[\r\n]+/);
+            
+                messages.forEach(message => {
+            
+                    if (!message) {
+                        return;
+                    }
+            
+                    EditorWindow.instance.window.webContents.send(
+                        'send-arduino-flash',
+                        message
+                    );
+            
+                    console.log(
+                        "[PY32 ISP]:",
+                        message
+                    );
+            
+                });
+            
+            });
+
+
+              // ====================================================
+              // stderr
+              // ====================================================
+
+              
+              proc.stderr.on(
+                  "data",
+                  d => {
+
+                    // console.log('errrrr',d)
+                      const output =
+                          d.toString();
+
+
+                      EditorWindow.instance.window.webContents.send(
+                          'send-arduino-flash',
+                          JSON.stringify(output)
+                      );
+                      console.log(
+                          "[PY32 ISP stderr]:",
+                          JSON.stringify(output)
+                      );
+
+                  }
+              );
+              /*
+              proc.stderr.on("data", d => {
+
+                console.log("========== STDERR START ==========");
+            
+                console.log("1. d =", d);
+            
+                const output = d.toString();
+            
+                console.log("2. output =", JSON.stringify(output));
+            
+                console.log("3. about to console.error");
+            
+                console.log("[PY32 ISP stderr]:", output);
+            
+                console.log("4. after console.error");
+            
+                process.stdout.write(
+                    "[STDERR TEST] " + JSON.stringify(output) + "\n"
+                );
+            
+                console.log("========== STDERR END ==========");
+            
+            });
+            */
+              
+
+
+              // ====================================================
+              // 进程结束
+              // ====================================================
+
+              proc.on(
+                  "close",
+                  code => {
+
+                      console.log(
+                          "PY32 ISP exit code:",
+                          code
+                      );
+
+                      EditorWindow.instance.window.webContents.send(
+                          'send-arduino-flash',
+                          'flash-exit'+code
+                      );
+
+
+                      if (code === 0) {
+
+                          resolve();
+
+                      } else {
+
+                          reject(
+                              new Error(
+                                  "PY32 ISP 烧录失败，exitCode=" +
+                                  code
+                              )
+                          );
+
+                      }
+
+                  }
+              );
+
+
+              // ====================================================
+              // 进程启动失败
+              // ====================================================
+
+              proc.on(
+                  "error",
+                  err => {
+
+                      console.error(
+                          "PY32 ISP process error:",
+                          err
+                      );
+                      EditorWindow.instance.window.webContents.send(
+                          'send-arduino-flash',
+                          'flash-start-failed'
+                      );
+
+
+                      reject(err);
+
+                  }
+              );
+
+          }
+      );
+
+  }
     this.ipc.handle('get-advanced-customizations', async () => {
       const USERSCRIPT_PATH = path.join(app.getPath('userData'), 'userscript.js');
       const USERSTYLE_PATH = path.join(app.getPath('userData'), 'userstyle.css');
