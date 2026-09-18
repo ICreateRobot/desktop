@@ -2,8 +2,11 @@
 const {setMode,getMode} = require('../utils/mode')
 const {setLastTime,getLastTime} = require('./portSendLastTime')
 const {safeSerialWrite} = require('./safeSerialWrite')
-const {setVersion,getVersion} = require('./currentVersion')
+const {setVersion,getVersion} = require('./currentVersion');
+const { dialog } = require('electron');
+const Current=require('./currentWifi')
 let serialWriteQueue = Promise.resolve();
+
 
 // function safeSerialWrite(port, str) {
 //   return new Promise((resolve, reject) => {
@@ -50,7 +53,7 @@ let serialWriteQueue = Promise.resolve();
 // }
 
 
-function websocketConnect(setSocket,Current,getPort,setBricksSocket,setBricksMotor,WebSocket){
+function websocketConnect(setSocket,getPort,setBricksSocket,setBricksMotor,WebSocket){
 const WSS = new WebSocket.Server({ port: 39147 });
   WSS.on('connection', (ws) => {
 
@@ -117,9 +120,9 @@ const WSS = new WebSocket.Server({ port: 39147 });
         });
       }else if(JSON.parse(message).type=='offline'){
         console.log('##############################################')
-        Current.setWifi('')
-        setVersion(['icrobot',''])
-        setVersion(['icrobotHard',''])
+        // Current.setWifi('')
+        // setVersion(['icrobot',''])
+        // setVersion(['icrobotHard',''])
       }else if(JSON.parse(message).type=='port'){
         let str=JSON.parse(message).data.message
         str+='\n'
