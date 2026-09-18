@@ -42,4 +42,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return res;
   },
   flashCustom: (port,baudRate,files) => ipcRenderer.invoke('flash-custom', port,baudRate,files),
+
+  flashArduino:(port,code,boardType) => ipcRenderer.invoke('flash-arduino', {port,code,boardType}),
 });

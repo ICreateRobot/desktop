@@ -259,6 +259,250 @@
   overflow-y: auto;      /* 超出时纵向滚动 */
 }
 
+
+.arduino-card {
+  background: #f6f8f8;
+  border: 2px solid rgba(31, 150, 120, 0.15);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.7);
+}
+
+/* 顶部标题 */
+
+.arduino-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(31,150,120,0.12);
+}
+
+.arduino-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #108769;
+}
+
+.arduino-subtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b817b;
+}
+
+.arduino-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(34,163,122,0.1);
+  color: #22a37a;
+
+  font-size: 18px;
+}
+
+/* 串口区域 */
+
+.arduino-port-field {
+  margin-bottom: 14px;
+}
+
+.arduino-port-field label {
+  margin-bottom: 6px;
+}
+
+#arduinoPortSelect {
+  width: 100%;
+  height: 40px;
+
+  padding: 8px 11px;
+
+  border-radius: 7px;
+  border: 1px solid #cddfd6;
+
+  background: #ffffff;
+
+  color: #333;
+  font-size: 13px;
+
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#arduinoPortSelect:focus {
+  border-color: #22a37a;
+  box-shadow: 0 0 0 3px rgba(34,163,122,0.1);
+}
+
+/* ==============================
+   Arduino 代码编辑器
+   ============================== */
+
+.arduino-code-section {
+  margin-top: 4px;
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 6px;
+
+  font-size: 13px;
+  font-weight: 600;
+  color: #0b7c68;
+}
+
+.code-type {
+  padding: 3px 7px;
+
+  border-radius: 5px;
+
+  background: rgba(34,163,122,0.08);
+  color: #22a37a;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 编辑器外框 */
+
+.code-editor {
+  position: relative;
+
+  border: 1px solid #cddfd6;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  overflow: hidden;
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.code-editor:focus-within {
+  border-color: #22a37a;
+
+  box-shadow:
+    0 0 0 3px rgba(34,163,122,0.08);
+}
+
+/* textarea */
+
+#arduinoCodeInput {
+  display: block;
+
+  width: 100%;
+  height: 300px;
+
+  padding: 13px 14px;
+
+  resize: vertical;
+
+  border: none;
+  outline: none;
+
+  background: #ffffff;
+
+  color: #26332f;
+
+  font-family:
+    Consolas,
+    "Courier New",
+    monospace;
+
+  font-size: 13px;
+  line-height: 1.6;
+
+  tab-size: 2;
+}
+
+#arduinoCodeInput::placeholder {
+  color: #a5b4af;
+}
+
+/* 底部提示 */
+
+.arduino-tip {
+  margin-top: 8px;
+
+  padding: 7px 9px;
+
+  border-radius: 6px;
+
+  background: rgba(34,163,122,0.05);
+
+  color: #5c7770;
+
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* ==============================
+   烧录按钮
+   ============================== */
+
+.arduino-flash-btn {
+  width: 100%;
+  height: 42px;
+
+  margin-top: 13px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: #22a37a;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    transform 0.1s,
+    box-shadow 0.2s;
+}
+
+.arduino-flash-btn:hover {
+  background: #1f956f;
+
+  box-shadow:
+    0 3px 8px rgba(34,163,122,0.2);
+}
+
+.arduino-flash-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.flash-icon {
+  font-size: 14px;
+}
+
+/* 禁用状态 */
+
+.arduino-flash-btn:disabled {
+  background: #a9c9bf;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
   </style>
 </head>
 <body>
@@ -267,6 +511,7 @@
     <div class="tab-bar" style="display:flex; gap:2px; margin-bottom:12px;">
       <button id="tabDefault" class="tab active">默认烧录</button>
       <button id="tabCustom" class="tab">自定义烧录</button>
+      <!-- <button id="tabArduino" class="tab">Arduino烧录</button> -->
     </div>
     <!-- 默认烧录区域 -->
     <div id="defaultFlashArea">
@@ -348,9 +593,8 @@
           <button class="btn" id="upgradeStandard">升级</button>
         </div>
 
-        <div class="card" id="xiaozhiCard">
+        <!-- <div class="card" id="xiaozhiCard">
           <div class="title" id="xiaozhiFirmware">小智版本固件：</div>
-          <!-- <div class="subtitle" id="xiaozhiVersionLabel">ICRobot-xiaozhi-V3.0 ▾</div> -->
 
           <select id="xiaozhiSelect" aria-label="小智固件版本下拉">
             <option disabled selected id="loading2">加载中...</option>
@@ -361,7 +605,7 @@
           </div>
 
           <button class="btn" id="upgradeXiaoZhi">升级</button>
-        </div>
+        </div> -->
       </div>
 
 
@@ -465,6 +709,91 @@
       </div>
     </div>
 
+    <div id="arduinoFlashArea" style="display:none;">
+
+      <div class="arduino-card">
+
+    
+        <!-- 串口 -->
+        <div class="field arduino-port-field">
+    
+          <label id="arduinoPortLab">
+            选择串口
+          </label>
+    
+          <select id="arduinoPortSelect">
+            <option disabled selected>
+              请选择串口
+            </option>
+          </select>
+    
+        </div>
+
+         <!-- 设备 -->
+        <div class="field arduino-device-field">
+
+          <label id="arduinoDeviceLab">
+            选择设备
+          </label>
+
+          <select id="arduinoDeviceSelect">
+
+            <option value="uno" selected>
+              Arduino UNO
+            </option>
+
+            <option value="py32">
+              PY32
+            </option>
+
+          </select>
+
+        </div>
+    
+        <!-- 代码区域 -->
+        <div class="arduino-code-section">
+    
+          <div class="code-header">
+    
+            <span id="arduinoCodeLab">
+              Arduino 代码
+            </span>
+    
+            <span class="code-type">
+              .ino
+            </span>
+    
+          </div>
+    
+          <div class="code-editor">
+    
+            <textarea
+              id="arduinoCodeInput"
+              spellcheck="false"
+              placeholder="请输入 Arduino 代码..."
+            ></textarea>
+    
+          </div>
+    
+        </div>
+    
+        <!-- 底部提示 -->
+        <div class="arduino-tip" id="arduinoFlashTip">
+          请确保开发板已通过 USB 连接到电脑
+        </div>
+    
+        <!-- 烧录按钮 -->
+        <button
+          id="arduinoFlash"
+          class="arduino-flash-btn"
+        >
+          <!-- <span class="flash-icon">⚡</span> -->
+          <span id="arduinoFlashText">开始烧录</span>
+        </button>
+    
+      </div>
+    
+
   </div>
 
   <script>
@@ -484,10 +813,10 @@
         document.getElementById('standardFirmware').textContent=t.strings['download-code.standardFirmware']
         document.getElementById('loading').textContent=t.strings['download-code.loading']
         document.getElementById('upgradeStandard').textContent=t.strings['download-code.upgradeStandard']
-        document.getElementById('xiaozhiFirmware').textContent=t.strings['download-code.xiaozhiFirmware']
-        document.getElementById('loading2').textContent=t.strings['download-code.loading2']
+        //document.getElementById('xiaozhiFirmware').textContent=t.strings['download-code.xiaozhiFirmware']
+        //document.getElementById('loading2').textContent=t.strings['download-code.loading2']
         document.getElementById('loading3').textContent=t.strings['download-code.loading2']
-        document.getElementById('upgradeXiaoZhi').textContent=t.strings['download-code.upgradeXiaoZhi']
+        //document.getElementById('upgradeXiaoZhi').textContent=t.strings['download-code.upgradeXiaoZhi']
         document.getElementById('upgradeMicrobit').textContent=t.strings['download-code.upgradeXiaoZhi']
         document.getElementById('microbitFirmware').textContent=t.strings['download-code.microbitFirmware']
         //document.getElementById('microbitDesc').textContent=t.strings['download-code.microbitDesc']
@@ -543,11 +872,14 @@
 
     const tabDefault = document.getElementById('tabDefault');
     const tabCustom = document.getElementById('tabCustom');
+    //const tabArduino = document.getElementById('tabArduino');
 
     const defaultArea = document.getElementById('defaultFlashArea');
     const customArea = document.getElementById('customFlashArea');
+    //const arduinoArea = document.getElementById('arduinoFlashArea');
 
     function switchTab(type) {
+      /*
       if (type === 'default') {
         defaultArea.style.display = 'block';
         customArea.style.display = 'none';
@@ -561,16 +893,47 @@
         tabDefault.classList.remove('active');
         tabCustom.classList.add('active');
       }
+      */
+
+      // 默认全部隐藏
+      defaultArea.style.display = 'none';
+      customArea.style.display = 'none';
+      //arduinoArea.style.display = 'none';
+
+      // 默认全部取消激活
+      tabDefault.classList.remove('active');
+      tabCustom.classList.remove('active');
+      //tabArduino.classList.remove('active');
+      if (type === 'default') {
+
+        defaultArea.style.display = 'block';
+        tabDefault.classList.add('active');
+    
+      } else if (type === 'custom') {
+    
+        customArea.style.display = 'block';
+        tabCustom.classList.add('active');
+    
+      }
+      /*
+       else if (type === 'arduino') {
+    
+        arduinoArea.style.display = 'block';
+        tabArduino.classList.add('active');
+    
+      }
+      */
     }
 
     tabDefault.addEventListener('click', () => switchTab('default'));
     tabCustom.addEventListener('click', () => switchTab('custom'));
+    //tabArduino.addEventListener('click', () => switchTab('arduino'));
     switchTab('default');
     /* 显示/隐藏逻辑（使用你原来的 getExtension()） */
     function updateExtensionUI(extension) {
       if (extension == "2") {
         document.getElementById('standardCard').style.display = 'flex';
-        document.getElementById('xiaozhiCard').style.display = 'flex';
+        //document.getElementById('xiaozhiCard').style.display = 'flex';
         document.getElementById('microbitCard').style.display = 'none';
         // port selector visible
         document.getElementById('portSelector').style.display = 'block';
@@ -583,7 +946,7 @@
       } else if (extension == "3") {
         // 只显示 microbit 卡片（占满宽度）
         document.getElementById('standardCard').style.display = 'none';
-        document.getElementById('xiaozhiCard').style.display = 'none';
+        //document.getElementById('xiaozhiCard').style.display = 'none';
         document.getElementById('microbitCard').style.display = 'flex';
         // hide port selector
         document.getElementById('portSelector').style.display = 'block';
@@ -594,7 +957,7 @@
       } else if(extension == "1") {
         // 默认隐藏固件卡片，仅显示标题（或按你原逻辑）
         document.getElementById('standardCard').style.display = 'none';
-        document.getElementById('xiaozhiCard').style.display = 'none';
+       // document.getElementById('xiaozhiCard').style.display = 'none';
         document.getElementById('microbitCard').style.display = 'none';
         document.getElementById('portSelector').style.display = 'none';
         document.getElementById('versionShow').style.display = 'none';
@@ -604,7 +967,7 @@
         
       }else{
         document.getElementById('standardCard').style.display = 'none';
-        document.getElementById('xiaozhiCard').style.display = 'none';
+        //document.getElementById('xiaozhiCard').style.display = 'none';
         document.getElementById('microbitCard').style.display = 'none';
         document.getElementById('portSelector').style.display = 'none';
         document.getElementById('versionShow').style.display = 'none';
@@ -722,6 +1085,10 @@ function fakePickFile() {
 }
 
 document.getElementById('customFlashBtn').onclick = async () => {
+  // 先取消所有焦点
+  if (document.activeElement) {
+    document.activeElement.blur();
+  }
   const port = document.getElementById('customPortSelect').value;
   const baudRate = Number(document.getElementById('baudRateSelect').value);
 
@@ -823,6 +1190,11 @@ document.getElementById('customFlashBtn').onclick = async () => {
             document.getElementById('customPortSelect'),
             ports
           );
+          
+          //fillPortSelect(
+          //  document.getElementById('arduinoPortSelect'),
+           // ports
+         // );
       
         } catch (err) {
           if (err instanceof Promise) {
@@ -833,6 +1205,7 @@ document.getElementById('customFlashBtn').onclick = async () => {
                 const ports = await electronAPI.getPorts();
                 fillPortSelect(document.getElementById('portSelector'), ports);
                 fillPortSelect(document.getElementById('customPortSelect'), ports);
+                //fillPortSelect(document.getElementById('arduinoPortSelect'), ports);
               } catch (_) {}
             })();
           }
@@ -930,9 +1303,9 @@ document.getElementById('customFlashBtn').onclick = async () => {
     // const standardLabel = document.getElementById('standardVersionLabel');
     // const xiaozhiLabel = document.getElementById('xiaozhiVersionLabel');
     const upgradeStandardBtn = document.getElementById('upgradeStandard');
-    const upgradeXiaoZhiBtn = document.getElementById('upgradeXiaoZhi');
+    //const upgradeXiaoZhiBtn = document.getElementById('upgradeXiaoZhi');
     const standCommit = document.getElementById('standCommit')
-    const xiaozhiCommit = document.getElementById('xiaozhiCommit')
+    //const xiaozhiCommit = document.getElementById('xiaozhiCommit')
 
     const microbitCommit = document.getElementById('microbitCommit');
     const upgradeMicrobitBtn = document.getElementById('upgradeMicrobit')
@@ -1100,6 +1473,39 @@ document.getElementById('customFlashBtn').onclick = async () => {
     }
 
     */
+
+    // ========================================
+    // 比较版本号
+    // 例如：
+    // 1.2.0 < 1.10.0
+    // 2.0.0 > 1.99.99
+    // ========================================
+    function compareVersion(v1, v2) {
+      const a = String(v1 || '0')
+        .split('.')
+        .map(num => parseInt(num, 10) || 0);
+
+      const b = String(v2 || '0')
+        .split('.')
+        .map(num => parseInt(num, 10) || 0);
+
+      const length = Math.max(a.length, b.length);
+
+      for (let i = 0; i < length; i++) {
+        const num1 = a[i] || 0;
+        const num2 = b[i] || 0;
+
+        if (num1 > num2) {
+          return 1;
+        }
+
+        if (num1 < num2) {
+          return -1;
+        }
+      }
+
+      return 0;
+    }
     async function loadFirmwareList() {
       let standardArr = [];
       let xiaozhiArr = [];
@@ -1119,6 +1525,7 @@ document.getElementById('customFlashBtn').onclick = async () => {
         showToast(t.strings['download-code.onlyLocalFirm']);
       }
     
+      /*
       function populate(selectElem, arr,type) {
         selectElem.innerHTML = '';
     
@@ -1132,14 +1539,7 @@ document.getElementById('customFlashBtn').onclick = async () => {
         
         selectElem.appendChild(localOpt);
     
-        if (!arr || arr.length === 0) {
-          const o = document.createElement('option');
-          o.disabled = true;
-          o.selected = true;
-          o.textContent = '无可用版本';
-          selectElem.appendChild(o);
-          return;
-        }
+        
     
         arr.forEach(item => {
           const opt = document.createElement('option');
@@ -1149,10 +1549,56 @@ document.getElementById('customFlashBtn').onclick = async () => {
         });
     
         selectElem.value = localOpt.value;
+      }*/
+
+      function populate(selectElem, arr, type) {
+        selectElem.innerHTML = '';
+      
+        const localOpt = document.createElement('option');
+        localOpt.value = JSON.stringify({ local: true });
+      
+        if (type === 'stand') {
+          localOpt.textContent =
+            t.strings['download-code.localFirmware'] + '(1.1.1)';
+        } else {
+          localOpt.textContent =
+            t.strings['download-code.localFirmware'] + '(1.0.0)';
+        }
+      
+        selectElem.appendChild(localOpt);
+      
+        arr.forEach(item => {
+          const opt = document.createElement('option');
+      
+          opt.value = JSON.stringify({
+            folder: item.name
+          });
+      
+          opt.textContent = item.version || item.name;
+      
+          selectElem.appendChild(opt);
+        });
+      
+        // 有在线固件就选择最高版本
+        if (arr && arr.length > 0) {
+          const latestFirmware = arr.reduce((latest, current) => {
+            return compareVersion(current.version, latest.version) > 0
+              ? current
+              : latest;
+          });
+      
+          selectElem.value = JSON.stringify({
+            folder: latestFirmware.name
+          });
+        } else {
+          // 没有在线固件，选择本地固件
+          selectElem.value = localOpt.value;
+        }
       }
+      
     
       populate(standardSelect, standardArr,'stand');
-      populate(xiaozhiSelect, xiaozhiArr,'xiaozhi');
+      //populate(xiaozhiSelect, xiaozhiArr,'xiaozhi');
       populate(microbitSelect, microbitArr,'microbit');
     }
     
@@ -1216,7 +1662,7 @@ document.getElementById('customFlashBtn').onclick = async () => {
           if (!info) {
             
             if (type === 'standard') standCommit.innerText = '';
-            else if (type === 'xiaozhi') xiaozhiCommit.innerText = '';
+            //else if (type === 'xiaozhi') xiaozhiCommit.innerText = '';
             else if (type === 'microbit') microbitCommit.innerText = '';
             return;
           }
@@ -1233,12 +1679,12 @@ document.getElementById('customFlashBtn').onclick = async () => {
           //const msg = res?.data?.[0]?.message || '';
     
           if (type === 'standard') standCommit.innerText = description;
-          else if (type === 'xiaozhi') xiaozhiCommit.innerText = description;
+          //else if (type === 'xiaozhi') xiaozhiCommit.innerText = description;
           else if (type === 'microbit') microbitCommit.innerText = description;
     
         } catch {
           if (type === 'standard') standCommit.innerText = '';
-          else if (type === 'xiaozhi') xiaozhiCommit.innerText = '';
+          //else if (type === 'xiaozhi') xiaozhiCommit.innerText = '';
           else if (type === 'microbit') microbitCommit.innerText = '';
         }
       });
@@ -1353,7 +1799,7 @@ document.getElementById('customFlashBtn').onclick = async () => {
 
     // 绑定事件
     upgradeStandardBtn.addEventListener('click', async () => { await handleUpgrade('standard'); });
-    upgradeXiaoZhiBtn.addEventListener('click', async () => { await handleUpgrade('xiaozhi'); });
+    //upgradeXiaoZhiBtn.addEventListener('click', async () => { await handleUpgrade('xiaozhi'); });
 
     upgradeMicrobitBtn.addEventListener('click', () => handleUpgrade('microbit'));
 
@@ -1426,10 +1872,10 @@ document.getElementById('customFlashBtn').onclick = async () => {
             select: standardSelect,
             commitEl: standCommit
           },
-          xiaozhi: {
-            select: xiaozhiSelect,
-            commitEl: xiaozhiCommit
-          },
+          //xiaozhi: {
+          //  select: xiaozhiSelect,
+          //  commitEl: xiaozhiCommit
+          //},
           microbit: {
             select: microbitSelect,
             commitEl: microbitCommit
@@ -1482,7 +1928,7 @@ document.getElementById('customFlashBtn').onclick = async () => {
             '';
     
           commitEl.innerText =
-            `v${version}\n${description}`;
+            `${description}`;
         }
     
       } catch (err) {
@@ -1496,6 +1942,22 @@ document.getElementById('customFlashBtn').onclick = async () => {
     
 
 
+    /*
+    document.getElementById('arduinoFlash').addEventListener('click',async()=>{
+      console.log('开始烧录')
+      let code  = document.getElementById('arduinoCodeInput').value
+      let port = document.getElementById('arduinoPortSelect').value;
+      let boardType = document.getElementById('arduinoDeviceSelect').value;
+
+      console.log(code)
+      console.log(port)
+      await electronAPI.flashArduino(
+        port,
+        code,
+        boardType
+      );
+    })
+    */
     // 页面初始化
     window.addEventListener('DOMContentLoaded', async() => {
       // 使用你原来的 getExtension()
