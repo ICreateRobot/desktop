@@ -383,7 +383,7 @@
         }
         console.log(window);
         async function getCode(){
-          await fetch(`http://localhost:3000/get`,{
+          await fetch(`http://localhost:38127/get`,{
                     method: 'GET'
             })
             .then(response => {
@@ -782,7 +782,7 @@
           // alert(`设备${Device.name}断开连接`)
           alert(strings['ble-connect.disconnect'].replace('{deviceName}',Device.name))
           document.getElementById('device').innerHTML=''
-          fetch('http://localhost:3000/set-ble', {
+          fetch('http://localhost:38127/set-ble', {
             method: 'POST',
             headers: {
               'Content-Type': 'text/plain'
@@ -860,7 +860,7 @@
                 document.getElementById('device-name').innerHTML = device.name || `ID: ${device.id}`
 
                 if(server){
-                  fetch('http://localhost:3000/set-ble', {
+                  fetch('http://localhost:38127/set-ble', {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'text/plain'
@@ -993,7 +993,7 @@
                 document.getElementById('device-name').innerHTML = deviceRobot.name || `ID: ${deviceRobot.id}`
 
                 if(serverRobot){
-                  fetch('http://localhost:3000/set-ble', {
+                  fetch('http://localhost:38127/set-ble', {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'text/plain'
