@@ -12,7 +12,7 @@ function getContent(){
 
 const sendDataToServer = (con) => {
     // 发送数据到服务器的函数
-    fetch('http://localhost:3000/save-data', {
+    fetch('http://localhost:38127/save-data', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain'
