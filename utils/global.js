@@ -15,7 +15,7 @@ function debounce(func, wait) {
 
 const sendDataToServer = (con) => {
   // 发送数据到服务器的函数
-  fetch('http://localhost:3000/get-code', {
+  fetch('http://localhost:38127/get-code', {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain'
