@@ -49,6 +49,8 @@ const getKernelMajorVersion = () => {
  * @returns {boolean} true if the app should continue to launch
  */
 const migrate = async () => {
+  await writeCurrentVersion();
+  return true;
   // We have native ARM builds so people shouldn't use x86 to ARM translators
   if (app.runningUnderARM64Translation && dialog.showMessageBoxSync({
     title: APP_NAME,
