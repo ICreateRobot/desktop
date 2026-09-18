@@ -838,6 +838,10 @@
     "string": "OK",
     "developer_comment": "connect-device.microbit.button.ok"
   },
+  "connect-device.offline": {
+    "string": "Network connection lost",
+    "developer_comment": "connect-device.offline"
+  },
   "updateWindow.title":{
     "string":"New Version Available",
     "developer_comment":"updateWindow.title"
@@ -937,6 +941,22 @@
   "download-code.currentHardVersion": {
     "string": "Current Hardware Version",
     "developer_comment": "download-code.currentHardVersion"
+  },
+  "master.clearworkspace": {
+    "string": "This operation will clear the workspace. Continue?",
+    "developer_comment": "master.clearworkspace"
+  },
+  "connect-device.selectPort": {
+    "string": "Select",
+    "developer_comment": "connect-device.selectPort"
+  },
+  "connect-device.cancelPort": {
+    "string": "Cancel",
+    "developer_comment": "connect-device.cancelPort"
+  },
+  "flash-alert-noselectPort": {
+    "string": "No port number selected",
+    "developer_comment": "flash-alert-noselectPort"
   }
   
 }

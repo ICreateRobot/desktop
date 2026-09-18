@@ -1361,6 +1361,7 @@
         "connect-device.microbit.message": "Текущая версия прошивки устройства слишком низкая",
         "connect-device.microbit.detail": "Чтобы обеспечить стабильную и корректную работу, пожалуйста, сначала прошейте устройство.",
         "connect-device.microbit.button.ok": "ОК",
+        "connect-device.offline":"Соединение потеряно",
         "ble-connect.bleTitle": "Подключенные Bluetooth устройства:",
         "ble-connect.clickme": "Начать сканирование",
         "ble-connect.closeBle": "Отключить Bluetooth",
@@ -1457,7 +1458,11 @@
         "download-code.versionInfo": "Информация о версии",
         "download-code.firmwareVersion": "Версия прошивки",
         "download-code.hardwareVersion": "Версия оборудования",
-        "download-code.currentHardVersion": "Текущая версия оборудования"
+        "download-code.currentHardVersion": "Текущая версия оборудования",
+        "master.clearworkspace":"Это действие очистит рабочую область. Продолжить?",
+        "connect-device.selectPort":"Выбрать",
+        "connect-device.cancelPort":"Отмена",
+        "flash-alert-noselectPort":"Порт не выбран"
     },
     "sl": {
         "about": "O programu {APP_NAME}",
@@ -1944,6 +1949,7 @@
         "connect-device.microbit.message": "Aktualna wersja oprogramowania urządzenia jest zbyt niska",
         "connect-device.microbit.detail": "Aby zapewnić stabilne i prawidłowe działanie, najpierw wgraj oprogramowanie.",
         "connect-device.microbit.button.ok": "OK",
+        "connect-device.offline":"Połączenie sieciowe utracone",
         "updateWindow.title":"Dostępna nowa wersja",
         "updateWindow.msg1":"Wykryto nową wersję",
         "updateWindow.msg2":"Obecna wersja to",
@@ -1971,7 +1977,11 @@
         "download-code.versionInfo": "Informacje o wersji",
         "download-code.firmwareVersion": "Wersja firmware",
         "download-code.hardwareVersion": "Wersja sprzętu",
-        "download-code.currentHardVersion": "Aktualna wersja sprzętu"
+        "download-code.currentHardVersion": "Aktualna wersja sprzętu",
+        "master.clearworkspace":"Obszar roboczy nie jest czysty. Wyczyścić obszar roboczy. Kontynuować?",
+        "connect-device.selectPort":"Wybierz",
+        "connect-device.cancelPort":"Anuluj",
+        "flash-alert-noselectPort":"Nie wybrano numeru portu"
     },
 
     "zh-cn": {
@@ -2184,6 +2194,7 @@
         "connect-device.tipBle":"请先将机器人切换至蓝牙模式",
         "connect-device.tipAp":"请先将机器人切换至AP模式",
         "connect-device.tipSta":"请先将机器人切换至Sta模式",
+        "connect-device.offline":"网络连接已断开",
         "updateWindow.title":"新版本可用",
         "updateWindow.msg1":"检测到新版本",
         "updateWindow.msg2":"您当前版本为",
@@ -2211,7 +2222,11 @@
         "download-code.versionInfo":"版本信息",
         "download-code.firmwareVersion":"固件版本",
         "download-code.hardwareVersion":"硬件版本",
-        "download-code.currentHardVersion":"当前硬件版本"
+        "download-code.currentHardVersion":"当前硬件版本",
+        "master.clearworkspace":"此操作将会清空工作区，确定继续？",
+        "connect-device.selectPort":"选择",
+        "connect-device.cancelPort":"取消",
+        "flash-alert-noselectPort":"未选择端口号"
     },
     "zh-tw": {
         "about": "關於 {APP_NAME}",
@@ -2360,13 +2375,13 @@
 
         "connect-device.serial": "序列埠",
         "connect-device.bluetooth": "藍牙",
-        "connect-device.qr": "QR Code",
+        "connect-device.qr": "二維碼",
 
         "connect-device.disconnectAll": "中斷目前連線",
         "connect-device.account": "帳號",
         "connect-device.pwd": "密碼",
-        "connect-device.qrTitle": "Wi-Fi QR Code 產生",
-        "connect-device.submit": "產生 QR Code",
+        "connect-device.qrTitle": "Wi-Fi 二維碼 產生",
+        "connect-device.submit": "產生二維碼",
         "connect-device.disconnect": "中斷",
         "connect-device.connectwifi": "連線",
         "connect-device.connecting": "連線中",
@@ -2449,6 +2464,7 @@
         "connect-device.tipBle": "請先將機器人切換至藍牙模式",
         "connect-device.tipAp": "請先將機器人切換至 AP 模式",
         "connect-device.tipSta": "請先將機器人切換至 STA 模式",
+        "connect-device.offline":"網路連線已中斷",
         "updateWindow.title":"有新版本可用",
         "updateWindow.msg1":"偵測到新版本",
         "updateWindow.msg2":"您目前的版本為",
@@ -2476,7 +2492,11 @@
         "download-code.versionInfo": "版本資訊",
         "download-code.firmwareVersion": "韌體版本",
         "download-code.hardwareVersion": "硬體版本",
-        "download-code.currentHardVersion": "當前硬體版本"
+        "download-code.currentHardVersion": "當前硬體版本",
+        "master.clearworkspace":"此操作將會清空工作區，確定要繼續嗎？",
+        "connect-device.selectPort":"選擇",
+        "connect-device.cancelPort":"取消",
+        "flash-alert-noselectPort":"未選擇連接埠號碼"
         }
 
 }
