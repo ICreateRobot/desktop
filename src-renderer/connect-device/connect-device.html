@@ -22,7 +22,11 @@
             margin-right: 0px;
             background-color: white;
             color: #00bfa5;
-            font-weight: bold;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:44px;
+            padding:0 20px;
             cursor: pointer;
             border: 2px solid #00bfa5;
             border-bottom: none;
@@ -324,7 +328,7 @@
 
         .toggle-password {
             position: absolute;
-            /* right: 10px; */
+             right: 20px; 
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
@@ -448,8 +452,11 @@
                 <span id="account">账号</span>&nbsp;&nbsp;<input type="text" id="name">
                 <div class="password-wrapper">
                     <span id="pwd">密码</span>&nbsp;&nbsp;<input type="password" id="password">
-                    <span id="togglePassword" class="toggle-password">🙈</span>
+                    <span id="togglePassword" class="toggle-password"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="1.25em" height="1em" fill="currentColor" aria-hidden="true">
+                      <path d="M634 471L36 3.51A16 16 0 0 0 13.51 6l-10 12.49A16 16 0 0 0 6 41l598 467.49a16 16 0 0 0 22.49-2.49l10-12.49A16 16 0 0 0 634 471M296.79 146.47l134.79 105.38C429.36 191.91 380.48 144 320 144a112.3 112.3 0 0 0-23.21 2.47m46.42 219.07L208.42 260.16C210.65 320.09 259.53 368 320 368a113 113 0 0 0 23.21-2.46M320 112c98.65 0 189.09 55 237.93 144a285.5 285.5 0 0 1-44 60.2l37.74 29.5a333.7 333.7 0 0 0 52.9-75.11 32.35 32.35 0 0 0 0-29.19C550.29 135.59 442.93 64 320 64c-36.7 0-71.71 7-104.63 18.81l46.41 36.29c18.94-4.3 38.34-7.1 58.22-7.1m0 288c-98.65 0-189.08-55-237.93-144a285.5 285.5 0 0 1 44.05-60.19l-37.74-29.5a333.6 333.6 0 0 0-52.89 75.1 32.35 32.35 0 0 0 0 29.19C89.72 376.41 197.08 448 320 448c36.7 0 71.71-7.05 104.63-18.81l-46.41-36.28C359.28 397.2 339.89 400 320 400"/>
+                    </svg></span>
                 </div>
+                
                 
 
               </div>
@@ -504,12 +511,15 @@
 
         translate()
         
-        
+          let currentExtension
           let portStatusMap = {}; // 全局存储端口状态
           let currentConnectedPort = null; // 当前连接的端口
+          // currentExtension == 4 时，记录“当前使用”的串口
+          let currentUsingPort = null;
           const tabs = document.querySelectorAll('.tab');
           const pages = document.querySelectorAll('.tab-page');
           const extension = window.connect.getExtensions()
+          currentExtension=extension.wifi
 
           console.log(extension)
           // 控制哪些 tab 可点击（true = 可点击，false = 灰置）
@@ -545,9 +555,21 @@
             tabEnabledMap.wifi=false
             tabEnabledMap.qr=false
 
-              document.getElementById('tipBle').style.visibility = 'hidden';
-              document.getElementById('tipAp').style.visibility = 'hidden';
-              document.getElementById('tipSta').style.visibility = 'hidden';
+            document.getElementById('tipBle').style.visibility = 'hidden';
+            document.getElementById('tipAp').style.visibility = 'hidden';
+            document.getElementById('tipSta').style.visibility = 'hidden';
+
+            
+          }
+          else if(extension.wifi==4 || extension.wifi==5){
+            tabEnabledMap.serial=true
+            tabEnabledMap.bluetooth=false
+            tabEnabledMap.wifi=false
+            tabEnabledMap.qr=false
+
+            document.getElementById('tipBle').style.visibility = 'hidden';
+            document.getElementById('tipAp').style.visibility = 'hidden';
+            document.getElementById('tipSta').style.visibility = 'hidden';
 
             
           }
@@ -1022,7 +1044,11 @@
             const passwordInput = document.getElementById('password');
             const isPassword = passwordInput.type === 'password';
             passwordInput.type = isPassword ? 'text' : 'password';
-            this.textContent = isPassword ? '👁️' : '🙈';
+            this.innerHTML = isPassword ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1em" height="1em" fill="currentColor">
+              <path d="M512 832c-199.2 0-384.3-118.7-512-320 127.7-201.3 312.8-320 512-320s384.3 118.7 512 320c-127.7 201.3-312.8 320-512 320zm0-112c106 0 192-86 192-192s-86-192-192-192-192 86-192 192 86 192 192 192zm0-288c53 0 96 43 96 96s-43 96-96 96-96-43-96-96 43-96 96-96z"/>
+            </svg>` : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="1.25em" height="1em" fill="currentColor" aria-hidden="true">
+              <path d="M634 471L36 3.51A16 16 0 0 0 13.51 6l-10 12.49A16 16 0 0 0 6 41l598 467.49a16 16 0 0 0 22.49-2.49l10-12.49A16 16 0 0 0 634 471M296.79 146.47l134.79 105.38C429.36 191.91 380.48 144 320 144a112.3 112.3 0 0 0-23.21 2.47m46.42 219.07L208.42 260.16C210.65 320.09 259.53 368 320 368a113 113 0 0 0 23.21-2.46M320 112c98.65 0 189.09 55 237.93 144a285.5 285.5 0 0 1-44 60.2l37.74 29.5a333.7 333.7 0 0 0 52.9-75.11 32.35 32.35 0 0 0 0-29.19C550.29 135.59 442.93 64 320 64c-36.7 0-71.71 7-104.63 18.81l46.41 36.29c18.94-4.3 38.34-7.1 58.22-7.1m0 288c-98.65 0-189.08-55-237.93-144a285.5 285.5 0 0 1 44.05-60.19l-37.74-29.5a333.6 333.6 0 0 0-52.89 75.1 32.35 32.35 0 0 0 0 29.19C89.72 376.41 197.08 448 320 448c36.7 0 71.71-7.05 104.63-18.81l-46.41-36.28C359.28 397.2 339.89 400 320 400"/>
+            </svg>`;
           }
           async function hostPotWire(){
              const name = document.getElementById('name').value.trim();
@@ -1097,7 +1123,7 @@
            * 蓝牙连接功能
            * 
            */ 
-          let currentExtension
+          
           let device
           let service
           let serviceDown
@@ -1311,7 +1337,7 @@
           }
           console.log(window);
           async function getCode(){
-            await fetch(`http://localhost:3000/get`,{
+            await fetch(`http://localhost:38127/get`,{
                       method: 'GET'
               })
               .then(response => {
@@ -1633,7 +1659,9 @@
           
           })
 
-
+          connect.clearQrCode(async (arg)=>{
+            document.getElementById('qrContainer').style.display = "none";
+          })
           connect.whatLanguage(async (lang)=>{
             // console.log(lang)
             locale=lang.locale
@@ -1665,6 +1693,15 @@
                 document.getElementById('tipAp').style.visibility = 'visible';
                 document.getElementById('tipSta').style.visibility = 'visible';
             }else if(extension==3){
+              tabEnabledMap.serial=true
+              tabEnabledMap.bluetooth=false
+               tabEnabledMap.wifi=false
+              tabEnabledMap.qr=false
+
+              document.getElementById('tipBle').style.visibility = 'hidden';
+              document.getElementById('tipAp').style.visibility = 'hidden';
+              document.getElementById('tipSta').style.visibility = 'hidden';
+            }else if(extension==4 || extension==5){
               tabEnabledMap.serial=true
               tabEnabledMap.bluetooth=false
                tabEnabledMap.wifi=false
@@ -1844,7 +1881,7 @@
               // alert(`设备${Device.name}断开连接`)
               alert(strings['ble-connect.disconnect'].replace('{deviceName}',Device.name))
               document.getElementById('device').innerHTML=''
-              fetch('http://localhost:3000/set-ble', {
+              fetch('http://localhost:38127/set-ble', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'text/plain'
@@ -1923,7 +1960,7 @@
                       document.getElementById('device-name').innerHTML = device.name || `ID: ${device.id}`
 
                       if(server){
-                        fetch('http://localhost:3000/set-ble', {
+                        fetch('http://localhost:38127/set-ble', {
                           method: 'POST',
                           headers: {
                             'Content-Type': 'text/plain'
@@ -2078,7 +2115,7 @@
                       document.getElementById('device-name').innerHTML = deviceRobot.name || `ID: ${deviceRobot.id}`
 
                       if(serverRobot){
-                        fetch('http://localhost:3000/set-ble', {
+                        fetch('http://localhost:38127/set-ble', {
                           method: 'POST',
                           headers: {
                             'Content-Type': 'text/plain'
@@ -2227,6 +2264,7 @@
             
           })
 
+          /*
           function serialInit() {
             
             const ports = connect.getPorts();
@@ -2270,6 +2308,7 @@
                 updateButtonState(actionButton, isConnected);
 
                 actionButton.addEventListener('click', async () => {
+                  if(currentExtension!=4){
                     // 如果已连接其他串口，先断开它
                     if (currentConnectedPort && currentConnectedPort !== port.path) {
                         await handleDisconnect(currentConnectedPort);
@@ -2282,6 +2321,10 @@
                     } else {
                         await handleConnect(port.path);
                     }
+                  }else{
+                    console.log('使用串口')
+                  }
+                    
                 });
 
                 buttonContainer.appendChild(portLabel);
@@ -2290,7 +2333,182 @@
             });
 
             // startPortMonitoring();
-        }
+        }*/
+        function serialInit() {
+
+          const ports = connect.getPorts();
+          const portsArr = ports.PORTS;
+      
+          console.log(portsArr);
+      
+          const bnContainer = document.getElementById('bnContainer');
+      
+          bnContainer.style.height = '200px';
+          bnContainer.style.overflowY = 'auto';
+          bnContainer.style.backgroundColor = '#c2f3ec';
+          bnContainer.style.marginTop = '20px';
+          bnContainer.style.paddingTop = '20px';
+      
+          bnContainer.innerHTML = '';
+      
+          // =========================================================
+          // portStatusMap 只处理真实连接状态
+          // =========================================================
+          portStatusMap = {};
+      
+          const statusResponse = connect.whatPortConnect();
+          currentConnectedPort = statusResponse.port || null;
+      
+      
+          portsArr.forEach(port => {
+      
+              // =====================================================
+              // 真实连接状态
+              //
+              // 注意：
+              // extension == 4 也不能把 currentUsingPort 放进这里
+              // =====================================================
+              const isConnected =
+                  port.path === currentConnectedPort;
+      
+              portStatusMap[port.path] = isConnected;
+      
+      
+              // =====================================================
+              // 每个串口的容器
+              // =====================================================
+      
+              const buttonContainer =
+                  document.createElement('div');
+      
+              buttonContainer.style.display = 'flex';
+              buttonContainer.style.justifyContent = 'center';
+              buttonContainer.style.alignItems = 'center';
+              buttonContainer.style.margin = '0 auto 10px';
+              buttonContainer.style.width = '80%';
+              buttonContainer.style.backgroundColor = 'transparent';
+              buttonContainer.style.border = '1px solid #00ff00';
+              buttonContainer.style.borderRadius = '4px';
+              buttonContainer.style.padding = '8px';
+      
+              buttonContainer.id = `port-${port.path}`;
+      
+      
+              // =====================================================
+              // 串口名称
+              // =====================================================
+      
+              const portLabel =
+                  document.createElement('span');
+      
+              portLabel.textContent = port.label;
+              portLabel.style.flex = '1';
+              portLabel.style.textAlign = 'left';
+              portLabel.style.marginRight = '10px';
+      
+      
+              // =====================================================
+              // 操作按钮
+              // =====================================================
+      
+              const actionButton =
+                  document.createElement('button');
+      
+      
+              if (currentExtension == 4 || currentExtension == 5) {
+      
+                  // ================================================
+                  // extension == 4
+                  // 这里判断的是 currentUsingPort
+                  // 而不是 portStatusMap
+                  // ================================================
+      
+                  updateUseButtonState(
+                      actionButton,
+                      port.path === currentUsingPort
+                  );
+      
+              } else {
+      
+                  // ================================================
+                  // 普通模式
+                  // 使用真实连接状态
+                  // ================================================
+      
+                  updateButtonState(
+                      actionButton,
+                      isConnected
+                  );
+              }
+      
+      
+              // =====================================================
+              // 点击
+              // =====================================================
+      
+              actionButton.addEventListener(
+                  'click',
+                  async () => {
+      
+                      // =================================================
+                      // extension == 4
+                      // 只处理“使用 / 取消”
+                      // =================================================
+      
+                      if (currentExtension == 4 || currentExtension == 5) {
+      
+                          handleUsePort(
+                              port.path,
+                              portsArr
+                          );
+      
+                          return;
+                      }
+      
+      
+                      // =================================================
+                      // extension != 4
+                      // 原来的连接逻辑
+                      // =================================================
+      
+                      // 如果已连接其他串口，先断开
+                      if (
+                          currentConnectedPort &&
+                          currentConnectedPort !== port.path
+                      ) {
+      
+                          await handleDisconnect(
+                              currentConnectedPort
+                          );
+                      }
+      
+      
+                      if (portStatusMap[port.path]) {
+      
+                          // 已连接 → 断开
+                          await handleDisconnect(
+                              port.path
+                          );
+      
+                      } else {
+      
+                          // 未连接 → 连接
+                          await handleConnect(
+                              port.path
+                          );
+                      }
+      
+                  }
+              );
+      
+      
+              buttonContainer.appendChild(portLabel);
+              buttonContainer.appendChild(actionButton);
+      
+              bnContainer.appendChild(buttonContainer);
+      
+          });
+      }
 
         function updateButtonState(button, isConnected) {
             // button.innerText = isConnected ? '断开' : '连接';
@@ -2303,7 +2521,104 @@
             button.style.padding = '5px 10px';
             button.style.cursor = 'pointer';
         }
+        function updateUseButtonState(button, isUsing) {
 
+          button.innerText = isUsing
+              ? strings['connect-device.cancelPort']
+              : strings['connect-device.selectPort'];
+      
+          button.style.backgroundColor = isUsing
+              ? '#ff4c4c'
+              : '#00bfa5';
+      
+          button.style.color = 'white';
+          button.style.border = 'none';
+          button.style.borderRadius = '4px';
+          button.style.padding = '5px 10px';
+          button.style.cursor = 'pointer';
+      }
+
+      function handleUsePort(port, portsArr) {
+
+        // =========================================================
+        // 点击当前已经使用的串口
+        // → 取消使用
+        // =========================================================
+    
+        if (currentUsingPort === port) {
+    
+            
+            currentUsingPort = null;
+            window.connect.setUsingPort(currentUsingPort)
+    
+            updateUsePortUI(portsArr);
+    
+            console.log(
+                '取消使用串口:',
+                port
+            );
+    
+            //showToast(`已取消使用 ${port}`);
+    
+            return;
+        }
+    
+    
+        // =========================================================
+        // 点击其他串口
+        // → 直接切换使用的串口
+        // =========================================================
+    
+        const oldPort = currentUsingPort;
+    
+        currentUsingPort = port;
+        window.connect.setUsingPort(currentUsingPort)
+    
+        updateUsePortUI(portsArr);
+    
+    
+        if (oldPort) {
+    
+            console.log(
+                '取消使用串口:',
+                oldPort
+            );
+        }
+    
+        console.log(
+            '当前使用串口:',
+            currentUsingPort
+        );
+    
+        //showToast(`已使用 ${port}`);
+    }
+
+
+    function updateUsePortUI(portsArr) {
+
+        portsArr.forEach(port => {
+    
+            const container =
+                document.getElementById(`port-${port.path}`);
+    
+            if (!container) return;
+    
+            const button =
+                container.querySelector('button');
+    
+            if (!button) return;
+    
+            const isUsing =
+                port.path === currentUsingPort;
+          
+    
+            updateUseButtonState(
+                button,
+                isUsing
+            );
+        });
+
+    }
         
         async function handleConnect(port) {
             isConnecting=true
@@ -2397,7 +2712,12 @@
             const container = document.getElementById(`port-${port}`);
             if (!container) return;
             const button = container.querySelector('button');
-            updateButtonState(button, portStatusMap[port]);
+            if(currentExtension!=4 && currentExtension!=5){
+              updateButtonState(button, portStatusMap[port]);
+            }else{
+              updateUseButtonState(button,port == currentUsingPort)
+            }
+            
             button.disabled = false;
         }
 
@@ -2407,6 +2727,7 @@
             });
         }
 
+        /*
         function startPortMonitoring() {
             setInterval(() => {
                 const status = connect.whatPortConnect();
@@ -2418,6 +2739,89 @@
                     currentConnectedPort = status.port;
                     updateAllPortUI();
                 }
+            }, 2000);
+        }
+        */
+        function startPortMonitoring() {
+            setInterval(() => {
+        
+                // =====================================================
+                // 获取当前系统实际存在的串口
+                // =====================================================
+                const ports = connect.getPorts();
+                const portsArr = ports.PORTS;
+        
+                const status = connect.whatPortConnect();
+        
+                // =====================================================
+                // 普通连接状态监控
+                // =====================================================
+                if (
+                    status.port !== currentConnectedPort &&
+                    !isConnecting
+                ) {
+        
+                    //console.log(
+                    //    '连接状态发生变化:',
+                    //    currentConnectedPort,
+                     //   '=>',
+                    //    status.port
+                    //);
+        
+                    Object.keys(portStatusMap).forEach(port => {
+                        portStatusMap[port] = (port === status.port);
+                    });
+        
+                    currentConnectedPort = status.port || null;
+        
+                    updateAllPortUI();
+                }
+        
+        
+                // =====================================================
+                // extension == 4 / 5
+                // 检查“正在使用的串口”是否还存在
+                // =====================================================
+                if (currentExtension == 4 || currentExtension == 5) {
+        
+                    // 当前有正在使用的串口
+                    if (currentUsingPort) {
+        
+                        console.log(portsArr)
+                        const usingPortExists = portsArr.some(
+                            port => port.path === currentUsingPort
+                        );
+        
+                        // =================================================
+                        // 使用中的串口已经被拔掉
+                        // =================================================
+                        if (!usingPortExists) {
+        
+                            console.log(
+                                '检测到使用中的串口已拔出:',
+                                currentUsingPort
+                            );
+        
+                            // 保存一下，方便日志
+                            const removedPort = currentUsingPort;
+        
+                            // 清除当前使用串口
+                            currentUsingPort = null;
+        
+                            // 同步给 connect
+                            window.connect.setUsingPort(null);
+        
+                            // 更新使用按钮
+                            updateUsePortUI(portsArr);
+        
+                            console.log(
+                                '已取消使用串口:',
+                                removedPort
+                            );
+                        }
+                    }
+                }
+        
             }, 2000);
         }
 

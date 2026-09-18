@@ -32,7 +32,7 @@ let options_mode ='full';//烧录模式---full：完整模式；incremental：�
 const IntelHex = require('intel-hex');
 const fs = require('fs');
 // const parser = require('@serialport/parser-readline');
-const {setPort,getPort,getDeviceState,setDeviceState,setPortCom,getPortCom} = require('../../utils/port')
+const {setPort,getPort,getDeviceState,setDeviceState,setPortCom,getPortCom,setUsingPort} = require('../../utils/port')
 const axios = require('axios');
 
 
@@ -293,7 +293,7 @@ class ConnectWindow extends AbstractWindow {
 
     ipc.on('get-extension', async(event) => {
 
-      if(extensions.getExtension()!=1 && extensions.getExtension()!=2 && extensions.getExtension()!=3){
+      if(extensions.getExtension()!=1 && extensions.getExtension()!=2 && extensions.getExtension()!=3&& extensions.getExtension()!=4&& extensions.getExtension()!=5){
         this.window.hide()
         await new Promise(resolve => setTimeout(resolve, 200));
         const MasterWindow = require('./master')
@@ -305,6 +305,12 @@ class ConnectWindow extends AbstractWindow {
         wifi: extensions.getExtension(),
       }
     });
+
+    ipc.handle('set-using-port', (event, port) => {
+      console.log('setusingport',port)
+      setUsingPort(port)
+      
+    })
 
     this.window.on('show', () => {
       console.log('aaa');
@@ -322,6 +328,7 @@ class ConnectWindow extends AbstractWindow {
       console.log('ConnectWindow is about to close');
       // 可在这里做清理工作，比如断开socket连接、保存状态等
       isClosed=true
+      this.window.webContents.send('clear-qrcode', true)
       this.window.hide()
       if(getSocket()){
         getSocket().send(JSON.stringify({
@@ -397,6 +404,7 @@ class ConnectWindow extends AbstractWindow {
           
     setInterval(()=>{
       getCurrentSSID((err, ssid) => {
+        console.log(ssid,currentWifi.getWifi())
         if (err) {
           console.error('Error:', err);
         } else if (currentWifi.getWifi() && ssid !== currentWifi.getWifi()) {
@@ -412,6 +420,12 @@ class ConnectWindow extends AbstractWindow {
               data: { message: false }
             }))
           }
+          dialog.showMessageBox({
+              type: 'info',
+              title: 'wifi',
+              message: `${translate('connect-device.offline')}`,
+              buttons: [`${translate('index.confirm')}`]
+          });
         } else {
           // console.log('Connected to target SSID');
         }
@@ -798,7 +812,7 @@ class ConnectWindow extends AbstractWindow {
         console.log('*****************');
         
   
-        fetch('http://localhost:3000/save-data', {
+        fetch('http://localhost:38127/save-data', {
           method: 'POST',
           headers: {
             'Content-Type': 'text/plain'
@@ -814,7 +828,7 @@ class ConnectWindow extends AbstractWindow {
   
   
   
-      fetch('http://localhost:3000/read-data')
+      fetch('http://localhost:38127/read-data')
         .then(res => res.json())
         .then(data => {
           const ssid = data.ssid;
@@ -1872,7 +1886,7 @@ class ConnectWindow extends AbstractWindow {
         // console.log(PORTS)
 
         try {
-          PORTS=[]
+          // PORTS=[]
           const ports = await SerialPort.list();  // ✅ 直接使用 await 获取结果
           // ports.forEach(port => {
           //   console.log(port.path);

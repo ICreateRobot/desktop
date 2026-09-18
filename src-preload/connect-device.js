@@ -85,6 +85,8 @@ contextBridge.exposeInMainWorld('connect', {
 
     onDevices: (fn) => ipcRenderer.on('bluetooth-device-list', (_, d) => fn(d)),
     select: (id) => ipcRenderer.send('bluetooth-select', id),
-    bleConnected: (flag) => ipcRenderer.send('ble-isconnect', flag)
+    bleConnected: (flag) => ipcRenderer.send('ble-isconnect', flag),
+    setUsingPort:(port) => ipcRenderer.invoke('set-using-port', port),
 
+    clearQrCode: (callback) => ipcRenderer.on('clear-qrcode', (event, arg) => callback(arg)),
 });
