@@ -1,4 +1,4 @@
-let closeBn=[false,false,false]
+let closeBn=[false,false,false,false,false]
 
 function setCloseBn(a){
     for(let i=0;i<a.length;i++){
