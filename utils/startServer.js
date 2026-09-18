@@ -12,7 +12,7 @@ function startServer(express,Bottleneck,path,fs,bodyParser,cors,app,timeout){
   });
 
   // 配置端口
-  const port = 3000;
+  const port = 38127;
 
   // 指定文件路径
   // const filePath = 'node_modules/scratch-vm/src/extensions/scratch3_hello_world/index.js';
@@ -190,6 +190,33 @@ function startServer(express,Bottleneck,path,fs,bodyParser,cors,app,timeout){
   server.get('/get-ble', limiter.wrap((req, res) => {
     res.status(200).send(isConnectBle || ''); 
   }));
+
+  server.get('/check-location', async (req, res) => {
+      try {
+
+          // 调用 IP 地理位置 API
+          const geoRes = await fetch(`http://ip-api.com/json`);
+          const geoData = await geoRes.json();
+
+          // 判断国内或国外
+          let location = 'foreign';
+          if (geoData.country === 'China') {
+              location = 'domestic';
+          }
+
+          // 返回 JSON
+          res.json({
+              success: true,
+              location,   // domestic 或 foreign
+              country: geoData.country
+          });
+
+      } catch (err) {
+          console.error(err);
+          res.status(500).json({ success: false, message: '获取地理位置失败' });
+      }
+  });
+
 
   // 启动服务器
   server.listen(port, () => {
