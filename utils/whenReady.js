@@ -659,7 +659,7 @@ process.on('SIGINT', () => {
   await checkAndApplyCameraAccess();
 
   // WebSocket 连接
-  websocketConnect(setSocket, Current, getPort, setBricksSocket, setBricksMotor, WebSocket);
+  websocketConnect(setSocket, getPort, setBricksSocket, setBricksMotor, WebSocket);
 
   // 定时检测窗口状态
   setInterval(() => {
@@ -749,55 +749,164 @@ process.on('SIGINT', () => {
   setInterval(checkOnline, interval);
 
   // 自动更新封装
-  function safeCheckForUpdates() {
-    return autoUpdater.checkForUpdates().catch((err) => {
-      console.warn('自动更新检查失败:', err.message);
-      return null;
-    });
-  }
+  // function safeCheckForUpdates() {
+  //   return autoUpdater.checkForUpdates().catch((err) => {
+  //     console.warn('自动更新检查失败:', err.message);
+  //     return null;
+  //   });
+  // }
 
-  function setupAutoUpdater() {
-    autoUpdater.autoInstallOnAppQuit = false;
+  // function setupAutoUpdater() {
+  //   autoUpdater.autoInstallOnAppQuit = false;
 
-    autoUpdater.on('update-downloaded', () => {
-      const hiddenWin = new BrowserWindow({
-        show: false,
-        webPreferences: { nodeIntegration: true }
-      });
+  //   autoUpdater.on('update-downloaded', () => {
+  //     const hiddenWin = new BrowserWindow({
+  //       show: false,
+  //       webPreferences: { nodeIntegration: true }
+  //     });
 
-      const choice = dialog.showMessageBoxSync(hiddenWin, {
-        type: 'question',
-        buttons: ['立即重启', '以后'],
-        title: '可更新',
-        message: '最新版本已就绪，是否立即更新?'
-      });
+  //     const choice = dialog.showMessageBoxSync(hiddenWin, {
+  //       type: 'question',
+  //       buttons: ['立即重启', '以后'],
+  //       title: '可更新',
+  //       message: '最新版本已就绪，是否立即更新?'
+  //     });
 
-      hiddenWin.destroy();
+  //     hiddenWin.destroy();
 
-      if (choice === 0) {
-        autoUpdater.quitAndInstall();
-      }
-    });
+  //     if (choice === 0) {
+  //       autoUpdater.quitAndInstall();
+  //     }
+  //   });
 
-    autoUpdater.on('error', (err) => {
-      console.warn('autoUpdater error:', err.message);
-    });
+  //   autoUpdater.on('error', (err) => {
+  //     console.warn('autoUpdater error:', err.message);
+  //   });
 
-    process.on('uncaughtException', (e) => {
-      console.warn('未捕获异常:', e.message);
-    });
+  //   process.on('uncaughtException', (e) => {
+  //     console.warn('未捕获异常:', e.message);
+  //   });
 
-    process.on('unhandledRejection', (reason) => {
-      console.warn('未处理拒绝:', reason?.message || reason);
-    });
+  //   process.on('unhandledRejection', (reason) => {
+  //     console.warn('未处理拒绝:', reason?.message || reason);
+  //   });
 
-    safeCheckForUpdates();
-  }
+  //   safeCheckForUpdates();
+  // }
 
-  // 延迟 3 秒进行更新检查
-  setTimeout(() => {
-    setupAutoUpdater();
-  }, 3000);
+  // // 延迟 3 秒进行更新检查
+  // setTimeout(() => {
+  //   setupAutoUpdater();
+  // }, 3000);
+  // function safeCheckForUpdates() {
+  //   return autoUpdater.checkForUpdates().catch((err) => {
+  //     console.warn('自动更新检查失败:', err.message);
+  //     return null;
+  //   });
+  // }
+  
+  // function setupAutoUpdater() {
+  //   // 不要在退出 App 时自动安装
+  //   autoUpdater.autoInstallOnAppQuit = false;
+  
+  //   // 如果希望发现更新后自动开始下载，可以保持 true
+  //   autoUpdater.autoDownload = true;
+  
+  //   // 正在检查更新
+  //   autoUpdater.on('checking-for-update', () => {
+  //     console.log('[AutoUpdater] 正在检查更新...');
+  //   });
+  
+  //   // 没有新版本
+  //   autoUpdater.on('update-not-available', (info) => {
+  //     console.log(
+  //       '[AutoUpdater] 当前已经是最新版本:',
+  //       info.version
+  //     );
+  //   });
+  
+  //   // 发现新版本
+  //   autoUpdater.on('update-available', (info) => {
+  //     console.log(
+  //       '[AutoUpdater] 发现新版本:',
+  //       info.version
+  //     );
+  //   });
+  
+  //   // 下载进度
+  //   autoUpdater.on('download-progress', (progress) => {
+  //     console.log(
+  //       `[AutoUpdater] 下载进度: ${progress.percent.toFixed(2)}%`,
+  //       `速度: ${progress.bytesPerSecond} bytes/s`,
+  //       `已下载: ${progress.transferred}`,
+  //       `总大小: ${progress.total}`
+  //     );
+  //   });
+  
+  //   // 下载完成
+  //   autoUpdater.on('update-downloaded', (info) => {
+  //     console.log(
+  //       '[AutoUpdater] 更新下载完成:',
+  //       info.version
+  //     );
+  
+  //     const hiddenWin = new BrowserWindow({
+  //       show: false,
+  //       webPreferences: {
+  //         nodeIntegration: true
+  //       }
+  //     });
+  
+  //     const choice = dialog.showMessageBoxSync(hiddenWin, {
+  //       type: 'question',
+  //       buttons: ['立即重启', '以后'],
+  //       defaultId: 0,
+  //       cancelId: 1,
+  //       title: '可更新',
+  //       message: `最新版本 ${info.version} 已下载完成，是否立即更新？`
+  //     });
+  
+  //     hiddenWin.destroy();
+  
+  //     if (choice === 0) {
+  //       autoUpdater.quitAndInstall();
+  //     }
+  //   });
+  
+  //   // 更新错误
+  //   autoUpdater.on('error', (err) => {
+  //     console.warn(
+  //       '[AutoUpdater] 更新失败:',
+  //       err.message
+  //     );
+  //   });
+  
+  //   process.on('uncaughtException', (e) => {
+  //     console.warn(
+  //       '未捕获异常:',
+  //       e.message
+  //     );
+  //   });
+  
+  //   process.on('unhandledRejection', (reason) => {
+  //     console.warn(
+  //       '未处理拒绝:',
+  //       reason?.message || reason
+  //     );
+  //   });
+  
+  //   safeCheckForUpdates();
+  // }
+  
+  // // 延迟 3 秒检查
+  // setTimeout(() => {
+  //   setupAutoUpdater();
+  // }, 3000);
+  //下面的内容放入到package.json的build里面
+  // "publish": {
+  //   "provider": "generic",
+  //   "url": "https://arkt-advert.oss-cn-beijing.aliyuncs.com/icreatecode-update/win/"
+  // }
 }
 
 async function checkAndApplyCameraAccess(){
