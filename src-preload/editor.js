@@ -33,6 +33,8 @@ contextBridge.exposeInMainWorld('EditorPreload', {
   SerialDownload: (code) => ipcRenderer.invoke('serial-download',code),
   cancelload: () => ipcRenderer.invoke('cancelload'),
   robotVersion: (version) => ipcRenderer.invoke('robot-version',version),
+  sendArduinoFlash: (callback) => ipcRenderer.on('send-arduino-flash', (event, flash) => callback(flash)),
+  sendArduinoLibLogs: (callback) => ipcRenderer.on('send-arduino-library-log', (event, logs) => callback(logs)),
 
 
   disConnectWifi: (isDis) => ipcRenderer.invoke('disconnect-wifi',isDis),
@@ -59,6 +61,8 @@ contextBridge.exposeInMainWorld('EditorPreload', {
    sendCommandToDevice: (command) => ipcRenderer.invoke('usb-send-command', command),
    
    downloadCode: (code) => ipcRenderer.invoke('usb-download-flash',code),
+   flashArduino:(code,boardType) => ipcRenderer.invoke('flash-arduino', {code,boardType}),
+   downloadLib:(lib,action) => ipcRenderer.invoke('download-lib', {lib,action}),
    // 添加REPL数据接收监听
    onReplData: (callback) => {
      ipcRenderer.on('repl-data-received', (event, data) => {
