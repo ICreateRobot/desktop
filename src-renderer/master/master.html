@@ -218,6 +218,16 @@
                       
                   </div>
               </td>
+
+              <td>
+                <div id="content6" onclick="select(6)" class="cell-content">
+                    <p id="p_master">IC2007</p>
+                    <div class="overlay" id="overlay6"></div>
+                    <div id="close6" class="close-btn" onclick="closeButton(6,event)">-</div>
+                    <img id="img6" draggable="false" src="./images/ic2007.png" alt="图片6" width="100%">
+                    
+                </div>
+            </td>
             </tr>
         </table>
         
@@ -227,7 +237,7 @@
         let locale=master.getTranslate().locale
         let strings=master.getTranslate().strings
         
-        let closeBn=[false,false,false,false,false]
+        let closeBn=[false,false,false,false,false,false]
 
         let getClose=master.getCloseBn()
         console.log(getClose.close)

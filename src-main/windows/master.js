@@ -106,7 +106,7 @@ class MasterWindow extends AbstractWindow {
   getDimensions () {
     return {
       width: 600,
-      height: 500
+      height: 520
     };
   }
 

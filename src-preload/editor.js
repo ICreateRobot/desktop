@@ -63,6 +63,17 @@ contextBridge.exposeInMainWorld('EditorPreload', {
    downloadCode: (code) => ipcRenderer.invoke('usb-download-flash',code),
    flashArduino:(code,boardType) => ipcRenderer.invoke('flash-arduino', {code,boardType}),
    downloadLib:(lib,action) => ipcRenderer.invoke('download-lib', {lib,action}),
+   bleSendIC2007: (code) => ipcRenderer.invoke('ble-send-ic2007',code),
+
+   sendIC2007Result: (callback) => {
+      ipcRenderer.on('send-ic2007-result', (event, code) => {
+          callback(code);
+      });
+  },
+
+  bleDownloadIC2007: (code) => ipcRenderer.invoke('ble-download-ic2007',code),
+
+  sendapikey: (key) => ipcRenderer.invoke('send-api-key',key),
    // 添加REPL数据接收监听
    onReplData: (callback) => {
      ipcRenderer.on('repl-data-received', (event, data) => {
