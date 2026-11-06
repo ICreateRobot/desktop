@@ -293,7 +293,7 @@ class ConnectWindow extends AbstractWindow {
 
     ipc.on('get-extension', async(event) => {
 
-      if(extensions.getExtension()!=1 && extensions.getExtension()!=2 && extensions.getExtension()!=3&& extensions.getExtension()!=4&& extensions.getExtension()!=5){
+      if(extensions.getExtension()!=1 && extensions.getExtension()!=2 && extensions.getExtension()!=3&& extensions.getExtension()!=4&& extensions.getExtension()!=5&& extensions.getExtension()!=6){
         this.window.hide()
         await new Promise(resolve => setTimeout(resolve, 200));
         const MasterWindow = require('./master')
@@ -930,8 +930,21 @@ class ConnectWindow extends AbstractWindow {
   
         
       })
-  
-  
+
+      ipc.handle('set-ic2007-code', (event, code) => {
+        console.log('main process return',code)
+        const EditorWindow = require('./editor');
+
+        const editorWindows = EditorWindow.getWindowsByClass(EditorWindow);
+    
+        if (editorWindows.length > 0) {
+            editorWindows[0].window.webContents.send(
+                'send-ic2007-result',
+                code
+            );
+        }
+        
+      })
       this.window.webContents.send('what-extension', extensions.getExtension())
       setInterval(()=>{
         // console.log('sendExtension')

@@ -89,4 +89,18 @@ contextBridge.exposeInMainWorld('connect', {
     setUsingPort:(port) => ipcRenderer.invoke('set-using-port', port),
 
     clearQrCode: (callback) => ipcRenderer.on('clear-qrcode', (event, arg) => callback(arg)),
+    sendIC2007: (callback) => {
+        ipcRenderer.on('send-ic2007', (event, data) => {
+            callback(data);
+        });
+    },
+    setic2007code:(code) => ipcRenderer.invoke('set-ic2007-code', code),
+
+    downloadIC2007: (callback) => {
+        ipcRenderer.on('download-ic2007', (event, data) => {
+            callback(data);
+        });
+    },
+
+    
 });

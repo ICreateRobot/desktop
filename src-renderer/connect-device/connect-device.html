@@ -572,6 +572,17 @@
             document.getElementById('tipSta').style.visibility = 'hidden';
 
             
+          }else if(extension.wifi==6){
+            // tabEnabledMap.serial=true
+            tabEnabledMap.bluetooth=true
+            tabEnabledMap.wifi=false
+            tabEnabledMap.qr=false
+            tabEnabledMap.serial=false
+
+            document.getElementById('tipBle').style.visibility = 'hidden';
+            document.getElementById('tipAp').style.visibility = 'hidden';
+            document.getElementById('tipSta').style.visibility = 'hidden';
+
           }
           let wifiIntervalId = null;
           let offlineHandler = null;
@@ -1147,12 +1158,20 @@
           let characteristicReadRobot
           let characteristicReadSensorRobot
 
+          //microbit对应变量
           let deviceMicrobit
           let serverMicrobit
           let serviceMicrobit
           let characteristicWriteMicrobit
           let characteristicReadMicrobit
 
+          //ic2007对应变量
+          let deviceIC
+          let serverIC
+          let serviceIC
+          let characteristicWriteIC
+          let characteristicWriteStopIC
+          let characteristicReadIC
           
           let lanyaMsg=[]
           let lanyaStrMsg=''
@@ -1195,6 +1214,19 @@
 
               // 推入队列，由全局监听处理
               responseQueue.push({ resolve, reject, timer });
+            });
+          }
+
+          function createPromiseForIC(timeoutMs = 10000) {
+            return new Promise((resolve, reject) => {
+              const timer = setTimeout(() => {
+                // 超时处理
+                responseQueueIC = responseQueueIC.filter(item => item.resolve !== resolve);
+                reject(new Error(`等待超时（>${timeoutMs}ms 未收到数据）`));
+              }, timeoutMs);
+
+              // 推入队列，由全局监听处理
+              responseQueueIC.push({ resolve, reject, timer });
             });
           }
 
@@ -1593,6 +1625,28 @@
           
             return writeQueue;
           }
+
+          let writeQueueIC = Promise.resolve();
+
+          function safeWriteIC(characteristic, buffer, timeoutMs = 10000) {
+
+            writeQueueIC = writeQueueIC.then(async () => {
+              // 先创建一个等待响应的 Promise
+              const responsePromise = createPromiseForIC(timeoutMs);
+          
+              // 再发送
+              await characteristic.writeValue(buffer);
+          
+              // 等待本次发送对应的返回
+              return await responsePromise;
+          
+            }).catch(err => {
+              console.error("写入或等待失败:", err);
+              //throw err;
+            });
+          
+            return writeQueueIC;
+          }
             connect.sendMotor(async (motor)=>{
             
               // console.log(motor)
@@ -1659,6 +1713,103 @@
           
           })
 
+          connect.sendIC2007(async ( code ) => {
+            console.log('发送一次数据')
+              let data = JSON.parse(code); // 假设 data 是普通数组，例如 [0x11,0x22,0x33]
+              console.log(data)
+
+              // 转成 Uint8Array
+              const raw = new Uint8Array(data);
+
+              // 计算 CRC16
+              let crc = crc16(raw);
+
+              // 新建数组，长度 = 原始数据 + 2
+              let packet = new Uint8Array(raw.length + 2);
+              packet.set(raw, 0);
+              packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
+              packet[raw.length + 1] = crc & 0xFF;     // 低字节
+              console.log(packet)
+
+              // const promise1 = createPromiseForRobot();
+              // await characteristicWriteRobot.writeValue(packet.buffer)
+
+
+              // 判断是否等于 [0xCC, 0x03]
+              const isCC03 =
+              data.length === 2 &&
+              data[0] === 0xCC &&
+              data[1] === 0x03;
+
+              const hasOtherWriteChar =
+                characteristicWriteStopIC &&
+                typeof characteristicWriteStopIC.writeValue === 'function';
+
+              const writeChar =
+                isCC03 && hasOtherWriteChar
+                  ? characteristicWriteStopIC
+                  : characteristicWriteIC;
+              console.log(isCC03)
+              console.log(hasOtherWriteChar)
+              console.log(writeChar)
+              if(hasOtherWriteChar && isCC03){
+                characteristicWriteStopIC.writeValue(packet.buffer)
+              }else{
+                await safeWriteIC(characteristicWriteIC, packet.buffer);
+              }
+          });
+
+          connect.downloadIC2007(async ( code ) => {
+            try{
+              console.log('开始下载代码',code)
+              // startMsg
+              console.log(code.length)
+              let startRaw = new Uint8Array([0xbb, 0x01, toTwoDigitHexadecimalPair(code.length)[0],toTwoDigitHexadecimalPair(code.length)[1]]);
+              let crcStart = crc16(startRaw);
+              let startMsg = new Uint8Array(startRaw.length + 2);
+              startMsg.set(startRaw, 0);
+              startMsg[startRaw.length] = (crcStart >> 8) & 0xFF; // 高字节
+              startMsg[startRaw.length + 1] = crcStart & 0xFF;    // 低字节
+
+              // endMsg
+              let endRaw = new Uint8Array([0xbb, 0x02]);
+              let crcEnd = crc16(endRaw);
+              let endMsg = new Uint8Array(endRaw.length + 2);
+              endMsg.set(endRaw, 0);
+              endMsg[endRaw.length] = (crcEnd >> 8) & 0xFF;
+              endMsg[endRaw.length + 1] = crcEnd & 0xFF;
+
+              let codeBin=stringToBinary(code)
+              // let crcCode = crc16(codeBin)
+              // let codeCrcMsg = new Uint8Array(codeBin.length+2)
+              // codeCrcMsg.set(codeBin,0)
+              // codeCrcMsg[codeBin.length] = (crcCode >> 8) & 0xFF
+              // codeCrcMsg[codeBin.length+1] = crcCode & 0xFF
+
+              let codeMsg=splitUint8Array(codeBin)
+              console.log(startMsg)
+              console.log(endMsg)
+              console.log(codeMsg)
+              const promise1 = createPromiseForIC(); // 先创建 Promise 并加入队列
+              await characteristicWriteIC.writeValue(startMsg)
+              await promise1
+              console.log('开始指令发送完成')
+              for(let i=0;i<codeMsg.length;i++){
+                const promise2 = createPromiseForIC(); // 先创建 Promise 并加入队列
+                await characteristicWriteIC.writeValue(codeMsg[i])
+                console.log('发送了代码')
+                await promise2
+                console.log('代码发送完成')
+              }
+              const promise3 = createPromiseForIC(); // 先创建 Promise 并加入队列
+              await characteristicWriteIC.writeValue(endMsg)
+              await promise3
+              connect.setIsDownLoad(true)
+            }catch(e){
+              console.log(e)
+            }
+          })
+
           connect.clearQrCode(async (arg)=>{
             document.getElementById('qrContainer').style.display = "none";
           })
@@ -1710,6 +1861,16 @@
               document.getElementById('tipBle').style.visibility = 'hidden';
               document.getElementById('tipAp').style.visibility = 'hidden';
               document.getElementById('tipSta').style.visibility = 'hidden';
+            }else if(extension==6){
+              // tabEnabledMap.serial=true
+              tabEnabledMap.bluetooth=true
+               tabEnabledMap.wifi=false
+              tabEnabledMap.qr=false
+              tabEnabledMap.serial=false
+                document.getElementById('tipBle').style.visibility = 'hidden';
+                document.getElementById('tipAp').style.visibility = 'hidden';
+                document.getElementById('tipSta').style.visibility = 'hidden';
+
             }
 
              
@@ -1729,6 +1890,12 @@
               }else if(deviceMicrobit){
                 connect.sendIsConnect(true)
                 deviceMicrobit.gatt.disconnect()
+                document.getElementById('device-name').innerText=''
+                testIt()
+              }
+              else if(deviceIC){
+                connect.sendIsConnect(true)
+                deviceIC.gatt.disconnect()
                 document.getElementById('device-name').innerText=''
                 testIt()
               }
@@ -2154,18 +2321,126 @@
                 
                 
               }else if(currentExtension==3){
-              }
-              //  deviceRobot = await navigator.bluetooth.requestDevice({
-              //       filters: [{ services: ['0000fff0-0000-1000-8000-00805f9b34fb'] }],
-              //       optionalServices: ['00001800-0000-1000-8000-00805f9b34fb', '0000fff0-0000-1000-8000-00805f9b34fb']
-              //     }).catch(e=>{
-              //       console.log(e);
-                    
-              //     })
+              }else if(currentExtension == 6){//ic2007
+                const available = await navigator.bluetooth.getAvailability();
+                console.log(available)
+                try{
+                  if(!deviceIC || !deviceIC.gatt.connected){
+                    deviceIC = await navigator.bluetooth.requestDevice({
+                      filters: [{ services: ['0000fff0-ff4c-4b95-99cb-506d025b3a97'] }],
+                      optionalServices: ['0000fff0-ff4c-4b95-99cb-506d025b3a97']
+                      // acceptAllDevices:true
+                    }).catch(e=>{
+                      console.log(e);
+                      
+                    })
 
-              //   if (!deviceRobot.gatt.connected) {
-              //     serverRobot = await deviceRobot.gatt.connect();
-              //   }
+                    console.log('开始');
+                    
+                    // serverRobot = await deviceRobot.gatt.connect();
+                    if (!deviceIC.gatt.connected) {
+                      serverIC = await deviceIC.gatt.connect();
+                    }
+                    console.log('结束');
+                    
+
+                    
+                    //1551BBE8-2765-11EE-BE56-0242AC120002
+                    //1551bbe8-2765-11ee-be56-0242ac120002
+                    console.log(serverIC)
+                    console.log(serverIC.connected)
+                    try{
+                      console.log(serverIC.connected)
+                      serviceIC = await serverIC.getPrimaryService('0000fff0-ff4c-4b95-99cb-506d025b3a97');
+                      console.log('-------------------')
+                      try{
+                        characteristicWriteIC = await serviceIC.getCharacteristic('0000fff1-ff4c-4b95-99cb-506d025b3a97');
+                      }catch(e){
+                        console.log(e)
+                      }
+
+                      try{
+                        characteristicWriteStopIC=await serviceIC.getCharacteristic('0000fff3-ff4c-4b95-99cb-506d025b3a97');
+                      }catch(e){
+                        console.log(e)
+                      }
+                      //characteristicWriteRobot = await serviceRobot.getCharacteristic('0000fff4-0000-1000-8000-00805f9b34fb');
+                      characteristicReadIC = await serviceIC.getCharacteristic('0000fff2-ff4c-4b95-99cb-506d025b3a97');
+                      // characteristicReadSensorRobot=await serviceRobot.getCharacteristic('0000fff3-0000-1000-8000-00805f9b34fb');
+                      deviceIC.addEventListener('gattserverdisconnected', onDisconnected);
+                      await characteristicReadIC.startNotifications()
+                      // await characteristicReadSensorRobot.startNotifications()
+
+                      characteristicReadIC.addEventListener('characteristicvaluechanged',globalEventListenerIC)
+                      
+                    
+
+                      // console.log(window.bleAPI.getCurrentMode())
+                      // 转成 Uint8Array
+                      let raw;
+                      if(!connect.getCurrentMode()){
+                        raw = new Uint8Array([0xcc,0x01]);
+                      }else{
+                        raw = new Uint8Array([0xcc,0x02]);
+                      }
+
+                      // 计算 CRC16
+                      let crc = crc16(raw);
+
+                      // 新建数组，长度 = 原始数据 + 2
+                      let packet = new Uint8Array(raw.length + 2);
+                      packet.set(raw, 0);
+                      packet[raw.length] = (crc >> 8) & 0xFF;  // 高字节
+                      packet[raw.length + 1] = crc & 0xFF;     // 低字节
+                      console.log(packet)
+
+                      await characteristicWriteIC.writeValue(packet.buffer)
+
+                      connect.bleConnected(true)
+                      console.log(deviceIC.name)
+                      
+                      // document.getElementById(deviceRobot.name).remove()
+                      document.getElementById('device-name').innerHTML = deviceIC.name || `ID: ${deviceIC.id}`
+
+                      if(serverIC){
+                        fetch('http://localhost:38127/set-ble', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'text/plain'
+                          },
+                          body: '0'
+                        })
+                        .then(response => response.text())
+                        .then(data => {
+                          console.log('服务器响应:', data);
+                        })
+                        .catch(error => {
+                          console.error('错误:', error);
+                        });
+                      }
+
+                    }catch(err){
+                      console.log(err)
+                      // alert('蓝牙连接异常断开，请重新连接')
+                      if(String(err).includes('NetworkError')){
+                        alert(strings['ble-connect.catchDisConnect'])
+                        connect.sendIsConnect(true)
+                        deviceIC.gatt.disconnect()
+                        // deviceRobot=null
+                      }
+                      
+                    }
+                  }else{
+                    alert(strings['ble-connect.disConnectFirst'])
+                  }
+                }catch(e){
+                  console.log(e)
+                  if(e=='NetworkError: Connection Error: Connection attempt failed.'){
+                    alert(strings['connect-device.reScan'])
+                  }
+                }
+              }
+
               
             }
 
@@ -2204,6 +2479,112 @@
               }
             }
 
+
+            let responseQueueIC = []; // 等待响应的队列
+
+            // IC2007全局监听器
+            function globalEventListenerIC(event) {
+              const value = event.target.value;
+              const arr = new Uint8Array(value.buffer);
+
+              console.log("收到数据:", arr);
+
+              // =========================================================
+              // 1. 先将完整的蓝牙数据发送出去
+              // =========================================================
+              if (connect && typeof connect.setic2007code === "function") {
+                connect.setic2007code(arr);
+              }
+
+              // =========================================================
+              // 2. 没有数据，直接结束
+              // =========================================================
+              if (arr.length === 0) {
+                return;
+              }
+
+              const state1 = arr[0];
+
+
+              // =========================================================
+              // 4. 没有等待中的请求，不处理 responseQueueIC
+              // =========================================================
+              if (responseQueueIC.length === 0) {
+                return;
+              }
+
+              // =========================================================
+              // 5. 返回数据至少需要两个字节
+              // =========================================================
+              if (arr.length < 2) {
+                console.warn("⚠️ IC2007返回数据长度不足:", arr);
+                return;
+              }
+
+              const state = arr[0];
+              const result = arr[1];
+
+              console.log(
+                "IC2007响应:",
+                "状态码 =", `0x${state.toString(16).padStart(2, "0")}`,
+                "结果 =", result
+              );
+
+              // =========================================================
+              // 6. 取出当前等待中的请求
+              // =========================================================
+              const { resolve, reject } = responseQueueIC.shift();
+
+              // =========================================================
+              // 7. 0xEE：执行指令结果
+              //
+              // 第二字节：
+              // 1 = 成功
+              // 2 = 失败
+              // 3 = 超时
+              // =========================================================
+              if (state === 0xEE) {
+                if (result == 0) {
+                  console.log("✅ IC2007指令执行成功");
+                  resolve(true);
+                } else if (result == 1) {
+                  console.log("❌ IC2007指令执行失败");
+                  reject(new Error("IC2007指令执行失败"));
+                } else if (result == 2) {
+                  console.log("⏱️ IC2007指令执行超时");
+                  reject(new Error("IC2007指令执行超时"));
+                } else {
+                  console.warn("⚠️ IC2007收到未知的0xEE结果码:", result);
+                  reject(new Error(`IC2007未知执行结果码: ${result}`));
+                }
+
+                return;
+              }
+
+              // =========================================================
+              // 8. 0xEF：只要第二字节存在，就认为成功
+              // =========================================================
+              if (state === 0xEF) {
+                console.log("✅ IC2007收到0xEF响应，执行成功:", result);
+                resolve(true);
+                return;
+              }
+
+              // =========================================================
+              // 9. 未知的响应类型
+              // =========================================================
+              console.warn(
+                "⚠️ IC2007收到未知响应:",
+                arr
+              );
+
+              reject(
+                new Error(
+                  `IC2007未知响应类型: 0x${state.toString(16).padStart(2, "0")}`
+                )
+              );
+            }
+
           // function cancelRequest () {
           //   connect.cancelBluetoothRequest()
           // }
@@ -2223,6 +2604,11 @@
             }else if(deviceMicrobit){
               connect.sendIsConnect(true)
               deviceMicrobit.gatt.disconnect()
+              document.getElementById('device-name').innerText=''
+              testIt()
+            }else if(deviceIC){
+              connect.sendIsConnect(true)
+              deviceIC.gatt.disconnect()
               document.getElementById('device-name').innerText=''
               testIt()
             }
