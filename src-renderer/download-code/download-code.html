@@ -1559,7 +1559,7 @@ document.getElementById('customFlashBtn').onclick = async () => {
       
         if (type === 'stand') {
           localOpt.textContent =
-            t.strings['download-code.localFirmware'] + '(1.1.1)';
+            t.strings['download-code.localFirmware'] + '(2.2.8)';
         } else {
           localOpt.textContent =
             t.strings['download-code.localFirmware'] + '(1.0.0)';
@@ -1655,7 +1655,8 @@ document.getElementById('customFlashBtn').onclick = async () => {
             res = await window.electronAPI.getFolderCommits(type, meta.folder);
           }
           const lang =
-          t.locale.startsWith('zh') ? 'zh' : 'en';
+          t.locale.startsWith('zh') ? 'zh' : t.locale;
+          console.log(lang)
           const info = res?.data?.[0];
     
           console.log(info)
@@ -1672,8 +1673,8 @@ document.getElementById('customFlashBtn').onclick = async () => {
     
           const description =
             info.description?.[lang] ||
-            info.description?.zh ||
             info.description?.en ||
+            info.description?.zh ||
             '';
     
           //const msg = res?.data?.[0]?.message || '';
@@ -1885,8 +1886,9 @@ document.getElementById('customFlashBtn').onclick = async () => {
         // 当前语言
     
         const lang =
-          t.locale.startsWith('zh') ? 'zh' : 'en';
+          t.locale.startsWith('zh') ? 'zh' : t.locale;
     
+          console.log(lang)
         for (const type in map) {
     
           const {
@@ -1923,8 +1925,8 @@ document.getElementById('customFlashBtn').onclick = async () => {
     
           const description =
             info.description?.[lang] ||
-            info.description?.zh ||
             info.description?.en ||
+            info.description?.zh ||
             '';
     
           commitEl.innerText =
