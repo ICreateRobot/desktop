@@ -156,6 +156,7 @@ async function detectPoseInRealTime(md,v,c) {
 //    }
     // console.log(hands)
     if (hands.length > 0) {
+        
         hands.forEach(hand => {
             POSE = hand;
             ctx.clearRect(0, 0, canvas.width, canvas.height);  // 清空画布
@@ -176,16 +177,26 @@ async function detectPoseInRealTime(md,v,c) {
             const canvasHeight = canvas.height;
 
             // 缩放比例，基于视频流和画布大小适配
-            const scaleX = canvasWidth / videoWidth;
-            const scaleY = canvasHeight / videoHeight;
+            // const scaleX = canvasWidth / videoWidth;
+            // const scaleY = canvasHeight / videoHeight;
+            const scaleX = canvasWidth / v.width;
+            const scaleY = canvasHeight / v.height;
 
             // 画出手部关键点
             hand.keypoints.forEach((point, index) => {
                  // 跳过每个手指的第二个关键点 (i*4 + 1)
                  if (index % 4 === 3) return;  // 跳过手指的第二个关键点
                 // 缩放坐标
-                const adjustedX = point.x 
-                const adjustedY = point.y 
+                let adjustedX
+                let adjustedY
+                if(whatCamera=='local'){
+                    adjustedX = point.x 
+                    adjustedY = point.y 
+                }else{
+                    adjustedX = point.x * scaleX
+                    adjustedY = point.y * scaleY
+                }
+                
 
                 // console.log(landmark[0])
                 // console.log(adjustedX)
@@ -212,11 +223,24 @@ async function detectPoseInRealTime(md,v,c) {
                 const start = hand.keypoints[startIdx];
                 const end = hand.keypoints[endIdx];
 
-                const adjustedStartX = start.x ;
-                const adjustedStartY = start.y ;
-
-                const adjustedEndX = end.x ;
-                const adjustedEndY = end.y ;
+                let adjustedStartX
+                let adjustedStartY
+                let adjustedEndX
+                let adjustedEndY
+                if(whatCamera=='local'){
+                    adjustedStartX = start.x;
+                    adjustedStartY = start.y;
+    
+                    adjustedEndX = end.x;
+                    adjustedEndY = end.y;
+                }else{
+                    adjustedStartX = start.x*scaleX;
+                    adjustedStartY = start.y*scaleY;
+    
+                    adjustedEndX = end.x*scaleX;
+                    adjustedEndY = end.y*scaleY;
+                }
+                
 
                 ctx.beginPath();
                 ctx.moveTo(adjustedStartX, adjustedStartY);
