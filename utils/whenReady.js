@@ -48,6 +48,7 @@ const {setCurrent,getCurrent} = require('./whatConnectFun')
 const {translate} = require('../src-main/l10n');
 
 const {getVersion,setVersion} = require('./currentVersion')
+const {setKey,getKey} = require('./deepseekKey')
 
 const blocklySystemPrompt = require('./prompts.js')
 
@@ -239,7 +240,7 @@ function detectIsChina() {
     win.webContents.on('console-message', (_, __, message) => {
       if (message.startsWith('__REGION_RESULT__:')) {
         resolved = true;
-        // console.log(message)
+
         const isChina = message.endsWith('CN');
         resolve(isChina);
         win.destroy();
@@ -649,6 +650,175 @@ serverAi.listen(PORT, () => {
   console.log("=".repeat(50) + "\n");
 });
 
+
+const appZeroth = express();
+
+const zerothPort = 3003;
+
+/*
+ * 允许你的 Scratch / Electron 前端
+ * 调用本地代理服务
+ */
+appZeroth.use(cors());
+
+/*
+ * 接收前端发送的 JSON
+ */
+appZeroth.use(express.json({
+    limit: '10mb'
+}));
+
+/*
+ * Joyin API 代理
+ *
+ * 前端：
+ *
+ * POST http://localhost:3001/api/joyin/proxy
+ *
+ * Body:
+ * {
+ *     url,
+ *     method,
+ *     headers,
+ *     body
+ * }
+ *
+ * Node 不参与签名。
+ *
+ * Node 只负责：
+ *
+ * 前端 -> Joyin
+ * Joyin -> 前端
+ */
+appZeroth.post('/api/joyin/proxy', async (req, res) => {
+    try {
+        const {
+            url,
+            method,
+            headers,
+            body
+        } = req.body;
+
+        /*
+         * 检查 URL
+         */
+        if (!url) {
+            return res.status(400).json({
+                success: false,
+                message: '缺少 url'
+            });
+        }
+
+        /*
+         * 检查 Method
+         */
+        if (!method) {
+            return res.status(400).json({
+                success: false,
+                message: '缺少 method'
+            });
+        }
+
+        console.log('========================================');
+        console.log('[Joyin Proxy] Request');
+        console.log('Method:', method);
+        console.log('URL:', url);
+        console.log('Headers:', headers);
+        console.log('Body:', body);
+        console.log('========================================');
+
+        /*
+         * 直接转发给 Joyin
+         *
+         * 注意：
+         *
+         * headers 是前端生成好的
+         *
+         * Node 不修改
+         *
+         * body 也是前端已经处理好的字符串
+         *
+         * Node 不 JSON.stringify()
+         */
+        const response = await fetch(url, {
+            method,
+            headers: headers || {},
+            body:
+                body === null ||
+                body === undefined ||
+                body === ''
+                    ? undefined
+                    : body
+        });
+
+        /*
+         * 读取 Joyin 原始响应
+         */
+        const responseText =
+            await response.text();
+
+        console.log('========================================');
+        console.log('[Joyin Proxy] Response');
+        console.log('Status:', response.status);
+        console.log('Body:', responseText);
+        console.log('========================================');
+
+        /*
+         * 把 Joyin 的 Content-Type 返回给前端
+         */
+        const contentType =
+            response.headers.get('content-type');
+
+        if (contentType) {
+            res.setHeader(
+                'Content-Type',
+                contentType
+            );
+        }
+
+        /*
+         * 保持 Joyin 的 HTTP 状态码
+         */
+        res.status(response.status);
+
+        /*
+         * 原样返回 Joyin 响应
+         */
+        return res.send(responseText);
+
+    } catch (error) {
+        console.error(
+            '[Joyin Proxy] Request failed:',
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: 'Joyin Proxy 请求失败',
+            error: error.message
+        });
+    }
+});
+
+/*
+ * 测试 Node 服务是否正常
+ */
+appZeroth.get('/api/joyin/test', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Joyin Proxy is running'
+    });
+});
+
+/*
+ * 启动服务
+ */
+appZeroth.listen(zerothPort, () => {
+    console.log(
+        `Joyin Proxy running at http://localhost:${zerothPort}`
+    );
+});
+
 // 🎯 添加启动后的提示
 process.on('SIGINT', () => {
   log("🛑", "正在关闭服务器...", "yellow");
@@ -694,7 +864,8 @@ process.on('SIGINT', () => {
           }
         AbstractWindow.getAllWindows().forEach((win) => {
           if (!win.window.isDestroyed()) {
-            win.window.close();
+            // win.window.close();
+            console.log('test')
             win.window.destroy();
           }
         });
