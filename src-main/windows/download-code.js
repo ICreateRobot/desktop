@@ -1193,150 +1193,691 @@ class DownloadCodeWindow extends AbstractWindow {
 
     })
     //自定义烧录逻辑
-    ipc.handle('flash-custom', async (event, port,baudRate,files) =>{
+    // ipc.handle('flash-custom', async (event, port,baudRate,files) =>{
+    //   console.log('--------------------')
+    //   console.log(port)
+    //   console.log(baudRate)
+    //   console.log(files)
+    //   console.log('--------------------')
+    //   const ConnectDevice=require('./connect-device')
+    //   // console.log(ConnectDevice.disconnectPortLogic)
+    //   if(port==getPortCom()){
+    //     await ConnectDevice.disconnectPortLogic()
+    //   }
+    //   this.window.setAlwaysOnTop(false); 
+    //   this.window.blur(); // 让出焦点，主窗口会浮上来
+    //   //  this.window.blur(); // 让出焦点，主窗口会浮上来
+    //   // this.window.hide();
+
+    //   let isError=false
+
+    //   let isTimeout=false
+      
+
+    //   this.canClose = false;
+    //   getSocket().send(JSON.stringify({
+    //       type: 'burnLogs',
+    //       data: {
+    //           message: {
+    //               flashing: true,
+    //               logs: '__MODE_SINGLE__'
+    //           }
+    //       }
+    //   }));
+
+    //   // const args = [
+    //   //     '--chip', 'esp32s3',
+    //   //     '--port', port,
+    //   //     '--baud', '1152000',
+    //   //     '--before', 'default_reset',
+    //   //     '--after', 'hard_reset',
+    //   //     'write_flash',
+    //   //     '--flash_mode', 'dio',
+    //   //     '--flash_size', '32MB',
+    //   //     '--flash_freq', '80m',
+
+    //   //     // 你的两个固件（保持你说的地址）
+    //   //     place? place.first:'0x0', 
+    //   //     filePath? filePath[0].path:commonFilePath,          // 第一个固件
+    //   //     place? place.second:'0x1420000', 
+    //   //     filePath? filePath[1].path:testFirmwareVfs,    // 第二个固件
+    //   //   ];
+    //   const baseArgs = [
+    //     '--chip', 'esp32s3',
+    //     '--port', port,
+    //     '--baud', String(baudRate),
+    //     '--before', 'default_reset',
+    //     '--after', 'no_reset',
+    //     'write_flash',
+    //     '--flash_mode', 'dio',
+    //     '--flash_freq', '80m'
+    //   ];
+    
+    //   const flashArgs = files.flatMap(f => [f.address, f.path]);
+    
+    //   const args = [...baseArgs, ...flashArgs];
+    
+    //   console.log('esptool args:', args);
+    //   const flashProcess = spawn(esptoolPath, args, { encoding: 'utf8' });
+
+    //   flashProcess.stdout.on('data', (data) => {
+    //     console.log(`stdout: ${data}`);
+    //     if(data.includes('A serial exception error occurred:')||data.includes('fatal error')){
+    //       isTimeout=true
+    //       // flashProcess.kill('SIGKILL');
+    //     }
+    //     if(getSocket()){
+    //       // console.log('可能发送了')
+    //       getSocket().send(JSON.stringify({
+    //         type: 'burnLogs',
+    //         data: { message: {
+    //           flashing:true,
+    //           logs:`stdout: ${data}`
+    //         } }
+    //       }))
+    //     }
+    //     event.sender.send('esptool-log', { type: 'stdout', message: data.toString() });
+    //   });
+
+    //   flashProcess.stderr.on('data', async(data) => {
+    //     console.error(`stderr: ${data}`);
+    //     // if (data.includes('Detected overlap at address')) {
+    //     //   if(getSocket()){
+    //     //     getSocket().send(JSON.stringify({
+    //     //       type: 'burnLogs',
+    //     //       data: { message: {
+    //     //         flashing:true,
+    //     //         logs:`stdout: ${data}`
+    //     //       } }
+    //     //     }))
+    //     //   }
+    //     // }
+    //     // await new Promise(resolve => setTimeout(resolve, 100));
+    //     isError=true
+    //     if(getSocket()){
+    //       // console.log('可能发送了')
+    //       getSocket().send(JSON.stringify({
+    //         type: 'burnLogs',
+    //         data: { message: {
+    //           flashing:false,
+    //           logs:'Failed'
+    //         } }
+    //       }))
+    //     }
+    //     this.canClose = true;
+    //     event.sender.send('esptool-log', { type: 'stderr', message: data.toString() });
+    //   });
+
+    //   flashProcess.on('close', (code) => {
+    //     console.log(`Child process exited with code ${code}`);
+    //     if(!isError && getSocket()){
+    //       // console.log('可能发送了')
+    //       if(isTimeout){
+    //         getSocket().send(JSON.stringify({
+    //           type: 'burnLogs',
+    //           data: { message: {
+    //             flashing:false,
+    //             logs:''
+    //           } }
+    //         }))
+    //       }else{
+    //           getSocket().send(JSON.stringify({
+    //           type: 'burnLogs',
+    //           data: { message: {
+    //             flashing:false,
+    //             logs:'success'
+    //           } }
+    //         }))
+    //       }
+          
+    //     }
+    //     // this.window.show();
+    //     // this.window.focus();
+    //     this.canClose = true; // ✅ 允许关闭窗口
+    //     event.sender.send('esptool-log', { type: 'done', code });
+    //   });
+    // })
+  ipc.handle('flash-custom', async (event, port, baudRate, files) => {
       console.log('--------------------')
       console.log(port)
       console.log(baudRate)
       console.log(files)
       console.log('--------------------')
-      const ConnectDevice=require('./connect-device')
+
+      const ConnectDevice = require('./connect-device')
+
       // console.log(ConnectDevice.disconnectPortLogic)
-      if(port==getPortCom()){
-        await ConnectDevice.disconnectPortLogic()
+
+      if (port == getPortCom()) {
+          await ConnectDevice.disconnectPortLogic()
       }
-      this.window.setAlwaysOnTop(false); 
-      this.window.blur(); // 让出焦点，主窗口会浮上来
-      //  this.window.blur(); // 让出焦点，主窗口会浮上来
+
+      this.window.setAlwaysOnTop(false)
+      this.window.blur()
+      // 让出焦点，主窗口会浮上来
       // this.window.hide();
 
-      let isError=false
+      let isError = false
+      let isTimeout = false
 
-      let isTimeout=false
-      
+      this.canClose = false
 
-      this.canClose = false;
-      getSocket().send(JSON.stringify({
-          type: 'burnLogs',
-          data: {
-              message: {
-                  flashing: true,
-                  logs: '__MODE_SINGLE__'
-              }
+      /*
+      * ========================================
+      * 自定义烧录文件
+      * ========================================
+      *
+      * files 例如：
+      *
+      * [
+      *   {
+      *     address: '0x0',
+      *     path: 'xxx.bin'
+      *   },
+      *   {
+      *     address: '0x800000',
+      *     path: 'xxx.bin'
+      *   }
+      * ]
+      *
+      * 这里完全使用用户配置的 address，
+      * 不写死任何地址。
+      */
+
+      const firmwareFiles = Array.isArray(files)
+          ? files.filter(
+              file =>
+                  file &&
+                  file.address &&
+                  file.path
+          )
+          : []
+
+      const firmwareCount =
+          firmwareFiles.length > 0
+              ? firmwareFiles.length
+              : 1
+
+      /*
+      * ========================================
+      * 地址标准化
+      * ========================================
+      *
+      * 例如：
+      *
+      * 0x800000
+      * 0x00800000
+      * 800000
+      *
+      * 最终都会变成：
+      *
+      * 800000
+      */
+
+      const normalizeAddress = (address) => {
+          if (!address) {
+              return ''
           }
-      }));
 
-      // const args = [
-      //     '--chip', 'esp32s3',
-      //     '--port', port,
-      //     '--baud', '1152000',
-      //     '--before', 'default_reset',
-      //     '--after', 'hard_reset',
-      //     'write_flash',
-      //     '--flash_mode', 'dio',
-      //     '--flash_size', '32MB',
-      //     '--flash_freq', '80m',
+          return String(address)
+              .trim()
+              .toLowerCase()
+              .replace(/^0x/, '')
+              .replace(/^0+/, '') || '0'
+      }
 
-      //     // 你的两个固件（保持你说的地址）
-      //     place? place.first:'0x0', 
-      //     filePath? filePath[0].path:commonFilePath,          // 第一个固件
-      //     place? place.second:'0x1420000', 
-      //     filePath? filePath[1].path:testFirmwareVfs,    // 第二个固件
-      //   ];
+      /*
+      * 保存每个固件实际配置的地址
+      */
+
+      const firmwareAddresses =
+          firmwareFiles.map(
+              firmware =>
+                  normalizeAddress(
+                      firmware.address
+                  )
+          )
+
+      console.log(
+          'custom firmware addresses:',
+          firmwareAddresses
+      )
+
+      /*
+      * ========================================
+      * 初始化 BurnLogs
+      * ========================================
+      *
+      * 告诉前端：
+      *
+      * 一共有几个固件。
+      *
+      * 单个：
+      * __FIRMWARE_COUNT__:1
+      *
+      * 两个：
+      * __FIRMWARE_COUNT__:2
+      */
+
+      if (getSocket()) {
+          getSocket().send(
+              JSON.stringify({
+                  type: 'burnLogs',
+                  data: {
+                      message: {
+                          flashing: true,
+                          logs:
+                              `__FIRMWARE_COUNT__:${firmwareCount}`
+                      }
+                  }
+              })
+          )
+
+          /*
+          * 自定义烧录原来的模式标记
+          * 保留，不影响原来的逻辑。
+          */
+
+          getSocket().send(
+              JSON.stringify({
+                  type: 'burnLogs',
+                  data: {
+                      message: {
+                          flashing: true,
+                          logs: '__MODE_SINGLE__'
+                      }
+                  }
+              })
+          )
+      }
+
+      /*
+      * ========================================
+      * 当前正在烧录第几个固件
+      * ========================================
+      *
+      * 默认第一个。
+      */
+
+      let currentFirmware = 1
+
+      /*
+      * ========================================
+      * esptool 参数
+      * ========================================
+      *
+      * 保持你原来的参数，不做逻辑修改。
+      */
+
       const baseArgs = [
-        '--chip', 'esp32s3',
-        '--port', port,
-        '--baud', String(baudRate),
-        '--before', 'default_reset',
-        '--after', 'no_reset',
-        'write_flash',
-        '--flash_mode', 'dio',
-        '--flash_freq', '80m'
-      ];
-    
-      const flashArgs = files.flatMap(f => [f.address, f.path]);
-    
-      const args = [...baseArgs, ...flashArgs];
-    
-      console.log('esptool args:', args);
-      const flashProcess = spawn(esptoolPath, args, { encoding: 'utf8' });
+          '--chip', 'esp32s3',
+          '--port', port,
+          '--baud', String(baudRate),
+          '--before', 'default_reset',
+          '--after', 'no_reset',
+          'write_flash',
+          '--flash_mode', 'dio',
+          '--flash_freq', '80m'
+      ]
 
-      flashProcess.stdout.on('data', (data) => {
-        console.log(`stdout: ${data}`);
-        if(data.includes('A serial exception error occurred:')||data.includes('fatal error')){
-          isTimeout=true
-          // flashProcess.kill('SIGKILL');
-        }
-        if(getSocket()){
-          // console.log('可能发送了')
-          getSocket().send(JSON.stringify({
-            type: 'burnLogs',
-            data: { message: {
-              flashing:true,
-              logs:`stdout: ${data}`
-            } }
-          }))
-        }
-        event.sender.send('esptool-log', { type: 'stdout', message: data.toString() });
-      });
+      /*
+      * ========================================
+      * 生成所有固件参数
+      * ========================================
+      *
+      * 仍然只启动一个 esptool。
+      */
 
-      flashProcess.stderr.on('data', async(data) => {
-        console.error(`stderr: ${data}`);
-        // if (data.includes('Detected overlap at address')) {
-        //   if(getSocket()){
-        //     getSocket().send(JSON.stringify({
-        //       type: 'burnLogs',
-        //       data: { message: {
-        //         flashing:true,
-        //         logs:`stdout: ${data}`
-        //       } }
-        //     }))
-        //   }
-        // }
-        // await new Promise(resolve => setTimeout(resolve, 100));
-        isError=true
-        if(getSocket()){
-          // console.log('可能发送了')
-          getSocket().send(JSON.stringify({
-            type: 'burnLogs',
-            data: { message: {
-              flashing:false,
-              logs:'Failed'
-            } }
-          }))
-        }
-        this.canClose = true;
-        event.sender.send('esptool-log', { type: 'stderr', message: data.toString() });
-      });
+      const flashArgs =
+          firmwareFiles.flatMap(
+              f => [
+                  f.address,
+                  f.path
+              ]
+          )
 
-      flashProcess.on('close', (code) => {
-        console.log(`Child process exited with code ${code}`);
-        if(!isError && getSocket()){
-          // console.log('可能发送了')
-          if(isTimeout){
-            getSocket().send(JSON.stringify({
-              type: 'burnLogs',
-              data: { message: {
-                flashing:false,
-                logs:''
-              } }
-            }))
-          }else{
-              getSocket().send(JSON.stringify({
-              type: 'burnLogs',
-              data: { message: {
-                flashing:false,
-                logs:'success'
-              } }
-            }))
+      const args = [
+          ...baseArgs,
+          ...flashArgs
+      ]
+
+      console.log(
+          'esptool args:',
+          args
+      )
+
+      /*
+      * ========================================
+      * 启动 esptool
+      * ========================================
+      */
+
+      const flashProcess =
+          spawn(
+              esptoolPath,
+              args,
+              {
+                  encoding: 'utf8'
+              }
+          )
+
+      /*
+      * ========================================
+      * stdout
+      * ========================================
+      */
+
+      flashProcess.stdout.on(
+          'data',
+          (data) => {
+              const output =
+                  data.toString()
+
+              console.log(
+                  `stdout: ${output}`
+              )
+
+              /*
+              * ================================
+              * 错误检测
+              * ================================
+              */
+
+              if (
+                  output.includes(
+                      'A serial exception error occurred:'
+                  ) ||
+                  output
+                      .toLowerCase()
+                      .includes(
+                          'fatal error'
+                      )
+              ) {
+                  isTimeout = true
+              }
+
+              /*
+              * ================================
+              * 检测 Writing at 地址
+              * ================================
+              *
+              * esptool 可能输出：
+              *
+              * Writing at 0x00000000... (0 %)
+              *
+              * 或：
+              *
+              * Writing at 0x00800000... (0 %)
+              *
+              * 同一次 data 中也可能包含多条。
+              *
+              * 因此直接从整个 output 中提取。
+              */
+
+              const writingMatches = [
+                  ...output.matchAll(
+                      /Writing at\s+(0x[0-9a-fA-F]+)/g
+                  )
+              ]
+
+              for (
+                  const match
+                  of writingMatches
+              ) {
+                  const writingAddress =
+                      normalizeAddress(
+                          match[1]
+                      )
+
+                  console.log(
+                      'esptool writing address:',
+                      match[1],
+                      'normalized:',
+                      writingAddress
+                  )
+
+                  /*
+                  * ================================
+                  * 根据实际配置地址判断固件
+                  * ================================
+                  *
+                  * 例如：
+                  *
+                  * firmwareAddresses:
+                  *
+                  * [
+                  *     '0',
+                  *     '800000'
+                  * ]
+                  *
+                  * esptool：
+                  *
+                  * 0x00800000
+                  *
+                  * normalize 后：
+                  *
+                  * 800000
+                  */
+
+                  for (
+                      let i = currentFirmware - 1;
+                      i < firmwareAddresses.length;
+                      i++
+                  ) {
+                      const firmwareAddress =
+                          firmwareAddresses[i]
+
+                      if (
+                          writingAddress ===
+                          firmwareAddress
+                      ) {
+                          const detectedFirmware =
+                              i + 1
+
+                          /*
+                          * 只有真的进入后面的固件
+                          * 才发送 stage。
+                          */
+
+                          if (
+                              detectedFirmware !==
+                              currentFirmware
+                          ) {
+                              currentFirmware =
+                                  detectedFirmware
+
+                              console.log(
+                                  `检测到正在烧录自定义固件 ${currentFirmware}/${firmwareCount}`
+                              )
+
+                              /*
+                              * =================================
+                              * 通知 BurnLogs 切换固件
+                              * =================================
+                              *
+                              * 例如：
+                              *
+                              * __FIRMWARE_STAGE__:2
+                              */
+
+                              if (getSocket()) {
+                                  getSocket().send(
+                                      JSON.stringify({
+                                          type: 'burnLogs',
+                                          data: {
+                                              message: {
+                                                  flashing: true,
+                                                  logs:
+                                                      `__FIRMWARE_STAGE__:${currentFirmware}`
+                                              }
+                                          }
+                                      })
+                                  )
+                              }
+
+                              /*
+                              * 保留 IPC 日志通知
+                              */
+
+                              event.sender.send(
+                                  'esptool-log',
+                                  {
+                                      type:
+                                          'firmware-stage',
+                                      firmware:
+                                          currentFirmware
+                                  }
+                              )
+                          }
+
+                          break
+                      }
+                  }
+              }
+
+              /*
+              * ================================
+              * 原来的 stdout 日志发送
+              * ================================
+              */
+
+              if (getSocket()) {
+                  getSocket().send(
+                      JSON.stringify({
+                          type: 'burnLogs',
+                          data: {
+                              message: {
+                                  flashing: true,
+                                  logs:
+                                      `stdout: ${output}`
+                              }
+                          }
+                      })
+                  )
+              }
+
+              event.sender.send(
+                  'esptool-log',
+                  {
+                      type: 'stdout',
+                      message: output
+                  }
+              )
           }
-          
-        }
-        // this.window.show();
-        // this.window.focus();
-        this.canClose = true; // ✅ 允许关闭窗口
-        event.sender.send('esptool-log', { type: 'done', code });
-      });
-    })
+      )
+
+      /*
+      * ========================================
+      * stderr
+      * ========================================
+      *
+      * 保持你的原有逻辑。
+      */
+
+      flashProcess.stderr.on(
+          'data',
+          async (data) => {
+              const output =
+                  data.toString()
+
+              console.error(
+                  `stderr: ${output}`
+              )
+
+              isError = true
+
+              if (getSocket()) {
+                  getSocket().send(
+                      JSON.stringify({
+                          type: 'burnLogs',
+                          data: {
+                              message: {
+                                  flashing: false,
+                                  logs: 'Failed'
+                              }
+                          }
+                      })
+                  )
+              }
+
+              this.canClose = true
+
+              event.sender.send(
+                  'esptool-log',
+                  {
+                      type: 'stderr',
+                      message: output
+                  }
+              )
+          }
+      )
+
+      /*
+      * ========================================
+      * esptool 结束
+      * ========================================
+      */
+
+      flashProcess.on(
+          'close',
+          (code) => {
+              console.log(
+                  `Child process exited with code ${code}`
+              )
+
+              /*
+              * 保持你原来的成功 / 超时逻辑。
+              */
+
+              if (
+                  !isError &&
+                  getSocket()
+              ) {
+                  if (isTimeout) {
+                      getSocket().send(
+                          JSON.stringify({
+                              type: 'burnLogs',
+                              data: {
+                                  message: {
+                                      flashing: false,
+                                      logs: ''
+                                  }
+                              }
+                          })
+                      )
+                  } else {
+                      getSocket().send(
+                          JSON.stringify({
+                              type: 'burnLogs',
+                              data: {
+                                  message: {
+                                      flashing: false,
+                                      logs: 'success'
+                                  }
+                              }
+                          })
+                      )
+                  }
+              }
+
+              /*
+              * 允许关闭窗口
+              */
+
+              this.canClose = true
+
+              event.sender.send(
+                  'esptool-log',
+                  {
+                      type: 'done',
+                      code
+                  }
+              )
+          }
+      )
+  })
+
+
 
     //默认烧录逻辑
     ipc.handle('send-who', async (event, {who,port,filePath,place}) =>{
@@ -1699,215 +2240,787 @@ class DownloadCodeWindow extends AbstractWindow {
         //     this.canClose = true; // ✅ 允许关闭窗口
         //     event.sender.send('esptool-log', { type: 'done', code });
         //   });
-        console.log(firmwareFilePath);
-        console.log(esptoolPath);
+
+
+
+      //   console.log(firmwareFilePath);
+      //   console.log(esptoolPath);
     
-        let isError = false;
-        let isTimeout = false;
+      //   let isError = false;
+      //   let isTimeout = false;
     
-        this.canClose = false;
-        getSocket().send(JSON.stringify({
-          type: 'burnLogs',
-          data: {
-              message: {
-                  flashing: true,
-                  logs: '__MODE_DUAL__'
-              }
+      //   this.canClose = false;
+      //   getSocket().send(JSON.stringify({
+      //     type: 'burnLogs',
+      //     data: {
+      //         message: {
+      //             flashing: true,
+      //             logs: '__MODE_DUAL__'
+      //         }
+      //     }
+      // }));
+      //   // =========================
+      //   // 第一个固件
+      //   // =========================
+      //   const args1 = [
+      //       '--chip', 'esp32s3',
+      //       '--port', port,
+      //       '--baud', '1152000',
+      //       '--before', 'default_reset',
+      //       '--after', 'no_reset',
+    
+      //       'write_flash',
+    
+      //       '--flash_mode', 'dio',
+      //       // '--flash_size', '32MB',
+      //       '--flash_freq', '80m',
+    
+      //       place ? place.first : '0x0',
+      //       filePath ? filePath[0].path : commonFilePath,
+      //   ];
+    
+      //   // =========================
+      //   // 第二个固件
+      //   // =========================
+      //   const args2 = [
+      //       '--chip', 'esp32s3',
+      //       '--port', port,
+      //       '--baud', '1152000',
+      //       '--before', 'default_reset',
+      //       '--after', 'no_reset',
+    
+      //       'write_flash',
+    
+      //       '--flash_mode', 'dio',
+      //       // '--flash_size', '32MB',
+      //       '--flash_freq', '80m',
+    
+      //       place ? place.second : '0x1420000',
+      //       filePath ? filePath[1].path : testFirmwareVfs,
+      //   ];
+    
+      //   // =========================
+      //   // 公共日志处理
+      //   // =========================
+      //   const bindProcessEvents = (flashProcess, isLastProcess = false) => {
+    
+      //       flashProcess.stdout.on('data', (data) => {
+    
+      //           console.log(`stdout: ${data}`);
+    
+      //           if (
+      //               data.includes('A serial exception error occurred:') ||
+      //               data.includes('fatal error')
+      //           ) {
+      //               isTimeout = true;
+      //           }
+    
+      //           if (getSocket()) {
+      //               getSocket().send(JSON.stringify({
+      //                   type: 'burnLogs',
+      //                   data: {
+      //                       message: {
+      //                           flashing: true,
+      //                           logs: `stdout: ${data}`
+      //                       }
+      //                   }
+      //               }));
+      //           }
+    
+      //           event.sender.send('esptool-log', {
+      //               type: 'stdout',
+      //               message: data.toString()
+      //           });
+      //       });
+    
+      //       flashProcess.stderr.on('data', (data) => {
+    
+      //           console.error(`stderr: ${data}`);
+    
+      //           isError = true;
+    
+      //           if (getSocket()) {
+      //               getSocket().send(JSON.stringify({
+      //                   type: 'burnLogs',
+      //                   data: {
+      //                       message: {
+      //                           flashing: false,
+      //                           logs: 'Failed'
+      //                       }
+      //                   }
+      //               }));
+      //           }
+    
+      //           event.sender.send('esptool-log', {
+      //               type: 'stderr',
+      //               message: data.toString()
+      //           });
+      //       });
+    
+      //       flashProcess.on('close', (code) => {
+    
+      //           console.log(`Child process exited with code ${code}`);
+    
+      //           // 第一段失败直接结束
+      //           if (code !== 0) {
+    
+      //               this.canClose = true;
+    
+      //               event.sender.send('esptool-log', {
+      //                   type: 'done',
+      //                   code
+      //               });
+    
+      //               return;
+      //           }
+    
+      //           // 最后一个烧录完成
+      //           if (isLastProcess) {
+    
+      //               if (!isError && getSocket()) {
+    
+      //                   if (isTimeout) {
+    
+      //                       getSocket().send(JSON.stringify({
+      //                           type: 'burnLogs',
+      //                           data: {
+      //                               message: {
+      //                                   flashing: false,
+      //                                   logs: ''
+      //                               }
+      //                           }
+      //                       }));
+    
+      //                   } else {
+    
+      //                       getSocket().send(JSON.stringify({
+      //                           type: 'burnLogs',
+      //                           data: {
+      //                               message: {
+      //                                   flashing: false,
+      //                                   logs: 'success'
+      //                               }
+      //                           }
+      //                       }));
+      //                   }
+      //               }
+    
+      //               this.canClose = true;
+    
+      //               event.sender.send('esptool-log', {
+      //                   type: 'done',
+      //                   code
+      //               });
+      //           }
+      //       });
+      //   };
+    
+      //   // =========================
+      //   // 开始第一次烧录
+      //   // =========================
+      //   const flashProcess1 = spawn(esptoolPath, args1, {
+      //       encoding: 'utf8'
+      //   });
+    
+      //   bindProcessEvents(flashProcess1, false);
+    
+      //   // =========================
+      //   // 第一次完成后开始第二次
+      //   // =========================
+      //   flashProcess1.on('close', (code) => {
+    
+      //       if (code !== 0) {
+      //           return;
+      //       }
+    
+      //       console.log('First firmware flash success, start second...');
+      //       if (getSocket()) {
+      //           getSocket().send(JSON.stringify({
+      //               type: 'burnLogs',
+      //               data: {
+      //                   message: {
+      //                       flashing: true,
+      //                       logs: '__STAGE_2__'
+      //                   }
+      //               }
+      //           }));
+      //       }
+    
+      //       const flashProcess2 = spawn(esptoolPath, args2, {
+      //           encoding: 'utf8'
+      //       });
+    
+      //       bindProcessEvents(flashProcess2, true);
+      //   });
+
+      console.log(firmwareFilePath);
+      console.log(esptoolPath);
+
+      console.log('filepath',filePath)
+      console.log('place',place)
+      
+      let isError = false;
+      let isTimeout = false;
+      
+      this.canClose = false;
+      
+      // ======================================================
+      // 1. 准备本次需要烧录的固件
+      // ======================================================
+      
+      const firmwareFiles = [];
+      
+      // ------------------------------------------------------
+      // 第一个固件
+      // ------------------------------------------------------
+      
+      firmwareFiles.push({
+          address: place ? place.first : '0x0',
+          path: filePath && filePath[0]
+              ? filePath[0].path
+              : commonFilePath
+      });
+      
+      // ------------------------------------------------------
+      // 第二个固件
+      // ------------------------------------------------------
+      
+      // if (filePath && filePath[1]) {
+      //     firmwareFiles.push({
+      //         address: place ? place.second : '0x1420000',
+      //         path: filePath[1].path
+      //     });
+      // }
+      firmwareFiles.push({
+          address: place ? place.second : '0x800000',
+          path: filePath && filePath[1]
+              ? filePath[1].path
+              : testFirmwareVfs
+      });
+      
+      // ======================================================
+      // 2. 固件数量
+      // ======================================================
+      
+      const firmwareCount = firmwareFiles.length;
+      
+      console.log('====================================');
+      console.log('ESP32 烧录开始');
+      console.log('固件数量:', firmwareCount);
+      console.log('固件信息:', firmwareFiles);
+      console.log('====================================');
+      
+      // ======================================================
+      // 3. 生成 esptool 参数
+      // ======================================================
+      
+      const args = [
+          '--chip', 'esp32s3',
+      
+          '--port', port,
+      
+          '--baud', '1152000',
+      
+          '--before', 'default_reset',
+      
+          '--after', 'no_reset',
+      
+          'write_flash',
+      
+          '--flash_mode', 'dio',
+      
+          // '--flash_size', '32MB',
+      
+          '--flash_freq', '80m'
+      ];
+      
+      // ======================================================
+      // 4. 添加所有固件
+      // ======================================================
+      
+      firmwareFiles.forEach((firmware) => {
+      
+          args.push(
+              firmware.address,
+              firmware.path
+          );
+      
+      });
+      
+      console.log('====================================');
+      console.log('esptool 参数:');
+      console.log(args);
+      console.log('====================================');
+      
+      // ======================================================
+      // 5. 当前固件
+      // ======================================================
+      //
+      // 1 = 第一个
+      // 2 = 第二个
+      //
+      // ======================================================
+      
+      let currentFirmware = 1;
+      
+      // ======================================================
+      // 6. 地址标准化
+      // ======================================================
+      //
+      // 例如：
+      //
+      // 0x800000
+      // 0x00800000
+      //
+      // 最终都会变成：
+      //
+      // 800000
+      //
+      // ======================================================
+      
+      const normalizeAddress = (address) => {
+      
+          if (!address) {
+              return '';
           }
-      }));
-        // =========================
-        // 第一个固件
-        // =========================
-        const args1 = [
-            '--chip', 'esp32s3',
-            '--port', port,
-            '--baud', '1152000',
-            '--before', 'default_reset',
-            '--after', 'no_reset',
-    
-            'write_flash',
-    
-            '--flash_mode', 'dio',
-            // '--flash_size', '32MB',
-            '--flash_freq', '80m',
-    
-            place ? place.first : '0x0',
-            filePath ? filePath[0].path : commonFilePath,
-        ];
-    
-        // =========================
-        // 第二个固件
-        // =========================
-        const args2 = [
-            '--chip', 'esp32s3',
-            '--port', port,
-            '--baud', '1152000',
-            '--before', 'default_reset',
-            '--after', 'no_reset',
-    
-            'write_flash',
-    
-            '--flash_mode', 'dio',
-            // '--flash_size', '32MB',
-            '--flash_freq', '80m',
-    
-            place ? place.second : '0x1420000',
-            filePath ? filePath[1].path : testFirmwareVfs,
-        ];
-    
-        // =========================
-        // 公共日志处理
-        // =========================
-        const bindProcessEvents = (flashProcess, isLastProcess = false) => {
-    
-            flashProcess.stdout.on('data', (data) => {
-    
-                console.log(`stdout: ${data}`);
-    
-                if (
-                    data.includes('A serial exception error occurred:') ||
-                    data.includes('fatal error')
-                ) {
-                    isTimeout = true;
-                }
-    
-                if (getSocket()) {
-                    getSocket().send(JSON.stringify({
-                        type: 'burnLogs',
-                        data: {
-                            message: {
-                                flashing: true,
-                                logs: `stdout: ${data}`
-                            }
-                        }
-                    }));
-                }
-    
-                event.sender.send('esptool-log', {
-                    type: 'stdout',
-                    message: data.toString()
-                });
-            });
-    
-            flashProcess.stderr.on('data', (data) => {
-    
-                console.error(`stderr: ${data}`);
-    
-                isError = true;
-    
-                if (getSocket()) {
-                    getSocket().send(JSON.stringify({
-                        type: 'burnLogs',
-                        data: {
-                            message: {
-                                flashing: false,
-                                logs: 'Failed'
-                            }
-                        }
-                    }));
-                }
-    
-                event.sender.send('esptool-log', {
-                    type: 'stderr',
-                    message: data.toString()
-                });
-            });
-    
-            flashProcess.on('close', (code) => {
-    
-                console.log(`Child process exited with code ${code}`);
-    
-                // 第一段失败直接结束
-                if (code !== 0) {
-    
-                    this.canClose = true;
-    
-                    event.sender.send('esptool-log', {
-                        type: 'done',
-                        code
-                    });
-    
-                    return;
-                }
-    
-                // 最后一个烧录完成
-                if (isLastProcess) {
-    
-                    if (!isError && getSocket()) {
-    
-                        if (isTimeout) {
-    
-                            getSocket().send(JSON.stringify({
-                                type: 'burnLogs',
-                                data: {
-                                    message: {
-                                        flashing: false,
-                                        logs: ''
-                                    }
-                                }
-                            }));
-    
-                        } else {
-    
-                            getSocket().send(JSON.stringify({
-                                type: 'burnLogs',
-                                data: {
-                                    message: {
-                                        flashing: false,
-                                        logs: 'success'
-                                    }
-                                }
-                            }));
-                        }
-                    }
-    
-                    this.canClose = true;
-    
-                    event.sender.send('esptool-log', {
-                        type: 'done',
-                        code
-                    });
-                }
-            });
-        };
-    
-        // =========================
-        // 开始第一次烧录
-        // =========================
-        const flashProcess1 = spawn(esptoolPath, args1, {
-            encoding: 'utf8'
-        });
-    
-        bindProcessEvents(flashProcess1, false);
-    
-        // =========================
-        // 第一次完成后开始第二次
-        // =========================
-        flashProcess1.on('close', (code) => {
-    
-            if (code !== 0) {
-                return;
-            }
-    
-            console.log('First firmware flash success, start second...');
-            if (getSocket()) {
-                getSocket().send(JSON.stringify({
-                    type: 'burnLogs',
-                    data: {
-                        message: {
-                            flashing: true,
-                            logs: '__STAGE_2__'
-                        }
-                    }
-                }));
-            }
-    
-            const flashProcess2 = spawn(esptoolPath, args2, {
-                encoding: 'utf8'
-            });
-    
-            bindProcessEvents(flashProcess2, true);
-        });
+      
+          return String(address)
+              .trim()
+              .toLowerCase()
+              .replace(/^0x/, '')
+              .replace(/^0+/, '') || '0';
+      
+      };
+      
+      // ======================================================
+      // 7. 保存所有固件的标准地址
+      // ======================================================
+      
+      const normalizedFirmwareAddresses =
+          firmwareFiles.map(
+              firmware => normalizeAddress(
+                  firmware.address
+              )
+          );
+      
+      console.log(
+          '本次固件地址:',
+          firmwareFiles.map(
+              firmware => firmware.address
+          )
+      );
+      
+      console.log(
+          '标准化固件地址:',
+          normalizedFirmwareAddresses
+      );
+      
+      // ======================================================
+      // 8. 通知前端：固件数量
+      // ======================================================
+      
+      if (getSocket()) {
+      
+          getSocket().send(
+              JSON.stringify({
+                  type: 'burnLogs',
+      
+                  data: {
+                      message: {
+                          flashing: true,
+      
+                          logs:
+                              `__FIRMWARE_COUNT__:${firmwareCount}`
+                      }
+                  }
+              })
+          );
+      
+      }
+      
+      // ======================================================
+      // 9. 启动 esptool
+      // ======================================================
+      
+      const flashProcess = spawn(
+          esptoolPath,
+          args,
+          {
+              encoding: 'utf8'
+          }
+      );
+      
+      // ======================================================
+      // 10. stdout
+      // ======================================================
+      //
+      // 注意：
+      // 不再依赖 \n 判断一行结束。
+      // 直接从每次收到的数据中检测 Writing at 地址。
+      // 这样可以兼容 esptool 的 \r 进度输出。
+      //
+      // ======================================================
+      
+      flashProcess.stdout.on('data', (data) => {
+      
+          const output = data.toString();
+      
+          console.log(
+              '===================================='
+          );
+      
+          console.log(
+              'ESP32 stdout 原始数据:',
+              JSON.stringify(output)
+          );
+      
+          console.log(
+              '===================================='
+          );
+      
+          // ==================================================
+          // 错误判断
+          // ==================================================
+      
+          if (
+              output.includes(
+                  'A serial exception error occurred:'
+              ) ||
+              output.toLowerCase().includes(
+                  'fatal error'
+              )
+          ) {
+      
+              isTimeout = true;
+      
+          }
+      
+          // ==================================================
+          // 检查 Writing at
+          // ==================================================
+          //
+          // 例如：
+          //
+          // Writing at 0x00000000... (0 %)
+          //
+          // Writing at 0x00800000... (0 %)
+          //
+          // ==================================================
+      
+          const writingMatches = [
+              ...output.matchAll(
+                  /Writing at\s+(0x[0-9a-fA-F]+)/g
+              )
+          ];
+      
+          // ==================================================
+          // 如果发现 Writing at
+          // ==================================================
+      
+          for (const match of writingMatches) {
+      
+              const writingAddress =
+                  normalizeAddress(
+                      match[1]
+                  );
+      
+              console.log(
+                  '检测到 Writing 地址:',
+                  match[1]
+              );
+      
+              console.log(
+                  '标准化 Writing 地址:',
+                  writingAddress
+              );
+      
+              // ==================================================
+              // 从当前固件开始往后查
+              // ==================================================
+              //
+              // 不重新判断已经烧录过的固件。
+              //
+              // ==================================================
+      
+              for (
+                  let i = currentFirmware;
+                  i < normalizedFirmwareAddresses.length;
+                  i++
+              ) {
+      
+                  const targetAddress =
+                      normalizedFirmwareAddresses[i];
+      
+                  console.log(
+                      `检查固件 ${i + 1} 地址:`,
+                      targetAddress
+                  );
+      
+                  // ==================================================
+                  // 找到下一个固件
+                  // ==================================================
+      
+                  if (
+                      writingAddress ===
+                      targetAddress
+                  ) {
+      
+                      currentFirmware = i + 1;
+      
+                      console.log(
+                          '===================================='
+                      );
+      
+                      console.log(
+                          `检测到第 ${currentFirmware} 个固件开始烧录`
+                      );
+      
+                      console.log(
+                          '烧录地址:',
+                          firmwareFiles[i].address
+                      );
+      
+                      console.log(
+                          '===================================='
+                      );
+      
+                      // ==================================================
+                      // 通知 WebSocket
+                      // ==================================================
+      
+                      if (getSocket()) {
+      
+                          getSocket().send(
+                              JSON.stringify({
+                                  type: 'burnLogs',
+      
+                                  data: {
+                                      message: {
+      
+                                          flashing: true,
+      
+                                          logs:
+                                              `__FIRMWARE_STAGE__:${currentFirmware}`
+      
+                                      }
+                                  }
+                              })
+                          );
+      
+                      }
+      
+                      // ==================================================
+                      // 通知 Renderer
+                      // ==================================================
+      
+                      event.sender.send(
+                          'esptool-log',
+                          {
+                              type: 'firmware-stage',
+      
+                              firmware:
+                                  currentFirmware
+                          }
+                      );
+      
+                      break;
+                  }
+      
+              }
+      
+          }
+      
+          // ==================================================
+          // WebSocket 发送正常日志
+          // ==================================================
+      
+          if (getSocket()) {
+      
+              getSocket().send(
+                  JSON.stringify({
+                      type: 'burnLogs',
+      
+                      data: {
+                          message: {
+      
+                              flashing: true,
+      
+                              logs:
+                                  `stdout: ${output}`
+      
+                          }
+                      }
+                  })
+              );
+      
+          }
+      
+          // ==================================================
+          // Electron Renderer
+          // ==================================================
+      
+          event.sender.send(
+              'esptool-log',
+              {
+                  type: 'stdout',
+      
+                  message: output
+              }
+          );
+      
+      });
+      
+      // ======================================================
+      // 11. stderr
+      // ======================================================
+      
+      flashProcess.stderr.on('data', (data) => {
+      
+          const output = data.toString();
+      
+          console.error(
+              `stderr: ${output}`
+          );
+      
+          isError = true;
+      
+          // ==================================================
+          // WebSocket
+          // ==================================================
+      
+          if (getSocket()) {
+      
+              getSocket().send(
+                  JSON.stringify({
+                      type: 'burnLogs',
+      
+                      data: {
+                          message: {
+      
+                              flashing: false,
+      
+                              logs: 'Failed'
+      
+                          }
+                      }
+                  })
+              );
+      
+          }
+      
+          // ==================================================
+          // Electron Renderer
+          // ==================================================
+      
+          event.sender.send(
+              'esptool-log',
+              {
+                  type: 'stderr',
+      
+                  message: output
+              }
+          );
+      
+      });
+      
+      // ======================================================
+      // 12. esptool 结束
+      // ======================================================
+      
+      flashProcess.on('close', (code) => {
+      
+          console.log(
+              `Child process exited with code ${code}`
+          );
+      
+          // ==================================================
+          // 成功
+          // ==================================================
+      
+          if (
+              code === 0 &&
+              !isError &&
+              !isTimeout
+          ) {
+      
+              console.log(
+                  'ESP32 固件烧录成功'
+              );
+      
+              if (getSocket()) {
+      
+                  getSocket().send(
+                      JSON.stringify({
+                          type: 'burnLogs',
+      
+                          data: {
+                              message: {
+      
+                                  flashing: false,
+      
+                                  logs: 'success'
+      
+                              }
+                          }
+                      })
+                  );
+      
+              }
+      
+          } else {
+      
+              // ==================================================
+              // 失败
+              // ==================================================
+      
+              console.error(
+                  'ESP32 固件烧录失败'
+              );
+      
+              if (getSocket()) {
+      
+                  getSocket().send(
+                      JSON.stringify({
+                          type: 'burnLogs',
+      
+                          data: {
+                              message: {
+      
+                                  flashing: false,
+      
+                                  logs: isTimeout
+                                      ? ''
+                                      : 'Failed'
+      
+                              }
+                          }
+                      })
+                  );
+      
+              }
+      
+          }
+      
+          // ==================================================
+          // 允许关闭
+          // ==================================================
+      
+          this.canClose = true;
+      
+          // ==================================================
+          // Renderer
+          // ==================================================
+      
+          event.sender.send(
+              'esptool-log',
+              {
+                  type: 'done',
+      
+                  code
+              }
+          );
+      
+      });
 
       }else if(who=='microbit'){
         let daplink
@@ -2525,821 +3638,821 @@ class DownloadCodeWindow extends AbstractWindow {
     // Arduino CLI
     // ============================================================
 
-    const cliPath = getResourcePath(
-        "resources/arduino-cli.exe"
-    );
+    // const cliPath = getResourcePath(
+    //     "resources/arduino-cli.exe"
+    // );
 
 
-    // ============================================================
-    // PY32 ISP 烧录程序
-    // ============================================================
+    // // ============================================================
+    // // PY32 ISP 烧录程序
+    // // ============================================================
 
-    const puyaispPath = getResourcePath(
-        "resources/puyaispcom.exe"
-    );
+    // const puyaispPath = getResourcePath(
+    //     "resources/puyaispcom.exe"
+    // );
 
 
-    // ============================================================
-    // Arduino / PY32 编译烧录
-    // ============================================================
+    // // ============================================================
+    // // Arduino / PY32 编译烧录
+    // // ============================================================
 
-    ipc.handle(
-        "flash-arduino",
-        async (event, { port, code, boardType }) => {
+    // ipc.handle(
+    //     "flash-arduino",
+    //     async (event, { port, code, boardType }) => {
 
-            console.log("==========================================");
-            console.log("开始编译 / 烧录");
-            console.log("设备类型:", boardType);
-            console.log("串口:", port);
-            console.log("==========================================");
+    //         console.log("==========================================");
+    //         console.log("开始编译 / 烧录");
+    //         console.log("设备类型:", boardType);
+    //         console.log("串口:", port);
+    //         console.log("==========================================");
 
 
-            try {
+    //         try {
 
-                // ====================================================
-                // 1. 检查参数
-                // ====================================================
+    //             // ====================================================
+    //             // 1. 检查参数
+    //             // ====================================================
 
-                if (!port) {
-                    throw new Error("没有提供串口号");
-                }
+    //             if (!port) {
+    //                 throw new Error("没有提供串口号");
+    //             }
 
-                if (!code) {
-                    throw new Error("没有提供 Arduino 代码");
-                }
+    //             if (!code) {
+    //                 throw new Error("没有提供 Arduino 代码");
+    //             }
 
 
-                // 如果没有传 boardType
-                // 默认按照 UNO 处理
-                if (!boardType) {
-                    boardType = "uno";
-                }
+    //             // 如果没有传 boardType
+    //             // 默认按照 UNO 处理
+    //             if (!boardType) {
+    //                 boardType = "uno";
+    //             }
 
 
-                // ====================================================
-                // 2. 创建 Sketch
-                // ====================================================
+    //             // ====================================================
+    //             // 2. 创建 Sketch
+    //             // ====================================================
 
-                // Sketch 名称
-                const sketchName = "mysketch";
+    //             // Sketch 名称
+    //             const sketchName = "mysketch";
 
 
-                // 临时 Sketch 目录
-                const sketchDir = path.join(
-                    os.tmpdir(),
-                    sketchName
-                );
+    //             // 临时 Sketch 目录
+    //             const sketchDir = path.join(
+    //                 os.tmpdir(),
+    //                 sketchName
+    //             );
 
 
-                // 如果不存在则创建
-                if (!fs.existsSync(sketchDir)) {
+    //             // 如果不存在则创建
+    //             if (!fs.existsSync(sketchDir)) {
 
-                    fs.mkdirSync(
-                        sketchDir,
-                        {
-                            recursive: true
-                        }
-                    );
+    //                 fs.mkdirSync(
+    //                     sketchDir,
+    //                     {
+    //                         recursive: true
+    //                     }
+    //                 );
 
-                }
+    //             }
 
 
-                // Sketch 文件
-                const sketchFile = path.join(
-                    sketchDir,
-                    sketchName + ".ino"
-                );
+    //             // Sketch 文件
+    //             const sketchFile = path.join(
+    //                 sketchDir,
+    //                 sketchName + ".ino"
+    //             );
 
 
-                // 写入 Arduino 代码
-                fs.writeFileSync(
-                    sketchFile,
-                    code,
-                    "utf8"
-                );
+    //             // 写入 Arduino 代码
+    //             fs.writeFileSync(
+    //                 sketchFile,
+    //                 code,
+    //                 "utf8"
+    //             );
 
 
-                console.log(
-                    "Sketch 文件:",
-                    sketchFile
-                );
+    //             console.log(
+    //                 "Sketch 文件:",
+    //                 sketchFile
+    //             );
 
 
-                // ====================================================
-                // 3. Arduino UNO
-                // ====================================================
+    //             // ====================================================
+    //             // 3. Arduino UNO
+    //             // ====================================================
 
-                if (boardType === "uno") {
+    //             if (boardType === "uno") {
 
-                    console.log("------------------------------------------");
-                    console.log("目标设备: Arduino UNO");
-                    console.log("------------------------------------------");
+    //                 console.log("------------------------------------------");
+    //                 console.log("目标设备: Arduino UNO");
+    //                 console.log("------------------------------------------");
 
 
-                    // =================================================
-                    // 检查 Arduino AVR Core
-                    // =================================================
+    //                 // =================================================
+    //                 // 检查 Arduino AVR Core
+    //                 // =================================================
 
-                    console.log(
-                        "检查 Arduino AVR Core..."
-                    );
+    //                 console.log(
+    //                     "检查 Arduino AVR Core..."
+    //                 );
 
 
-                    // 如果你的 Arduino Core 已经放在 package 中，
-                    // 这里不需要每次安装。
-                    //
-                    // 如果以后需要自动安装，可以打开：
-                    //
-                    // await runCli([
-                    //     "core",
-                    //     "install",
-                    //     "arduino:avr"
-                    // ]);
+    //                 // 如果你的 Arduino Core 已经放在 package 中，
+    //                 // 这里不需要每次安装。
+    //                 //
+    //                 // 如果以后需要自动安装，可以打开：
+    //                 //
+    //                 // await runCli([
+    //                 //     "core",
+    //                 //     "install",
+    //                 //     "arduino:avr"
+    //                 // ]);
 
 
-                    console.log(
-                        "Arduino AVR Core 已准备完成"
-                    );
+    //                 console.log(
+    //                     "Arduino AVR Core 已准备完成"
+    //                 );
 
 
-                    // =================================================
-                    // 编译 UNO
-                    // =================================================
+    //                 // =================================================
+    //                 // 编译 UNO
+    //                 // =================================================
 
-                    console.log(
-                        "开始编译 Arduino UNO..."
-                    );
+    //                 console.log(
+    //                     "开始编译 Arduino UNO..."
+    //                 );
 
 
-                    await runCli([
-                        "compile",
+    //                 await runCli([
+    //                     "compile",
 
-                        "--fqbn",
-                        "arduino:avr:uno",
+    //                     "--fqbn",
+    //                     "arduino:avr:uno",
 
-                        sketchDir
-                    ]);
+    //                     sketchDir
+    //                 ]);
 
 
-                    console.log(
-                        "Arduino UNO 编译成功"
-                    );
+    //                 console.log(
+    //                     "Arduino UNO 编译成功"
+    //                 );
 
 
-                    // =================================================
-                    // 上传 UNO
-                    // =================================================
+    //                 // =================================================
+    //                 // 上传 UNO
+    //                 // =================================================
 
-                    console.log(
-                        "开始上传 Arduino UNO..."
-                    );
+    //                 console.log(
+    //                     "开始上传 Arduino UNO..."
+    //                 );
 
-                    console.log(
-                        "串口:",
-                        port
-                    );
+    //                 console.log(
+    //                     "串口:",
+    //                     port
+    //                 );
 
 
-                    await runCli([
-                        "upload",
+    //                 await runCli([
+    //                     "upload",
 
-                        "--fqbn",
-                        "arduino:avr:uno",
+    //                     "--fqbn",
+    //                     "arduino:avr:uno",
 
-                        "-p",
-                        port,
+    //                     "-p",
+    //                     port,
 
-                        sketchDir
-                    ]);
+    //                     sketchDir
+    //                 ]);
 
 
-                    console.log(
-                        "Arduino UNO 烧录成功"
-                    );
+    //                 console.log(
+    //                     "Arduino UNO 烧录成功"
+    //                 );
 
 
-                    return {
+    //                 return {
 
-                        success: true,
+    //                     success: true,
 
-                        type: "uno"
+    //                     type: "uno"
 
-                    };
+    //                 };
 
-                }
+    //             }
 
 
-                // ====================================================
-                // 4. PY32
-                // ====================================================
+    //             // ====================================================
+    //             // 4. PY32
+    //             // ====================================================
 
-                if (boardType === "py32") {
+    //             if (boardType === "py32") {
 
-                    console.log("------------------------------------------");
-                    console.log("目标设备: PY32");
-                    console.log("------------------------------------------");
+    //                 console.log("------------------------------------------");
+    //                 console.log("目标设备: PY32");
+    //                 console.log("------------------------------------------");
 
 
-                    // =================================================
-                    // PY32 编译输出目录
-                    // =================================================
+    //                 // =================================================
+    //                 // PY32 编译输出目录
+    //                 // =================================================
 
-                    const py32BuildDir = path.join(
-                        os.tmpdir(),
-                        "py32_build"
-                    );
+    //                 const py32BuildDir = path.join(
+    //                     os.tmpdir(),
+    //                     "py32_build"
+    //                 );
 
 
-                    // =================================================
-                    // 清理旧编译结果
-                    // =================================================
+    //                 // =================================================
+    //                 // 清理旧编译结果
+    //                 // =================================================
 
-                    if (fs.existsSync(py32BuildDir)) {
+    //                 if (fs.existsSync(py32BuildDir)) {
 
-                        console.log(
-                            "清理旧的 PY32 编译目录..."
-                        );
+    //                     console.log(
+    //                         "清理旧的 PY32 编译目录..."
+    //                     );
 
 
-                        fs.rmSync(
-                            py32BuildDir,
-                            {
-                                recursive: true,
-                                force: true
-                            }
-                        );
+    //                     fs.rmSync(
+    //                         py32BuildDir,
+    //                         {
+    //                             recursive: true,
+    //                             force: true
+    //                         }
+    //                     );
 
-                    }
+    //                 }
 
 
-                    // 创建新的编译目录
-                    fs.mkdirSync(
-                        py32BuildDir,
-                        {
-                            recursive: true
-                        }
-                    );
+    //                 // 创建新的编译目录
+    //                 fs.mkdirSync(
+    //                     py32BuildDir,
+    //                     {
+    //                         recursive: true
+    //                     }
+    //                 );
 
 
-                    console.log(
-                        "PY32 编译输出目录:",
-                        py32BuildDir
-                    );
+    //                 console.log(
+    //                     "PY32 编译输出目录:",
+    //                     py32BuildDir
+    //                 );
 
 
-                    // =================================================
-                    // PY32 FQBN
-                    // =================================================
+    //                 // =================================================
+    //                 // PY32 FQBN
+    //                 // =================================================
 
-                    const py32Fqbn =
-                        "PY32Duino:PY32:GenF030:pnum=PY32F030x8";
+    //                 const py32Fqbn =
+    //                     "PY32Duino:PY32:GenF030:pnum=PY32F030x8";
 
 
-                    console.log(
-                        "PY32 FQBN:",
-                        py32Fqbn
-                    );
+    //                 console.log(
+    //                     "PY32 FQBN:",
+    //                     py32Fqbn
+    //                 );
 
 
-                    // =================================================
-                    // 编译 PY32
-                    // =================================================
+    //                 // =================================================
+    //                 // 编译 PY32
+    //                 // =================================================
 
-                    console.log(
-                        "开始编译 PY32..."
-                    );
+    //                 console.log(
+    //                     "开始编译 PY32..."
+    //                 );
 
 
-                    await runCli([
-                        "compile",
+    //                 await runCli([
+    //                     "compile",
 
-                        "--fqbn",
-                        py32Fqbn,
+    //                     "--fqbn",
+    //                     py32Fqbn,
 
-                        "--output-dir",
-                        py32BuildDir,
+    //                     "--output-dir",
+    //                     py32BuildDir,
 
-                        sketchDir
-                    ]);
+    //                     sketchDir
+    //                 ]);
 
 
-                    console.log(
-                        "PY32 编译成功"
-                    );
+    //                 console.log(
+    //                     "PY32 编译成功"
+    //                 );
 
 
-                    // =================================================
-                    // 获取 BIN 文件
-                    // =================================================
-                    //
-                    // Arduino CLI 的输出文件按照 Sketch 名称生成。
-                    //
-                    // 当前：
-                    //
-                    // sketchName = mysketch
-                    //
-                    // 所以：
-                    //
-                    // mysketch.ino
-                    //
-                    // 对应：
-                    //
-                    // mysketch.ino.bin
-                    //
-                    // =================================================
+    //                 // =================================================
+    //                 // 获取 BIN 文件
+    //                 // =================================================
+    //                 //
+    //                 // Arduino CLI 的输出文件按照 Sketch 名称生成。
+    //                 //
+    //                 // 当前：
+    //                 //
+    //                 // sketchName = mysketch
+    //                 //
+    //                 // 所以：
+    //                 //
+    //                 // mysketch.ino
+    //                 //
+    //                 // 对应：
+    //                 //
+    //                 // mysketch.ino.bin
+    //                 //
+    //                 // =================================================
 
-                    const binFile = path.join(
-                        py32BuildDir,
-                        sketchName + ".ino.bin"
-                    );
+    //                 const binFile = path.join(
+    //                     py32BuildDir,
+    //                     sketchName + ".ino.bin"
+    //                 );
 
 
-                    console.log(
-                        "PY32 BIN 文件:",
-                        binFile
-                    );
+    //                 console.log(
+    //                     "PY32 BIN 文件:",
+    //                     binFile
+    //                 );
 
 
-                    // =================================================
-                    // 检查 BIN 文件
-                    // =================================================
+    //                 // =================================================
+    //                 // 检查 BIN 文件
+    //                 // =================================================
 
-                    if (!fs.existsSync(binFile)) {
+    //                 if (!fs.existsSync(binFile)) {
 
-                        throw new Error(
-                            "PY32 编译成功，但是没有找到 BIN 文件:\n" +
-                            binFile
-                        );
+    //                     throw new Error(
+    //                         "PY32 编译成功，但是没有找到 BIN 文件:\n" +
+    //                         binFile
+    //                     );
 
-                    }
+    //                 }
 
 
-                    // 获取 BIN 文件大小
-                    const binStat =
-                        fs.statSync(binFile);
+    //                 // 获取 BIN 文件大小
+    //                 const binStat =
+    //                     fs.statSync(binFile);
 
 
-                    console.log(
-                        "BIN 文件大小:",
-                        binStat.size,
-                        "bytes"
-                    );
+    //                 console.log(
+    //                     "BIN 文件大小:",
+    //                     binStat.size,
+    //                     "bytes"
+    //                 );
 
 
-                    // =================================================
-                    // PY32 烧录
-                    // =================================================
+    //                 // =================================================
+    //                 // PY32 烧录
+    //                 // =================================================
 
-                    console.log(
-                        "开始烧录 PY32..."
-                    );
+    //                 console.log(
+    //                     "开始烧录 PY32..."
+    //                 );
 
 
-                    console.log(
-                        "烧录程序:",
-                        puyaispPath
-                    );
+    //                 console.log(
+    //                     "烧录程序:",
+    //                     puyaispPath
+    //                 );
 
 
-                    console.log(
-                        "烧录串口:",
-                        port
-                    );
+    //                 console.log(
+    //                     "烧录串口:",
+    //                     port
+    //                 );
 
 
-                    console.log(
-                        "烧录固件:",
-                        binFile
-                    );
+    //                 console.log(
+    //                     "烧录固件:",
+    //                     binFile
+    //                 );
 
 
-                    // =================================================
-                    // puyaispcom 参数
-                    // =================================================
-                    //
-                    // 假设你的 puyaispcom.exe 使用：
-                    //
-                    // puyaispcom.exe
-                    //     --port COM3
-                    //     -f xxx.bin
-                    //
-                    // =================================================
+    //                 // =================================================
+    //                 // puyaispcom 参数
+    //                 // =================================================
+    //                 //
+    //                 // 假设你的 puyaispcom.exe 使用：
+    //                 //
+    //                 // puyaispcom.exe
+    //                 //     --port COM3
+    //                 //     -f xxx.bin
+    //                 //
+    //                 // =================================================
 
-                    const puyaispArgs = [
+    //                 const puyaispArgs = [
 
-                        "--port",
-                        port,
+    //                     "--port",
+    //                     port,
 
-                        "-f",
-                        binFile
+    //                     "-f",
+    //                     binFile
 
-                    ];
+    //                 ];
 
 
-                    // =================================================
-                    // 调用 puyaispcom.exe
-                    // =================================================
+    //                 // =================================================
+    //                 // 调用 puyaispcom.exe
+    //                 // =================================================
 
-                    await runPuyaisp(
-                        puyaispPath,
-                        puyaispArgs
-                    );
+    //                 await runPuyaisp(
+    //                     puyaispPath,
+    //                     puyaispArgs
+    //                 );
 
 
-                    console.log(
-                        "PY32 烧录成功"
-                    );
+    //                 console.log(
+    //                     "PY32 烧录成功"
+    //                 );
 
 
-                    return {
+    //                 return {
 
-                        success: true,
+    //                     success: true,
 
-                        type: "py32",
+    //                     type: "py32",
 
-                        binFile: binFile
+    //                     binFile: binFile
 
-                    };
+    //                 };
 
-                }
+    //             }
 
 
-                // ====================================================
-                // 5. 未知设备类型
-                // ====================================================
+    //             // ====================================================
+    //             // 5. 未知设备类型
+    //             // ====================================================
 
-                throw new Error(
-                    "未知的设备类型: " +
-                    boardType
-                );
+    //             throw new Error(
+    //                 "未知的设备类型: " +
+    //                 boardType
+    //             );
 
 
-            } catch (err) {
+    //         } catch (err) {
 
-                console.error(
-                    "编译 / 烧录失败:",
-                    err
-                );
+    //             console.error(
+    //                 "编译 / 烧录失败:",
+    //                 err
+    //             );
 
 
-                return {
+    //             return {
 
-                    success: false,
+    //                 success: false,
 
-                    error:
-                        err.message ||
-                        String(err)
+    //                 error:
+    //                     err.message ||
+    //                     String(err)
 
-                };
+    //             };
 
-            }
+    //         }
 
-        }
-    );
+    //     }
+    // );
 
 
-    // ============================================================
-    // Arduino CLI 执行函数
-    // ============================================================
+    // // ============================================================
+    // // Arduino CLI 执行函数
+    // // ============================================================
 
-    function runCli(args) {
+    // function runCli(args) {
 
-        // ==========================================================
-        // Arduino CLI 配置文件
-        // ==========================================================
+    //     // ==========================================================
+    //     // Arduino CLI 配置文件
+    //     // ==========================================================
 
-        const config = getResourcePath(
-            "resources/arduino-cli.yaml"
-        );
+    //     const config = getResourcePath(
+    //         "resources/arduino-cli.yaml"
+    //     );
 
 
-        // ==========================================================
-        // Arduino CLI 工作目录
-        // ==========================================================
-        //
-        // arduino-cli.yaml 中如果存在：
-        //
-        // ./data
-        // ./staging
-        //
-        // 那么这里必须使用 resources 作为 cwd。
-        //
-        // ==========================================================
+    //     // ==========================================================
+    //     // Arduino CLI 工作目录
+    //     // ==========================================================
+    //     //
+    //     // arduino-cli.yaml 中如果存在：
+    //     //
+    //     // ./data
+    //     // ./staging
+    //     //
+    //     // 那么这里必须使用 resources 作为 cwd。
+    //     //
+    //     // ==========================================================
 
-        const cliDir = getResourcePath(
-            "resources"
-        );
+    //     const cliDir = getResourcePath(
+    //         "resources"
+    //     );
 
 
-        return new Promise(
-            (resolve, reject) => {
+    //     return new Promise(
+    //         (resolve, reject) => {
 
 
-                console.log(
-                    "=========================================="
-                );
+    //             console.log(
+    //                 "=========================================="
+    //             );
 
 
-                console.log(
-                    "执行 Arduino CLI:"
-                );
+    //             console.log(
+    //                 "执行 Arduino CLI:"
+    //             );
 
 
-                console.log(
-                    cliPath,
-                    "--config-file",
-                    config,
-                    ...args
-                );
+    //             console.log(
+    //                 cliPath,
+    //                 "--config-file",
+    //                 config,
+    //                 ...args
+    //             );
 
 
-                console.log(
-                    "CLI cwd:",
-                    cliDir
-                );
+    //             console.log(
+    //                 "CLI cwd:",
+    //                 cliDir
+    //             );
 
 
-                console.log(
-                    "CLI config:",
-                    config
-                );
+    //             console.log(
+    //                 "CLI config:",
+    //                 config
+    //             );
 
 
-                // ====================================================
-                // 启动 Arduino CLI
-                // ====================================================
+    //             // ====================================================
+    //             // 启动 Arduino CLI
+    //             // ====================================================
 
-                const proc = spawn(
+    //             const proc = spawn(
 
-                    cliPath,
+    //                 cliPath,
 
-                    [
-                        "--config-file",
-                        config,
+    //                 [
+    //                     "--config-file",
+    //                     config,
 
-                        ...args
-                    ],
+    //                     ...args
+    //                 ],
 
-                    {
+    //                 {
 
-                        // 工作目录
-                        cwd: cliDir,
+    //                     // 工作目录
+    //                     cwd: cliDir,
 
-                        // Windows 下直接执行 exe
-                        shell: false
+    //                     // Windows 下直接执行 exe
+    //                     shell: false
 
-                    }
+    //                 }
 
-                );
+    //             );
 
 
-                // ====================================================
-                // stdout
-                // ====================================================
+    //             // ====================================================
+    //             // stdout
+    //             // ====================================================
 
-                proc.stdout.on(
-                    "data",
-                    d => {
+    //             proc.stdout.on(
+    //                 "data",
+    //                 d => {
 
-                        const output =
-                            d.toString();
+    //                     const output =
+    //                         d.toString();
 
 
-                        console.log(
-                            "[CLI stdout]:",
-                            output
-                        );
+    //                     console.log(
+    //                         "[CLI stdout]:",
+    //                         output
+    //                     );
 
-                    }
-                );
+    //                 }
+    //             );
 
 
-                // ====================================================
-                // stderr
-                // ====================================================
+    //             // ====================================================
+    //             // stderr
+    //             // ====================================================
 
-                proc.stderr.on(
-                    "data",
-                    d => {
+    //             proc.stderr.on(
+    //                 "data",
+    //                 d => {
 
-                        const output =
-                            d.toString();
+    //                     const output =
+    //                         d.toString();
 
 
-                        console.error(
-                            "[CLI stderr]:",
-                            output
-                        );
+    //                     console.error(
+    //                         "[CLI stderr]:",
+    //                         output
+    //                     );
 
-                    }
-                );
+    //                 }
+    //             );
 
 
-                // ====================================================
-                // CLI 结束
-                // ====================================================
+    //             // ====================================================
+    //             // CLI 结束
+    //             // ====================================================
 
-                proc.on(
-                    "close",
-                    code => {
+    //             proc.on(
+    //                 "close",
+    //                 code => {
 
-                        console.log(
-                            "Arduino CLI exit code:",
-                            code
-                        );
+    //                     console.log(
+    //                         "Arduino CLI exit code:",
+    //                         code
+    //                     );
 
 
-                        if (code === 0) {
+    //                     if (code === 0) {
 
-                            resolve();
+    //                         resolve();
 
-                        } else {
+    //                     } else {
 
-                            reject(
-                                new Error(
-                                    "Arduino CLI Error, exitCode=" +
-                                    code
-                                )
-                            );
+    //                         reject(
+    //                             new Error(
+    //                                 "Arduino CLI Error, exitCode=" +
+    //                                 code
+    //                             )
+    //                         );
 
-                        }
+    //                     }
 
-                    }
-                );
+    //                 }
+    //             );
 
 
-                // ====================================================
-                // CLI 启动失败
-                // ====================================================
+    //             // ====================================================
+    //             // CLI 启动失败
+    //             // ====================================================
 
-                proc.on(
-                    "error",
-                    err => {
+    //             proc.on(
+    //                 "error",
+    //                 err => {
 
-                        console.error(
-                            "Arduino CLI process error:",
-                            err
-                        );
+    //                     console.error(
+    //                         "Arduino CLI process error:",
+    //                         err
+    //                     );
 
 
-                        reject(err);
+    //                     reject(err);
 
-                    }
-                );
+    //                 }
+    //             );
 
-            }
-        );
+    //         }
+    //     );
 
-    }
+    // }
 
 
-    // ============================================================
-    // PY32 puyaispcom 执行函数
-    // ============================================================
+    // // ============================================================
+    // // PY32 puyaispcom 执行函数
+    // // ============================================================
 
-    function runPuyaisp(exePath, args) {
+    // function runPuyaisp(exePath, args) {
 
-        return new Promise(
-            (resolve, reject) => {
+    //     return new Promise(
+    //         (resolve, reject) => {
 
 
-                console.log(
-                    "=========================================="
-                );
+    //             console.log(
+    //                 "=========================================="
+    //             );
 
 
-                console.log(
-                    "执行 PY32 ISP:"
-                );
+    //             console.log(
+    //                 "执行 PY32 ISP:"
+    //             );
 
 
-                console.log(
-                    exePath,
-                    ...args
-                );
+    //             console.log(
+    //                 exePath,
+    //                 ...args
+    //             );
 
 
-                // ====================================================
-                // 启动 puyaispcom.exe
-                // ====================================================
+    //             // ====================================================
+    //             // 启动 puyaispcom.exe
+    //             // ====================================================
 
-                const proc = spawn(
+    //             const proc = spawn(
 
-                    exePath,
+    //                 exePath,
 
-                    args,
+    //                 args,
 
-                    {
+    //                 {
 
-                        // 以 exe 所在目录作为工作目录
-                        cwd: path.dirname(exePath),
+    //                     // 以 exe 所在目录作为工作目录
+    //                     cwd: path.dirname(exePath),
 
-                        // 不使用 shell
-                        shell: false
+    //                     // 不使用 shell
+    //                     shell: false
 
-                    }
+    //                 }
 
-                );
+    //             );
 
 
-                // ====================================================
-                // stdout
-                // ====================================================
+    //             // ====================================================
+    //             // stdout
+    //             // ====================================================
 
-                proc.stdout.on(
-                    "data",
-                    d => {
+    //             proc.stdout.on(
+    //                 "data",
+    //                 d => {
 
-                        const output =
-                            d.toString();
+    //                     const output =
+    //                         d.toString();
 
 
-                        console.log(
-                            "[PY32 ISP stdout]:",
-                            output
-                        );
+    //                     console.log(
+    //                         "[PY32 ISP stdout]:",
+    //                         output
+    //                     );
 
-                    }
-                );
+    //                 }
+    //             );
 
 
-                // ====================================================
-                // stderr
-                // ====================================================
+    //             // ====================================================
+    //             // stderr
+    //             // ====================================================
 
-                proc.stderr.on(
-                    "data",
-                    d => {
+    //             proc.stderr.on(
+    //                 "data",
+    //                 d => {
 
-                        const output =
-                            d.toString();
+    //                     const output =
+    //                         d.toString();
 
 
-                        console.error(
-                            "[PY32 ISP stderr]:",
-                            output
-                        );
+    //                     console.error(
+    //                         "[PY32 ISP stderr]:",
+    //                         output
+    //                     );
 
-                    }
-                );
+    //                 }
+    //             );
 
 
-                // ====================================================
-                // 进程结束
-                // ====================================================
+    //             // ====================================================
+    //             // 进程结束
+    //             // ====================================================
 
-                proc.on(
-                    "close",
-                    code => {
+    //             proc.on(
+    //                 "close",
+    //                 code => {
 
-                        console.log(
-                            "PY32 ISP exit code:",
-                            code
-                        );
+    //                     console.log(
+    //                         "PY32 ISP exit code:",
+    //                         code
+    //                     );
 
 
-                        if (code === 0) {
+    //                     if (code === 0) {
 
-                            resolve();
+    //                         resolve();
 
-                        } else {
+    //                     } else {
 
-                            reject(
-                                new Error(
-                                    "PY32 ISP 烧录失败，exitCode=" +
-                                    code
-                                )
-                            );
+    //                         reject(
+    //                             new Error(
+    //                                 "PY32 ISP 烧录失败，exitCode=" +
+    //                                 code
+    //                             )
+    //                         );
 
-                        }
+    //                     }
 
-                    }
-                );
+    //                 }
+    //             );
 
 
-                // ====================================================
-                // 进程启动失败
-                // ====================================================
+    //             // ====================================================
+    //             // 进程启动失败
+    //             // ====================================================
 
-                proc.on(
-                    "error",
-                    err => {
+    //             proc.on(
+    //                 "error",
+    //                 err => {
 
-                        console.error(
-                            "PY32 ISP process error:",
-                            err
-                        );
+    //                     console.error(
+    //                         "PY32 ISP process error:",
+    //                         err
+    //                     );
 
 
-                        reject(err);
+    //                     reject(err);
 
-                    }
-                );
+    //                 }
+    //             );
 
-            }
-        );
+    //         }
+    //     );
 
-    }
+    // }
     
     this.loadURL('download-code://./download-code.html');
   }
