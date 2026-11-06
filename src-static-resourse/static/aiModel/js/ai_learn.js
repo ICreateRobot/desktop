@@ -1531,7 +1531,7 @@ function addCard() {
         <!-- 下拉菜单 -->
         <div class="menu">
             <div class="menu-item" onclick="deleteCard(this)">删除类别</div>
-            <div class="menu-item" onclick="deleteSample(this)">移除所有类别</div>
+            <div class="menu-item" onclick="deleteSample(this)">移除所有样本</div>
         </div>
     </div>
     <!-- <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical ant-dropdown-trigger" style="cursor: pointer;"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></span> -->
@@ -1746,6 +1746,7 @@ function openCamera(button) {
         let lastChar = classChecked_div.id.match(/\d+$/);
         if(whatCamera!='local'){
             classChecked_div.querySelector(`#cameraLeft${lastChar}`).style.display='block'
+            classChecked_div.querySelector(`.cameraWin #cameraView${lastChar}`).style.display='none'
             classChecked_div.querySelector(`.cameraWin #netCamera${lastChar}`).style.display='block'
             classChecked_div.querySelector(`.cameraWin #canvas${lastChar}`).style.display='block'
             // classChecked_div.querySelector(`.cameraWin #canvas${lastChar}`).style.zIndex='100'
@@ -1765,6 +1766,7 @@ function openCamera(button) {
             console.log(classChecked_div)
             console.log(document.getElementById(`netCamera${lastChar}`))
             classChecked_div.querySelector(`#cameraLeft${lastChar}`).style.display='block'
+            classChecked_div.querySelector(`.cameraWin #netCamera${lastChar}`).style.display='none'
             classChecked_div.querySelector(`.cameraWin #cameraView${lastChar}`).style.display='block'
             classChecked_div.querySelector(`.cameraWin #canvas${lastChar}`).style.display='block'
             video=classChecked_div.querySelector(`.cameraWin #cameraView${lastChar}`)
@@ -2491,11 +2493,11 @@ document.querySelectorAll('.uploadSetting').forEach(btn=>{
     let box = btn.closest('.cameraLeft');
   
     let fps = box.querySelector('#fpsInput1').value;
-    let hold = box.querySelector('#holdRecord1').checked;
+    // let hold = box.querySelector('#holdRecord1').checked;
   
     recordFps=fps
     console.log("FPS:", fps);
-    console.log("按住录制:", hold);
+    // console.log("按住录制:", hold);
   
     // 👉 这里你可以把参数传给模型或摄像头逻辑
   
